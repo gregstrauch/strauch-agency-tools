@@ -1,0 +1,2613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strauch Agency — Lead Profile Tracker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
+
+  :root {
+    --red:     #c8102e;
+    --red-dim: #8f0c20;
+    --red-bg:  #fff2f4;
+    --ink:     #0f1117;
+    --ink-2:   #3a3d4a;
+    --ink-3:   #6b6f80;
+    --border:  #d8dce8;
+    --bg:      #f4f5f8;
+    --white:   #ffffff;
+    --green:   #0e8a4a;
+    --green-bg:#f0fdf7;
+    --amber:   #c47c00;
+    --amber-bg:#fffbf0;
+    --blue:    #1a5fce;
+    --blue-bg: #f0f5ff;
+    --mono:    'DM Mono', monospace;
+    --sans:    'DM Sans', sans-serif;
+    --display: 'Syne', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── TOP NAV ── */
+  .topnav {
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    height: 52px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 2px solid var(--red);
+  }
+  .topnav-brand {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 15px;
+    color: white;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .topnav-brand span { color: var(--red); }
+  .topnav-actions { display: flex; gap: 8px; }
+  .nav-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.75);
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: all 0.15s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .nav-btn:hover { background: rgba(255,255,255,0.12); color: white; border-color: rgba(255,255,255,0.3); }
+  .nav-btn.danger { border-color: rgba(200,16,46,0.4); color: rgba(255,100,120,0.85); }
+  .nav-btn.danger:hover { background: rgba(200,16,46,0.15); color: #ff6678; }
+
+  /* ── AGENT TABS ── */
+  .agent-tabs {
+    display: flex;
+    gap: 2px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 6px;
+    padding: 3px;
+    margin-left: 10px;
+  }
+  .agent-tab {
+    font-family: var(--display);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 4px;
+    border: none;
+    background: transparent;
+    color: rgba(255,255,255,0.4);
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: all 0.15s;
+  }
+  .agent-tab:hover { color: rgba(255,255,255,0.75); }
+  .agent-tab.active { background: var(--red); color: white; }
+
+  /* ── LAYOUT ── */
+  .app-shell {
+    display: flex;
+    min-height: calc(100vh - 52px);
+    position: relative;
+  }
+
+  /* ── ICON RAIL ── */
+  .icon-rail {
+    width: 56px;
+    background: var(--ink);
+    border-right: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 0;
+    gap: 2px;
+    z-index: 50;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .rail-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: rgba(255,255,255,0.35);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    transition: all 0.15s;
+    position: relative;
+    font-size: 18px;
+    line-height: 1;
+  }
+  .rail-btn:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.8); }
+  .rail-btn.active { background: rgba(200,16,46,0.18); color: var(--red); }
+  .rail-btn .rail-label {
+    font-family: var(--mono);
+    font-size: 7px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    line-height: 1;
+    color: inherit;
+  }
+
+  /* Tooltip */
+  .rail-btn::after {
+    content: attr(data-tip);
+    position: absolute;
+    left: calc(100% + 10px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--ink-2);
+    color: white;
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 200;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+  .rail-btn:hover::after { opacity: 1; }
+
+  .rail-divider {
+    width: 28px;
+    height: 1px;
+    background: rgba(255,255,255,0.08);
+    margin: 4px 0;
+  }
+
+  .rail-spacer { flex: 1; }
+
+  /* New lead button at bottom of rail */
+  .rail-new-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid rgba(200,16,46,0.5);
+    background: rgba(200,16,46,0.15);
+    color: var(--red);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 300;
+    line-height: 1;
+    transition: all 0.15s;
+    margin-bottom: 4px;
+  }
+  .rail-new-btn:hover { background: var(--red); color: white; border-color: var(--red); }
+
+  /* ── SLIDE-OUT LEAD PANEL ── */
+  .lead-panel {
+    width: 0;
+    overflow: hidden;
+    background: #13151e;
+    border-right: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    flex-direction: column;
+    transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+  }
+  .lead-panel.open { width: 200px; }
+
+  .lead-panel-inner {
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .lead-panel-header {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    flex-shrink: 0;
+  }
+  .lead-panel-header h3 {
+    font-family: var(--display);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 9px;
+  }
+  .search-box {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 5px;
+    padding: 7px 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: white;
+    outline: none;
+  }
+  .search-box::placeholder { color: rgba(255,255,255,0.2); }
+  .search-box:focus { border-color: var(--red); background: rgba(255,255,255,0.07); }
+
+  .lead-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px 0;
+  }
+  .lead-list::-webkit-scrollbar { width: 3px; }
+  .lead-list::-webkit-scrollbar-track { background: transparent; }
+  .lead-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+
+  .lead-item {
+    padding: 10px 16px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all 0.12s;
+  }
+  .lead-item:hover { background: rgba(255,255,255,0.04); }
+  .lead-item.active { background: rgba(200,16,46,0.12); border-left-color: var(--red); }
+  .lead-item-name {
+    font-family: var(--display);
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.85);
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .lead-item-meta {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: rgba(255,255,255,0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .score-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 500;
+    padding: 2px 6px;
+    border-radius: 20px;
+  }
+  .score-pill.hot   { background: rgba(200,16,46,0.25);  color: #ff8a98; }
+  .score-pill.warm  { background: rgba(196,124,0,0.25);  color: #ffc44d; }
+  .score-pill.cold  { background: rgba(26,95,206,0.25);  color: #7eb4ff; }
+  .score-pill.none  { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.25); }
+
+  /* hidden new-lead-btn kept for JS compatibility — rail btn is used instead */
+  .new-lead-btn { display: none; }
+
+  .empty-state {
+    padding: 32px 16px;
+    text-align: center;
+    color: rgba(255,255,255,0.18);
+    font-size: 11px;
+    font-family: var(--mono);
+    display: none;
+  }
+
+  /* ── MAIN PANEL ── */
+  .main {
+    overflow-y: auto;
+    background: var(--bg);
+    padding: 28px 32px;
+  }
+
+  .welcome-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    text-align: center;
+    color: var(--ink-3);
+  }
+  .welcome-screen h2 {
+    font-family: var(--display);
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .welcome-screen p { font-size: 14px; margin-bottom: 24px; }
+  .welcome-new-btn {
+    background: var(--red);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 12px 28px;
+    font-family: var(--display);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .welcome-new-btn:hover { opacity: 0.85; }
+
+  /* ── PROFILE HEADER ── */
+  .profile-header {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px 26px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .profile-header-left { flex: 1; }
+  .profile-name-input {
+    font-family: var(--display);
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--ink);
+    border: none;
+    outline: none;
+    background: transparent;
+    width: 100%;
+    padding: 0;
+  }
+  .profile-name-input::placeholder { color: var(--border); }
+  .profile-meta-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+    align-items: center;
+  }
+  .meta-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-3);
+  }
+  .meta-chip input, .meta-chip select {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink);
+    border: none;
+    border-bottom: 1px solid var(--border);
+    background: transparent;
+    outline: none;
+    padding: 2px 4px;
+    min-width: 80px;
+  }
+  .meta-chip input:focus, .meta-chip select:focus { border-bottom-color: var(--red); }
+
+  .profile-header-right { text-align: right; flex-shrink: 0; }
+
+  /* ── SCORE DISPLAY ── */
+  .score-ring {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .score-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid var(--border);
+    transition: all 0.3s;
+  }
+  .score-circle.hot  { border-color: var(--red); background: var(--red-bg); }
+  .score-circle.warm { border-color: #e07b00; background: var(--amber-bg); }
+  .score-circle.cold { border-color: var(--blue); background: var(--blue-bg); }
+  .score-number {
+    font-family: var(--display);
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .score-circle.hot  .score-number { color: var(--red); }
+  .score-circle.warm .score-number { color: var(--amber); }
+  .score-circle.cold .score-number { color: var(--blue); }
+  .score-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .score-circle.hot  .score-label { color: var(--red-dim); }
+  .score-circle.warm .score-label { color: var(--amber); }
+  .score-circle.cold .score-label { color: var(--blue); }
+  .score-tag {
+    font-family: var(--display);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+  }
+
+  /* ── CRM LINK BUTTONS ── */
+  .crm-links {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    justify-content: flex-end;
+  }
+  .crm-btn {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: white;
+    color: var(--ink-2);
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.12s;
+    letter-spacing: 0.3px;
+  }
+  .crm-btn:hover { border-color: var(--ink-2); background: var(--bg); }
+  .crm-btn.ghl { border-color: #00b894; color: #00b894; }
+  .crm-btn.ghl:hover { background: #f0fff8; }
+  .crm-btn.az  { border-color: var(--blue); color: var(--blue); }
+  .crm-btn.az:hover  { background: var(--blue-bg); }
+  .crm-btn.copy { border-color: var(--ink-3); }
+
+  /* ── TABS ── */
+  .tab-bar {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 20px;
+  }
+  .tab {
+    font-family: var(--display);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    color: var(--ink-3);
+    transition: all 0.12s;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab.active { color: var(--red); border-bottom-color: var(--red); }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── SECTION CARDS ── */
+  .card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-family: var(--display);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--red);
+    border-bottom: 1px solid var(--red-bg);
+    padding-bottom: 8px;
+    margin-bottom: 16px;
+  }
+
+  /* ── FORM FIELDS ── */
+  .field-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 14px;
+  }
+  .field-grid.two { grid-template-columns: 1fr 1fr; }
+  .field-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+  .field-group { display: flex; flex-direction: column; gap: 4px; }
+  .field-group.span2 { grid-column: span 2; }
+  .field-group.span3 { grid-column: span 3; }
+  .field-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .field-input {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 8px 10px;
+    font-family: var(--sans);
+    font-size: 13px;
+    color: var(--ink);
+    background: #fafbfc;
+    outline: none;
+    transition: border 0.12s;
+  }
+  .field-input:focus { border-color: var(--red); background: white; }
+  .field-input.mono { font-family: var(--mono); font-size: 12px; }
+  textarea.field-input { resize: vertical; min-height: 72px; }
+
+  /* ── COVERAGE COMPARE ── */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 140px 1fr 1fr;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    overflow: hidden;
+    font-size: 12px;
+  }
+  .cg-header {
+    padding: 8px 14px;
+    font-family: var(--display);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    color: var(--ink-3);
+  }
+  .cg-header.farmers { background: var(--red); color: white; }
+  .cg-row-label {
+    padding: 8px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid #f0f0f0;
+    background: #fafbfc;
+    display: flex;
+    align-items: center;
+  }
+  .cg-cell {
+    padding: 6px 12px;
+    border-bottom: 1px solid #f0f0f0;
+    border-right: 1px solid var(--border);
+  }
+  .cg-cell:last-child { border-right: none; background: var(--red-bg); }
+  .cg-input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid transparent;
+    padding: 4px 2px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink);
+    background: transparent;
+    outline: none;
+  }
+  .cg-input:focus { border-bottom-color: var(--red); }
+
+  /* ── SCORE FACTORS ── */
+  .score-factors {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+  }
+  .factor {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .factor-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .factor-weight {
+    font-size: 9px;
+    background: var(--border);
+    border-radius: 20px;
+    padding: 1px 6px;
+    color: var(--ink-3);
+  }
+  .factor select {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink);
+    background: white;
+    outline: none;
+    cursor: pointer;
+  }
+  .factor select:focus { border-color: var(--red); }
+
+  /* ── SCORE BAR ── */
+  .score-bar-wrap {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin-bottom: 16px;
+  }
+  .score-bar-label {
+    font-family: var(--display);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .score-bar-track {
+    height: 8px;
+    border-radius: 4px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+  .score-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--blue) 0%, #e07b00 50%, var(--red) 80%);
+    transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    width: 0%;
+  }
+  .score-markers {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--ink-3);
+  }
+
+  /* ── CALL LOG ── */
+  .call-log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .add-call-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 7px 14px;
+    border-radius: 5px;
+    border: 1px solid var(--red);
+    background: white;
+    color: var(--red);
+    cursor: pointer;
+    transition: all 0.12s;
+    letter-spacing: 0.3px;
+  }
+  .add-call-btn:hover { background: var(--red); color: white; }
+
+  .call-entry {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .call-entry-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg);
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .call-entry-header:hover { background: #eaedf2; }
+  .call-num {
+    font-family: var(--display);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--ink-3);
+    min-width: 32px;
+  }
+  .call-date-input {
+    font-family: var(--mono);
+    font-size: 11px;
+    border: none;
+    background: transparent;
+    color: var(--ink);
+    outline: none;
+    cursor: pointer;
+  }
+  .call-summary-preview {
+    flex: 1;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .call-score-mini {
+    font-family: var(--display);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+  .call-score-mini.hot  { background: var(--red-bg); color: var(--red); }
+  .call-score-mini.warm { background: var(--amber-bg); color: var(--amber); }
+  .call-score-mini.cold { background: var(--blue-bg); color: var(--blue); }
+  .call-expand-icon {
+    font-size: 12px;
+    color: var(--ink-3);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .call-entry.expanded .call-expand-icon { transform: rotate(180deg); }
+
+  .call-body {
+    display: none;
+    padding: 18px 20px;
+    border-top: 1px solid var(--border);
+    background: white;
+  }
+  .call-entry.expanded .call-body { display: block; }
+
+  .call-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+  .call-notes-area {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-family: var(--sans);
+    font-size: 13px;
+    color: var(--ink);
+    background: #fafbfc;
+    outline: none;
+    resize: vertical;
+    min-height: 88px;
+    transition: border 0.12s;
+  }
+  .call-notes-area:focus { border-color: var(--red); background: white; }
+
+  .call-actions-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .call-action-btn {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: white;
+    color: var(--ink-2);
+    cursor: pointer;
+    transition: all 0.12s;
+    letter-spacing: 0.3px;
+  }
+  .call-action-btn:hover { border-color: var(--ink-2); }
+  .call-action-btn.del { border-color: #ffcdd2; color: #e57373; }
+  .call-action-btn.del:hover { background: #ffebee; border-color: #e57373; }
+
+  .outcome-select {
+    font-family: var(--mono);
+    font-size: 11px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 5px 8px;
+    background: white;
+    color: var(--ink);
+    outline: none;
+    cursor: pointer;
+  }
+  .outcome-select:focus { border-color: var(--red); }
+
+  /* ── HANDOFF EXPORT ── */
+  .handoff-section { }
+  .handoff-preview {
+    background: var(--ink);
+    border-radius: 8px;
+    padding: 20px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.7;
+    color: rgba(255,255,255,0.75);
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 480px;
+    overflow-y: auto;
+    margin-bottom: 14px;
+  }
+  .handoff-preview::-webkit-scrollbar { width: 4px; }
+  .handoff-preview::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
+
+  .export-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .export-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: 11px 16px;
+    border-radius: 6px;
+    border: none;
+    font-family: var(--display);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: opacity 0.12s;
+  }
+  .export-btn:hover { opacity: 0.84; }
+  .export-btn.primary   { background: var(--red); color: white; }
+  .export-btn.secondary { background: var(--ink); color: white; }
+  .export-btn.ghl-export { background: #00b894; color: white; }
+  .export-btn.az-export  { background: var(--blue); color: white; }
+
+  /* ── GHL SETTINGS ── */
+  .settings-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .settings-card h4 {
+    font-family: var(--display);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--ink);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-family: var(--mono);
+    font-size: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    z-index: 9999;
+    transform: translateY(20px);
+    opacity: 0;
+    transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-left: 3px solid #00b894; }
+  .toast.error   { border-left: 3px solid var(--red); }
+  .toast.info    { border-left: 3px solid var(--blue); }
+
+  /* ── MISC ── */
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+  .inline-badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 9px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+  .badge-lead { background: #e8f5e9; color: #2e7d32; }
+  .badge-ref  { background: var(--blue-bg); color: var(--blue); }
+  .badge-int  { background: #fff3e0; color: #e65100; }
+
+  .no-leads-msg {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--ink-3);
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+  .no-leads-msg h3 {
+    font-family: var(--display);
+    font-size: 18px;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+
+  /* ── LEAD STATUS ── */
+  .status-bar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .status-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    flex-shrink: 0;
+  }
+  .status-btn {
+    font-family: var(--display);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: white;
+    color: var(--ink-3);
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: all 0.15s;
+  }
+  .status-btn:hover { border-color: var(--ink-2); color: var(--ink); }
+  .status-btn.active-status-active { border-color: var(--blue); background: var(--blue-bg); color: var(--blue); }
+  .status-btn.active-status-won    { border-color: var(--green); background: var(--green-bg); color: var(--green); }
+  .status-btn.active-status-lost   { border-color: #e57373; background: #ffebee; color: #c62828; }
+  .status-btn.active-status-nurture { border-color: var(--amber); background: var(--amber-bg); color: var(--amber); }
+
+  /* Won banner on profile header */
+  .won-banner {
+    display: none;
+    background: var(--green-bg);
+    border: 1.5px solid var(--green);
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-family: var(--display);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--green);
+    letter-spacing: 0.5px;
+    margin-bottom: 14px;
+    align-items: center;
+    gap: 10px;
+  }
+  .won-banner.show { display: flex; }
+
+  /* Won lead item in sidebar */
+  .lead-item.won .lead-item-name { color: rgba(14,138,74,0.9); }
+  .lead-item.won { border-left-color: var(--green) !important; opacity: 0.8; }
+
+  /* Score legend */
+  /* Score legend */
+  .score-legend {
+    display: flex;
+    gap: 20px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-3);
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .legend-dot.hot  { background: var(--red); }
+  .legend-dot.warm { background: #e07b00; }
+  .legend-dot.cold { background: var(--blue); }
+
+  @media (max-width: 768px) {
+    .icon-rail { display: none; }
+    .lead-panel { display: none; }
+    .main { padding: 16px; }
+    .profile-header { flex-direction: column; }
+    .compare-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="topnav-brand">
+    <span>⬡</span> STRAUCH AGENCY <span style="color:rgba(255,255,255,0.2);font-weight:300;margin:0 4px;">|</span>
+    <div class="agent-tabs">
+      <button class="agent-tab active" id="agentTabGreg" onclick="switchAgent('greg')">Greg</button>
+      <button class="agent-tab" id="agentTabFaith" onclick="switchAgent('faith')">Faith</button>
+    </div>
+  </div>
+  <div class="topnav-actions">
+    <a href="#" class="nav-btn" onclick="openPipeline()" title="Sales Pipeline Board (works on any computer, requires Google login)">Pipeline</a>
+    <a href="#" class="nav-btn" onclick="openSalesSystem()" title="Sales System / SOPs">Sales System</a>
+    <span id="navSyncPill" style="display:none;font-family:var(--mono);font-size:10px;padding:5px 12px;border-radius:20px;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.4);letter-spacing:0.3px;align-items:center;gap:6px;">
+      <span id="navSyncDot" style="width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block;"></span>
+      <span id="navSyncText">Synced</span>
+    </span>
+    <a href="#" class="nav-btn" onclick="syncAllToSheet(false)">↑ Sync</a>
+    <a href="#" class="nav-btn" onclick="openSettings()">⚙ Settings</a>
+    <a href="#" class="nav-btn" onclick="exportAll()">↓ Export</a>
+    <a href="#" class="nav-btn danger" onclick="clearAll()">✕ Clear</a>
+  </div>
+</nav>
+
+<!-- APP SHELL -->
+<div class="app-shell">
+
+  <!-- ICON RAIL -->
+  <nav class="icon-rail">
+    <button class="rail-btn active" id="railLeads" data-tip="All Leads" onclick="toggleLeadPanel('leads')">
+      <span>👤</span>
+      <span class="rail-label">Leads</span>
+    </button>
+    <button class="rail-btn" id="railHot" data-tip="Hot Leads 65+" onclick="toggleLeadPanel('hot')">
+      <span>🔥</span>
+      <span class="rail-label">Hot</span>
+    </button>
+    <button class="rail-btn" id="railWarm" data-tip="Warm Leads 35-64" onclick="toggleLeadPanel('warm')">
+      <span>⚡</span>
+      <span class="rail-label">Warm</span>
+    </button>
+    <button class="rail-btn" id="railCold" data-tip="Cold Leads 0-34" onclick="toggleLeadPanel('cold')">
+      <span>❄</span>
+      <span class="rail-label">Cold</span>
+    </button>
+    <div class="rail-divider"></div>
+    <button class="rail-btn" id="railWon" data-tip="Closed / Won" onclick="toggleLeadPanel('won')">
+      <span>✓</span>
+      <span class="rail-label">Won</span>
+    </button>
+    <div class="rail-divider"></div>
+    <button class="rail-btn" id="railSearch" data-tip="Search Leads" onclick="toggleLeadPanel('search')">
+      <span>🔍</span>
+      <span class="rail-label">Search</span>
+    </button>
+    <div class="rail-divider"></div>
+    <button class="rail-btn" data-tip="Export All" onclick="exportAll()">
+      <span>↓</span>
+      <span class="rail-label">Export</span>
+    </button>
+    <button class="rail-btn" data-tip="Settings" onclick="openSettings()">
+      <span>⚙</span>
+      <span class="rail-label">Config</span>
+    </button>
+    <div class="rail-spacer"></div>
+    <button class="rail-new-btn" onclick="newLead()" title="New Lead">+</button>
+  </nav>
+
+  <!-- SLIDE-OUT LEAD PANEL -->
+  <div class="lead-panel" id="leadPanel">
+    <div class="lead-panel-inner">
+      <div class="lead-panel-header">
+        <h3 id="leadPanelTitle">All Leads</h3>
+        <input class="search-box" id="searchBox" placeholder="Search name, phone…" oninput="filterLeads(this.value)">
+      </div>
+      <div id="leadList" class="lead-list"></div>
+      <button class="new-lead-btn" onclick="newLead()">+ New Lead</button>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <main class="main" id="mainPanel">
+    <!-- Welcome screen -->
+    <div class="welcome-screen" id="welcomeScreen">
+      <h2>Lead Profile Tracker</h2>
+      <p>Full contact profiles · Call logs with notes · Auto lead scoring · One-click CRM push</p>
+      <button class="welcome-new-btn" onclick="newLead()">+ Create First Lead</button>
+    </div>
+
+    <!-- Profile editor (hidden until lead selected) -->
+    <div id="profileEditor" style="display:none;">
+
+      <!-- Profile Header -->
+      <div class="profile-header">
+        <div class="profile-header-left">
+          <input class="profile-name-input" id="pName" placeholder="Prospect Full Name" oninput="saveCurrentLead()">
+          <div class="profile-meta-row">
+            <span class="meta-chip">📞 <input id="pPhone" placeholder="Phone" oninput="saveCurrentLead()"></span>
+            <span class="meta-chip">✉ <input id="pEmail" placeholder="Email" oninput="saveCurrentLead()"></span>
+            <span class="meta-chip">📍 <input id="pAddress" placeholder="Address" oninput="saveCurrentLead()"></span>
+
+            <span class="meta-chip">Source:
+              <select id="pSource" onchange="saveCurrentLead()">
+                <option value="">Select…</option>
+                <option>EverQuote</option>
+                <option>SmartFinancial</option>
+                <option>QuoteWizard</option>
+                <option>BurkeDigital</option>
+                <option>Facebook Ad</option>
+                <option>Google LSA</option>
+                <option>Referral — Agent</option>
+                <option>Referral — Client</option>
+                <option>Public Record</option>
+                <option>Aged Lead</option>
+                <option>Non-Renewal</option>
+                <option>Walk-In</option>
+                <option>Cold Outreach</option>
+              </select>
+            </span>
+          </div>
+        </div>
+        <div class="profile-header-right">
+          <div class="score-ring">
+            <div class="score-circle" id="scoreCircle">
+              <span class="score-number" id="scoreDisplay">—</span>
+              <span class="score-label">SCORE</span>
+            </div>
+            <div class="score-tag" id="scoreTag" style="color:var(--ink-3)">Not Scored</div>
+          </div>
+          <div class="crm-links" style="margin-top:10px;">
+            <button class="crm-btn ghl" onclick="pushToGHL()">↗ GHL</button>
+            <button class="crm-btn az"  onclick="pushToAZ()">↗ AgencyZoom</button>
+            <button class="crm-btn copy" onclick="copyHandoff('FULL')">⎘ Copy</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Won Banner -->
+      <div class="won-banner" id="wonBanner">
+        <span>✓</span>
+        <span id="wonBannerText">CLOSED — WON</span>
+      </div>
+
+      <!-- Status Bar -->
+      <div style="background:white;border:1px solid var(--border);border-radius:10px;padding:14px 22px;margin-bottom:20px;">
+        <div class="status-bar">
+          <span class="status-label">Lead Status:</span>
+          <button class="status-btn" id="statusActive"   onclick="setLeadStatus('active')">● Active</button>
+          <button class="status-btn" id="statusNurture"  onclick="setLeadStatus('nurture')">◷ Nurture</button>
+          <button class="status-btn" id="statusWon"      onclick="setLeadStatus('won')">✓ Closed — Won</button>
+          <button class="status-btn" id="statusLost"     onclick="setLeadStatus('lost')">✕ Closed — Lost</button>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tab-bar">
+        <div class="tab active" onclick="switchTab('info',this)">Contact &amp; Coverage</div>
+        <div class="tab" onclick="switchTab('scoring',this)">Lead Score</div>
+        <div class="tab" onclick="switchTab('calls',this)">Call Log</div>
+        <div class="tab" onclick="switchTab('handoff',this)">Handoff Export</div>
+      </div>
+
+      <!-- TAB: Info -->
+      <div class="tab-panel active" id="tab-info">
+
+        <div class="card">
+          <div class="card-title">Contact Details</div>
+          <div class="field-grid">
+            <div class="field-group">
+              <label class="field-label">Date of Birth</label>
+              <input class="field-input mono" id="pDOB" type="date" oninput="saveCurrentLead()">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Best Time to Call</label>
+              <input class="field-input" id="pBestTime" placeholder="e.g. Afternoons" oninput="saveCurrentLead()">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Decision Makers</label>
+              <input class="field-input" id="pDM" placeholder="e.g. Spouse involved" oninput="saveCurrentLead()">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Affinity Discount</label>
+              <select class="field-input" id="pMil" onchange="saveCurrentLead()">
+                <option value="">— None / Unknown —</option>
+                <optgroup label="Aviation">
+                  <option>Airline Pilot (current Airman Certificate)</option>
+                  <option>Air Traffic Controller (current certificate)</option>
+                </optgroup>
+                <optgroup label="Military">
+                  <option>Active Military</option>
+                  <option>Military Veteran</option>
+                  <option>Retired Military</option>
+                </optgroup>
+                <optgroup label="Education">
+                  <option>Educator — K-12 (Elementary / Secondary)</option>
+                  <option>College Professor / Instructor</option>
+                  <option>Librarian</option>
+                </optgroup>
+                <optgroup label="Healthcare">
+                  <option>Physician / Surgeon</option>
+                  <option>Dentist</option>
+                  <option>Registered Nurse / NP / PA (active license)</option>
+                  <option>Veterinarian</option>
+                </optgroup>
+                <optgroup label="Professional / Licensed">
+                  <option>Architect</option>
+                  <option>Certified Financial Planner (CFP)</option>
+                  <option>Certified Public Accountant (CPA)</option>
+                  <option>Engineer</option>
+                  <option>Lawyer / Judge</option>
+                  <option>Scientist (qualifying degree)</option>
+                </optgroup>
+                <optgroup label="Public Safety">
+                  <option>Firefighter</option>
+                  <option>Police Officer</option>
+                </optgroup>
+                <optgroup label="Farmers / FIG">
+                  <option>Farmers Agent or Agent Employee</option>
+                  <option>Farmers District Manager or DM Employee</option>
+                  <option>Farmers Corporate Employee</option>
+                  <option>FIG Federal Credit Union Member</option>
+                </optgroup>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Property Type</label>
+              <select class="field-input" id="pPropType" onchange="saveCurrentLead()">
+                <option value="">Select…</option>
+                <option>Own — Single Family</option>
+                <option>Own — Condo</option>
+                <option>Own — New Construction</option>
+                <option>Rent</option>
+                <option>Live w/ Family</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Primary Pain / Why Looking</label>
+              <input class="field-input" id="pPain" placeholder="e.g. Carrier non-renewed" oninput="saveCurrentLead()">
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Coverage Comparison</div>
+          <div class="compare-grid">
+            <div class="cg-header"></div>
+            <div class="cg-header">Current Carrier</div>
+            <div class="cg-header farmers">Farmers Quote</div>
+
+            <div class="cg-row-label">Auto — Premium</div>
+            <div class="cg-cell"><input class="cg-input" id="cAutoCurrentPrem" placeholder="$0/yr" oninput="saveCurrentLead()"></div>
+            <div class="cg-cell"><input class="cg-input" id="cAutoFarmersPrem" placeholder="$0/yr" oninput="saveCurrentLead()"></div>
+
+            <div class="cg-row-label">Auto — Carrier</div>
+            <div class="cg-cell"><input class="cg-input" id="cAutoCurrentCarrier" placeholder="Carrier name" oninput="saveCurrentLead()"></div>
+            <div class="cg-cell"><input class="cg-input" id="cAutoFarmersNote" placeholder="BW / policy note" oninput="saveCurrentLead()"></div>
+
+            <div class="cg-row-label">Auto — Deductible</div>
+            <div class="cg-cell"><input class="cg-input" id="cAutoCurrentDeduct" placeholder="$500" oninput="saveCurrentLead()"></div>
+            <div class="cg-cell"><input class="cg-input" id="cAutoFarmersDeduct" placeholder="$500" oninput="saveCurrentLead()"></div>
+
+            <div class="cg-row-label">Home — Premium</div>
+            <div class="cg-cell"><input class="cg-input" id="cHomeCurrentPrem" placeholder="$0/yr" oninput="saveCurrentLead()"></div>
+            <div class="cg-cell"><input class="cg-input" id="cHomeFarmersPrem" placeholder="$0/yr" oninput="saveCurrentLead()"></div>
+
+            <div class="cg-row-label">Home — Carrier</div>
+            <div class="cg-cell"><input class="cg-input" id="cHomeCurrentCarrier" placeholder="Carrier name" oninput="saveCurrentLead()"></div>
+            <div class="cg-cell"><input class="cg-input" id="cHomeFarmersNote" placeholder="Replacement cost" oninput="saveCurrentLead()"></div>
+
+            <div class="cg-row-label">Home — Deductible</div>
+            <div class="cg-cell"><input class="cg-input" id="cHomeCurrentDeduct" placeholder="$1,000" oninput="saveCurrentLead()"></div>
+            <div class="cg-cell"><input class="cg-input" id="cHomeFarmersDeduct" placeholder="$1,000" oninput="saveCurrentLead()"></div>
+          </div>
+
+          <div style="margin-top:14px;">
+            <div class="field-group">
+              <label class="field-label">Coverage Gaps Identified</label>
+              <textarea class="field-input" id="pGaps" rows="2" oninput="saveCurrentLead()" placeholder="e.g. Underinsured dwelling, no umbrella, liability gap…"></textarea>
+            </div>
+          </div>
+          <div style="margin-top:10px;">
+            <div class="field-group">
+              <label class="field-label">Add-ons / Riders Quoted</label>
+              <input class="field-input" id="pAddons" placeholder="e.g. Umbrella, Rideshare, Water Backup" oninput="saveCurrentLead()">
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Objections Logged</div>
+          <textarea class="field-input" id="pObjections" rows="3" oninput="saveCurrentLead()" placeholder="Record objections raised during any call — price, carrier loyalty, need to talk to spouse, etc."></textarea>
+        </div>
+
+      </div>
+
+      <!-- TAB: Scoring -->
+      <div class="tab-panel" id="tab-scoring">
+
+        <div class="score-bar-wrap">
+          <div class="score-bar-label">
+            <span>LEAD CLOSE PROBABILITY</span>
+            <span id="scoreBarPct" style="font-size:20px;font-family:var(--display);font-weight:800;color:var(--ink)">—</span>
+          </div>
+          <div class="score-bar-track">
+            <div class="score-bar-fill" id="scoreBarFill"></div>
+          </div>
+          <div class="score-markers">
+            <span>0 — Cold</span><span>35 — Warm</span><span>65 — Hot</span><span>100</span>
+          </div>
+          <div class="score-legend">
+            <span class="legend-item"><span class="legend-dot cold"></span> Cold: nurture sequence</span>
+            <span class="legend-item"><span class="legend-dot warm"></span> Warm: active follow-up</span>
+            <span class="legend-item"><span class="legend-dot hot"></span> Hot: close now</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Score Factors <span style="font-size:10px;color:var(--ink-3);text-transform:none;letter-spacing:0;font-weight:400;">— Each factor contributes weighted points toward total</span></div>
+          <div class="score-factors">
+
+            <div class="factor">
+              <div class="factor-label">Urgency / Trigger Event <span class="factor-weight">25 pts</span></div>
+              <select id="sf_urgency" onchange="recalcScore()">
+                <option value="0">— Select —</option>
+                <option value="25">Non-renewed / forced to move</option>
+                <option value="22">Renewal date within 30 days</option>
+                <option value="18">Renewal date within 60 days</option>
+                <option value="12">Shopping around proactively</option>
+                <option value="5">Browsing / no urgency stated</option>
+              </select>
+            </div>
+
+            <div class="factor">
+              <div class="factor-label">Decision Maker Access <span class="factor-weight">15 pts</span></div>
+              <select id="sf_dm" onchange="recalcScore()">
+                <option value="0">— Select —</option>
+                <option value="15">Confirmed sole DM</option>
+                <option value="10">DM + spouse — both spoken to</option>
+                <option value="5">Spouse / partner not yet reached</option>
+                <option value="2">DM unknown / unclear</option>
+              </select>
+            </div>
+
+            <div class="factor">
+              <div class="factor-label">Quote Delivered <span class="factor-weight">15 pts</span></div>
+              <select id="sf_quote" onchange="recalcScore()">
+                <option value="0">— Select —</option>
+                <option value="15">Quote delivered — favorable vs current</option>
+                <option value="10">Quote delivered — similar price</option>
+                <option value="5">Quote delivered — higher price</option>
+                <option value="2">No quote yet</option>
+              </select>
+            </div>
+
+            <div class="factor">
+              <div class="factor-label">Prospect Engagement <span class="factor-weight">15 pts</span></div>
+              <select id="sf_engagement" onchange="recalcScore()">
+                <option value="0">— Select —</option>
+                <option value="15">Asked detailed coverage questions</option>
+                <option value="12">Stayed on call &gt;10 min, engaged</option>
+                <option value="8">Polite, answered questions, neutral</option>
+                <option value="3">Short, distracted, minimal answers</option>
+                <option value="0">Hostile / price-only focus</option>
+              </select>
+            </div>
+
+            <div class="factor">
+              <div class="factor-label">Call Attempts / Contact <span class="factor-weight">10 pts</span></div>
+              <select id="sf_contact" onchange="recalcScore()">
+                <option value="0">— Select —</option>
+                <option value="10">Spoke live — 1st or 2nd attempt</option>
+                <option value="7">Spoke live — 3rd–5th attempt</option>
+                <option value="4">Spoke live — 6+ attempts</option>
+                <option value="2">Text/email response only</option>
+                <option value="0">No contact yet</option>
+              </select>
+            </div>
+
+            <div class="factor">
+              <div class="factor-label">Coverage Gap Identified <span class="factor-weight">10 pts</span></div>
+              <select id="sf_gap" onchange="recalcScore()">
+                <option value="0">— Select —</option>
+                <option value="10">Significant gap — prospect aware &amp; concerned</option>
+                <option value="7">Gap identified — prospect acknowledged</option>
+                <option value="4">Minor gap — prospect not moved</option>
+                <option value="0">No gap found or discussed</option>
+              </select>
+            </div>
+
+            <div class="factor">
+              <div class="factor-label">Objection Status <span class="factor-weight">5 pts</span></div>
+              <select id="sf_objection" onchange="recalcScore()">
+                <option value="0">— Select —</option>
+                <option value="5">No major objections surfaced</option>
+                <option value="3">Objections raised &amp; addressed</option>
+                <option value="1">Objections raised, not resolved</option>
+                <option value="0">Hard objection — price only focus</option>
+              </select>
+            </div>
+
+
+          </div>
+
+          <div class="divider"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div class="field-label" style="margin-bottom:6px;">Agent Priority Note (internal)</div>
+              <textarea class="field-input" id="pPriNote" rows="2" style="font-size:12px;font-family:var(--mono);" oninput="saveCurrentLead()" placeholder="Why this lead is or isn't a priority right now…"></textarea>
+            </div>
+            <button onclick="recalcScore()" style="margin-left:16px;padding:10px 20px;background:var(--red);color:white;border:none;border-radius:6px;font-family:var(--display);font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;">Recalculate</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- TAB: Call Log -->
+      <div class="tab-panel" id="tab-calls">
+        <div class="call-log-header">
+          <div class="card-title" style="border:none;padding:0;margin:0;">Call History</div>
+          <button class="add-call-btn" onclick="addCallEntry()">+ Log a Call</button>
+        </div>
+        <div id="callLogContainer">
+          <div class="no-leads-msg" id="noCallsMsg">
+            <h3 style="font-size:16px;margin-bottom:4px;">No calls logged yet</h3>
+            Click "+ Log a Call" to record your first contact attempt.
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: Handoff Export -->
+      <div class="tab-panel" id="tab-handoff">
+        <div class="card">
+          <div class="card-title">Handoff Note Preview</div>
+          <div class="handoff-preview" id="handoffPreview">Select a lead and fill in details to generate the handoff note.</div>
+          <div class="export-row">
+            <button class="export-btn primary" onclick="copyHandoff('FULL')">⎘ Copy Full Handoff</button>
+            <button class="export-btn secondary" onclick="copyHandoff('CAL')">⎘ Copy Calendar Brief</button>
+            <button class="export-btn ghl-export" onclick="pushToGHL()">↗ Open in GHL</button>
+            <button class="export-btn az-export" onclick="pushToAZ()">↗ Open in AgencyZoom</button>
+          </div>
+        </div>
+        <div class="card" style="margin-top:16px;">
+          <div class="card-title">Google Sheets Sync</div>
+
+          <div style="background:var(--blue-bg);border:1px solid #c5d8ff;border-radius:7px;padding:12px 16px;margin-bottom:16px;font-family:var(--mono);font-size:11px;color:var(--ink-2);line-height:1.7;">
+            <strong style="font-family:var(--display);font-size:12px;">How to get your Apps Script URL:</strong><br>
+            1. Open your Google Sheet → Extensions → Apps Script<br>
+            2. Deploy → New deployment → Web app → Execute as: Me → Who has access: Anyone<br>
+            3. Copy the deployment URL and paste below
+          </div>
+
+          <div class="field-grid" style="grid-template-columns:1fr auto;gap:10px;align-items:flex-end;margin-bottom:14px;">
+            <div class="field-group">
+              <label class="field-label">Apps Script Webhook URL</label>
+              <input class="field-input mono" id="settingSheet" placeholder="https://script.google.com/macros/s/…/exec" oninput="saveSettings()">
+            </div>
+            <button onclick="testSheetConnection()" style="padding:9px 16px;background:var(--blue);color:white;border:none;border-radius:6px;font-family:var(--display);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;height:38px;">Test Connection</button>
+          </div>
+
+          <div id="syncStatusBar" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px 14px;margin-bottom:14px;font-family:var(--mono);font-size:11px;display:flex;align-items:center;gap:10px;">
+            <span id="syncDot" style="width:8px;height:8px;border-radius:50%;background:var(--ink-3);flex-shrink:0;"></span>
+            <span id="syncStatusText">Not connected</span>
+            <span style="flex:1;"></span>
+            <span id="syncLastTime" style="color:var(--ink-3);font-size:10px;"></span>
+          </div>
+
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button onclick="syncAllToSheet()" style="flex:1;min-width:140px;padding:10px 16px;background:var(--green);color:white;border:none;border-radius:6px;font-family:var(--display);font-size:12px;font-weight:700;cursor:pointer;">↑ Push All Leads to Sheet</button>
+            <button onclick="restoreFromSheet()" style="flex:1;min-width:140px;padding:10px 16px;background:var(--ink);color:white;border:none;border-radius:6px;font-family:var(--display);font-size:12px;font-weight:700;cursor:pointer;">↓ Restore Leads from Sheet</button>
+          </div>
+
+          <div style="margin-top:10px;font-family:var(--mono);font-size:10px;color:var(--ink-3);">
+            Auto-sync is active when a URL is set — every save pushes to the sheet automatically.
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <div class="card-title">CRM Integration Settings</div>
+          <div class="field-grid two">
+            <div class="field-group">
+              <label class="field-label">GHL Contact Create URL</label>
+              <input class="field-input mono" id="settingGHL" placeholder="https://app.gohighlevel.com/…" oninput="saveSettings()">
+            </div>
+            <div class="field-group">
+              <label class="field-label">AgencyZoom Contact URL</label>
+              <input class="field-input mono" id="settingAZ" placeholder="https://app.agencyzoom.com/…" oninput="saveSettings()">
+            </div>
+            <div class="field-group">
+              <label class="field-label">GHL Pipeline Stage ID (optional)</label>
+              <input class="field-input mono" id="settingGHLPipeline" placeholder="Stage ID from GHL" oninput="saveSettings()">
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /profileEditor -->
+  </main>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════
+let leads = [];
+let currentLeadId = null;
+let callCounter = 0;
+
+// Agent-aware storage keys
+const STORAGE_KEYS = {
+  greg:  'strauch_leads_greg_v3',
+  faith: 'strauch_leads_faith_v2'
+};
+const SETTINGS_KEYS = {
+  greg:  'strauch_settings_greg_v1',
+  faith: 'strauch_settings_faith_v1'
+};
+const SYNC_KEYS = {
+  greg:  'strauch_last_sync_greg',
+  faith: 'strauch_last_sync_faith'
+};
+
+let currentAgent = localStorage.getItem('strauch_active_agent') || 'greg';
+
+function getStorageKey()  { return STORAGE_KEYS[currentAgent]; }
+function getSettingsKey() { return SETTINGS_KEYS[currentAgent]; }
+function getSyncKey()     { return SYNC_KEYS[currentAgent]; }
+
+// One Apps Script URL shared by both workspaces — set it once, works for Greg and Faith
+const SHEET_URL_KEY = 'strauch_sheet_url_shared_v1';
+const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz56VTJ3aVMLenw6yeXDqenP1Ljgkx7OTmrpgOab8TqOW-LwEzkWtkiwLAV8rS3NM8I/exec';
+function getSheetUrl() {
+  const settings = JSON.parse(localStorage.getItem(getSettingsKey()) || '{}');
+  return (settings.sheet && settings.sheet.trim()) || (localStorage.getItem(SHEET_URL_KEY) || '').trim() || DEFAULT_SCRIPT_URL;
+}
+
+// Legacy shim — keep STORAGE_KEY/SETTINGS_KEY refs working
+let STORAGE_KEY  = getStorageKey();
+let SETTINGS_KEY = getSettingsKey();
+
+// ════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════
+// Pre-loaded leads (embedded from live sheet 2026-07-09 — 63 leads)
+const EMBEDDED_LEADS = [];
+
+function init() {
+  // Restore active agent tab
+  document.getElementById('agentTabGreg').classList.toggle('active', currentAgent === 'greg');
+  document.getElementById('agentTabFaith').classList.toggle('active', currentAgent === 'faith');
+
+  const raw = localStorage.getItem(getStorageKey());
+  if (raw) {
+    try { leads = JSON.parse(raw); } catch(e) { leads = []; }
+  }
+  // If localStorage is empty, seed with embedded leads (Greg's data — never seed into Faith's workspace)
+  if (currentAgent === 'greg' && leads.length === 0 && EMBEDDED_LEADS.length > 0) {
+    leads = EMBEDDED_LEADS;
+    localStorage.setItem(getStorageKey(), JSON.stringify(leads));
+  }
+  const settings = JSON.parse(localStorage.getItem(getSettingsKey()) || '{}');
+  if (settings.ghl) document.getElementById('settingGHL').value = settings.ghl;
+  if (settings.az)  document.getElementById('settingAZ').value  = settings.az;
+  const sheetUrl = getSheetUrl();
+  if (sheetUrl) document.getElementById('settingSheet').value = sheetUrl;
+  if (settings.ghlPipeline) document.getElementById('settingGHLPipeline').value = settings.ghlPipeline;
+
+  // Restore sync status pill
+  const lastSync = localStorage.getItem(getSyncKey());
+  const navPill = document.getElementById('navSyncPill');
+  if (sheetUrl && navPill) {
+    navPill.style.display = 'inline-flex';
+    document.getElementById('navSyncText').textContent = lastSync ? 'Synced ' + lastSync : 'Not synced';
+    setSyncStatus(lastSync ? 'ok' : 'idle', lastSync ? leads.length + ' leads — last sync ' + lastSync : 'Connected, not yet synced', lastSync || '');
+  }
+  renderLeadList(null, 'leads');
+  if (leads.length === 0) {
+    document.getElementById('welcomeScreen').style.display = 'flex';
+    document.getElementById('profileEditor').style.display = 'none';
+  } else {
+    // Auto-open lead panel on load
+    toggleLeadPanel('leads');
+  }
+}
+
+// ════════════════════════════════════════
+// LEAD CRUD
+// ════════════════════════════════════════
+function generateId() {
+  return 'lead_' + Date.now() + '_' + Math.random().toString(36).substr(2,5);
+}
+
+function newLead() {
+  const id = generateId();
+  const lead = {
+    id,
+    name: '',
+    phone: '',
+    email: '',
+    address: '',
+    source: '',
+    dob: '',
+    bestTime: '',
+    dm: '',
+    military: '',
+    propType: '',
+    pain: '',
+    gaps: '',
+    addons: '',
+    objections: '',
+    priNote: '',
+    score: null,
+    scoreFactors: {},
+    coverage: {},
+    calls: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    status: 'active'
+  };
+  leads.unshift(lead);
+  saveLeads();
+  renderLeadList(null, currentPanelFilter);
+  selectLead(id);
+  document.getElementById('pName').focus();
+}
+
+function selectLead(id) {
+  currentLeadId = id;
+  const lead = leads.find(l => l.id === id);
+  if (!lead) return;
+  document.getElementById('welcomeScreen').style.display = 'none';
+  document.getElementById('profileEditor').style.display = 'block';
+  loadLeadIntoEditor(lead);
+  renderLeadList(null, currentPanelFilter);
+  // Close panel after selection for more workspace
+  const panel = document.getElementById('leadPanel');
+  panel.classList.remove('open');
+  panelOpen = false;
+  document.querySelectorAll('.rail-btn[id]').forEach(b => b.classList.remove('active'));
+}
+
+function loadLeadIntoEditor(lead) {
+  // Basic fields
+  sv('pName', lead.name);
+  sv('pPhone', lead.phone);
+  sv('pEmail', lead.email);
+  sv('pAddress', lead.address);
+  sv('pSource', lead.source, true);
+  sv('pDOB', lead.dob);
+  sv('pBestTime', lead.bestTime);
+  sv('pDM', lead.dm);
+  sv('pMil', lead.military, true);
+  sv('pPropType', lead.propType, true);
+  sv('pPain', lead.pain);
+  sv('pGaps', lead.gaps);
+  sv('pAddons', lead.addons);
+  sv('pObjections', lead.objections);
+  sv('pPriNote', lead.priNote);
+
+  // Coverage
+  const c = lead.coverage || {};
+  sv('cAutoCurrentPrem',    c.autoCurrentPrem);
+  sv('cAutoFarmersPrem',    c.autoFarmersPrem);
+  sv('cAutoCurrentCarrier', c.autoCurrentCarrier);
+  sv('cAutoFarmersNote',    c.autoFarmersNote);
+  sv('cAutoCurrentDeduct',  c.autoCurrentDeduct);
+  sv('cAutoFarmersDeduct',  c.autoFarmersDeduct);
+  sv('cHomeCurrentPrem',    c.homeCurrentPrem);
+  sv('cHomeFarmersPrem',    c.homeFarmersPrem);
+  sv('cHomeCurrentCarrier', c.homeCurrentCarrier);
+  sv('cHomeFarmersNote',    c.homeFarmersNote);
+  sv('cHomeCurrentDeduct',  c.homeCurrentDeduct);
+  sv('cHomeFarmersDeduct',  c.homeFarmersDeduct);
+
+  // Status
+  updateStatusUI(lead.status || 'active');
+
+  // Score factors
+  const sf = lead.scoreFactors || {};
+  ['urgency','dm','quote','engagement','contact','gap','objection'].forEach(k => {
+    const el = document.getElementById('sf_' + k);
+    if (el) el.value = sf[k] !== undefined ? sf[k] : 0;
+  });
+
+  // Calls
+  renderCallLog(lead.calls || []);
+
+  // Score display
+  updateScoreDisplay(lead.score);
+
+  // Handoff
+  generateHandoff(lead);
+}
+
+function sv(id, val, isSelect) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (val !== undefined && val !== null) el.value = val;
+  else el.value = '';
+}
+
+function saveCurrentLead() {
+  if (!currentLeadId) return;
+  const lead = leads.find(l => l.id === currentLeadId);
+  if (!lead) return;
+
+  lead.name       = gv('pName');
+  lead.phone      = gv('pPhone');
+  lead.email      = gv('pEmail');
+  lead.address    = gv('pAddress');
+  lead.source     = gv('pSource');
+  lead.dob        = gv('pDOB');
+  lead.bestTime   = gv('pBestTime');
+  lead.dm         = gv('pDM');
+  lead.military   = gv('pMil');
+  lead.propType   = gv('pPropType');
+  lead.pain       = gv('pPain');
+  lead.gaps       = gv('pGaps');
+  lead.addons     = gv('pAddons');
+  lead.objections = gv('pObjections');
+  lead.priNote    = gv('pPriNote');
+  lead.updatedAt  = new Date().toISOString();
+  // status is saved via setLeadStatus(), not here
+
+  lead.coverage = {
+    autoCurrentPrem:    gv('cAutoCurrentPrem'),
+    autoFarmersPrem:    gv('cAutoFarmersPrem'),
+    autoCurrentCarrier: gv('cAutoCurrentCarrier'),
+    autoFarmersNote:    gv('cAutoFarmersNote'),
+    autoCurrentDeduct:  gv('cAutoCurrentDeduct'),
+    autoFarmersDeduct:  gv('cAutoFarmersDeduct'),
+    homeCurrentPrem:    gv('cHomeCurrentPrem'),
+    homeFarmersPrem:    gv('cHomeFarmersPrem'),
+    homeCurrentCarrier: gv('cHomeCurrentCarrier'),
+    homeFarmersNote:    gv('cHomeFarmersNote'),
+    homeCurrentDeduct:  gv('cHomeCurrentDeduct'),
+    homeFarmersDeduct:  gv('cHomeFarmersDeduct'),
+  };
+
+  saveLeads();
+  renderLeadList(null, currentPanelFilter);
+  generateHandoff(lead);
+}
+
+function gv(id) {
+  const el = document.getElementById(id);
+  return el ? el.value.trim() : '';
+}
+
+function saveLeads() {
+  localStorage.setItem(getStorageKey(), JSON.stringify(leads));
+  // Auto-sync to sheet if webhook is configured (debounced)
+  clearTimeout(saveLeads._timer);
+  saveLeads._timer = setTimeout(() => {
+    const settings = JSON.parse(localStorage.getItem(getSettingsKey()) || '{}');
+    if (settings.sheet && settings.sheet.trim()) {
+      syncAllToSheet(true); // silent = true (no toast)
+    }
+  }, 1500);
+}
+
+// ════════════════════════════════════════
+// GOOGLE SHEETS SYNC
+// ════════════════════════════════════════
+
+function setSyncStatus(state, msg, time) {
+  const bar  = document.getElementById('syncStatusBar');
+  const dot  = document.getElementById('syncDot');
+  const text = document.getElementById('syncStatusText');
+  const ts   = document.getElementById('syncLastTime');
+  if (!bar) return;
+  bar.style.display = 'flex';
+  const colors = { ok: '#0e8a4a', error: '#c8102e', syncing: '#c47c00', idle: '#6b6f80' };
+  dot.style.background = colors[state] || colors.idle;
+  text.textContent = msg || '';
+  if (time) ts.textContent = 'Last sync: ' + time;
+
+  // Mirror to nav pill
+  const navPill = document.getElementById('navSyncPill');
+  const navDot  = document.getElementById('navSyncDot');
+  const navText = document.getElementById('navSyncText');
+  if (navPill) {
+    navPill.style.display = 'inline-flex';
+    const pillColors = { ok: '#0e8a4a', error: '#c8102e', syncing: '#c47c00', idle: 'rgba(255,255,255,0.35)' };
+    navDot.style.background = pillColors[state] || pillColors.idle;
+    navDot.style.color = pillColors[state] || pillColors.idle;
+    navText.textContent = state === 'syncing' ? 'Syncing…' : state === 'ok' ? 'Synced' : state === 'error' ? 'Sync Error' : 'Not Synced';
+  }
+}
+
+async function testSheetConnection() {
+  const url = getSheetUrl() || gv('settingSheet');
+  if (!url) { toast('Paste your Apps Script URL first', 'error'); return; }
+  setSyncStatus('syncing', 'Testing connection…');
+  try {
+    const res = await fetch(url + '?action=ping', { method: 'GET', mode: 'no-cors' });
+    // no-cors won't let us read the response, but no error = URL reachable
+    setSyncStatus('ok', 'Connection looks good — run a Push to confirm', new Date().toLocaleTimeString());
+    toast('URL reachable — push a test lead to confirm writes', 'success');
+  } catch(e) {
+    setSyncStatus('error', 'Connection failed: ' + e.message);
+    toast('Connection failed — check your URL', 'error');
+  }
+}
+
+async function syncAllToSheet(silent) {
+  const url = getSheetUrl();
+  if (!url) {
+    if (!silent) toast('No Apps Script URL set — go to Settings tab', 'error');
+    return;
+  }
+  if (!silent) setSyncStatus('syncing', 'Pushing all leads…');
+  try {
+    const payload = { action: 'syncAll', agent: currentAgent, leads: leads };
+    // text/plain avoids the CORS preflight that Apps Script can't answer
+    await fetch(url, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    const ts = new Date().toLocaleTimeString();
+    localStorage.setItem(getSyncKey(), ts);
+    setSyncStatus('ok', leads.length + ' leads pushed', ts);
+    if (!silent) toast('✓ ' + leads.length + ' leads pushed to Google Sheet', 'success');
+  } catch(e) {
+    setSyncStatus('error', 'Sync failed: ' + e.message);
+    if (!silent) toast('Sync failed: ' + e.message, 'error');
+  }
+}
+
+async function restoreFromSheet() {
+  const url = getSheetUrl();
+  if (!url) { toast('No Apps Script URL set — go to Settings tab', 'error'); return; }
+
+  setSyncStatus('syncing', 'Fetching leads from sheet…');
+  toast('Fetching leads from Google Sheet…', 'info');
+
+  try {
+    const res = await fetch(url + '?action=getAll&agent=' + currentAgent, { method: 'GET' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+
+    if (!data || !Array.isArray(data.leads)) {
+      throw new Error('Unexpected response format — check your Apps Script code');
+    }
+
+    const incoming = data.leads;
+    if (incoming.length === 0) {
+      toast('Sheet returned 0 leads — nothing to restore', 'info');
+      setSyncStatus('ok', 'Sheet is empty', new Date().toLocaleTimeString());
+      return;
+    }
+
+    if (!confirm('Restore ' + incoming.length + ' leads from Google Sheet? This will REPLACE your current local data.')) return;
+
+    leads = incoming;
+    saveLeads();
+    renderLeadList(null, currentPanelFilter);
+
+    const ts = new Date().toLocaleTimeString();
+    setSyncStatus('ok', incoming.length + ' leads restored', ts);
+    toast('✓ ' + incoming.length + ' leads restored from Google Sheet', 'success');
+
+    // Open the lead panel so they can see restored leads
+    if (!panelOpen) toggleLeadPanel('leads');
+
+  } catch(e) {
+    setSyncStatus('error', 'Restore failed: ' + e.message);
+    toast('Restore failed: ' + e.message, 'error');
+  }
+}
+
+// ════════════════════════════════════════
+// LEAD LIST RENDER
+// ════════════════════════════════════════
+function renderLeadList(filter, tierFilter) {
+  const container = document.getElementById('leadList');
+  let list = leads;
+
+  // Tier filter (hot/warm/cold/won)
+  if (tierFilter && tierFilter !== 'leads' && tierFilter !== 'search') {
+    list = list.filter(l => {
+      const sc = l.score;
+      if (tierFilter === 'won')  return l.status === 'won';
+      if (tierFilter === 'hot')  return l.status !== 'won' && l.status !== 'lost' && sc !== null && sc !== undefined && sc >= 65;
+      if (tierFilter === 'warm') return l.status !== 'won' && l.status !== 'lost' && sc !== null && sc !== undefined && sc >= 35 && sc < 65;
+      if (tierFilter === 'cold') return l.status !== 'won' && l.status !== 'lost' && sc !== null && sc !== undefined && sc < 35;
+      return true;
+    });
+  }
+
+  // Text search filter
+  if (filter) {
+    const q = filter.toLowerCase();
+    list = list.filter(l =>
+      (l.name||'').toLowerCase().includes(q) ||
+      (l.phone||'').toLowerCase().includes(q) ||
+      (l.email||'').toLowerCase().includes(q)
+    );
+  }
+  if (list.length === 0) {
+    container.innerHTML = '<div class="empty-state" style="display:block;">No leads found.</div>';
+    return;
+  }
+  container.innerHTML = list.map(lead => {
+    const sc = lead.score;
+    const tier = sc === null || sc === undefined ? 'none' : sc >= 65 ? 'hot' : sc >= 35 ? 'warm' : 'cold';
+    const tierLabel = tier === 'hot' ? '🔥 Hot' : tier === 'warm' ? '⚡ Warm' : tier === 'cold' ? '❄ Cold' : '—';
+    const lastCall = lead.calls && lead.calls.length > 0 ? lead.calls[lead.calls.length-1].date || 'No date' : 'No calls';
+    const statusClass = lead.status === 'won' ? 'won' : lead.status === 'lost' ? 'lost-lead' : '';
+    const statusTag = lead.status === 'won' ? ' <span style="color:var(--green);font-size:9px;">✓ WON</span>' : lead.status === 'lost' ? ' <span style="color:#e57373;font-size:9px;">✕ LOST</span>' : lead.status === 'nurture' ? ' <span style="color:var(--amber);font-size:9px;">◷</span>' : '';
+    return `
+      <div class="lead-item ${lead.id === currentLeadId ? 'active' : ''} ${statusClass}" onclick="selectLead('${lead.id}')">
+        <div class="lead-item-name">${lead.name || 'Unnamed Lead'}${statusTag}</div>
+        <div class="lead-item-meta">
+          <span>${lead.phone || lead.source || '—'}</span>
+          <span class="score-pill ${tier}">${sc !== null && sc !== undefined ? sc + ' pts' : '—'}</span>
+        </div>
+        <div class="lead-item-meta" style="margin-top:2px;font-size:9px;">
+          <span>Last: ${lastCall}</span>
+          <span>${lead.calls ? lead.calls.length : 0} call${(lead.calls||[]).length !== 1 ? 's' : ''}</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function filterLeads(q) { renderLeadList(q, currentPanelFilter); }
+
+// ════════════════════════════════════════
+// ICON RAIL / PANEL TOGGLE
+// ════════════════════════════════════════
+let currentPanelFilter = 'leads';
+let panelOpen = false;
+
+function toggleLeadPanel(filter) {
+  const panel = document.getElementById('leadPanel');
+  const railBtns = document.querySelectorAll('.rail-btn[id]');
+
+  // Deactivate all rail btns
+  railBtns.forEach(b => b.classList.remove('active'));
+
+  if (panelOpen && currentPanelFilter === filter) {
+    // Same icon clicked — close panel
+    panel.classList.remove('open');
+    panelOpen = false;
+    currentPanelFilter = null;
+    return;
+  }
+
+  // Activate clicked btn
+  const btnId = filter === 'leads' ? 'railLeads' : filter === 'hot' ? 'railHot' : filter === 'warm' ? 'railWarm' : filter === 'cold' ? 'railCold' : filter === 'won' ? 'railWon' : 'railSearch';
+  const btn = document.getElementById(btnId);
+  if (btn) btn.classList.add('active');
+
+  currentPanelFilter = filter;
+  panelOpen = true;
+  panel.classList.add('open');
+
+  // Update panel title
+  const titles = { leads: 'All Leads', hot: '🔥 Hot Leads', warm: '⚡ Warm Leads', cold: '❄ Cold Leads', won: '✓ Closed / Won', search: 'Search' };
+  document.getElementById('leadPanelTitle').textContent = titles[filter] || 'Leads';
+
+  // Focus search if search mode
+  if (filter === 'search') {
+    setTimeout(() => document.getElementById('searchBox').focus(), 250);
+  }
+
+  renderLeadList(filter === 'search' ? '' : null, filter);
+}
+
+// ════════════════════════════════════════
+// SCORE ENGINE
+// ════════════════════════════════════════
+function recalcScore() {
+  if (!currentLeadId) return;
+  const lead = leads.find(l => l.id === currentLeadId);
+  if (!lead) return;
+
+  const factors = {};
+  let total = 0;
+  ['urgency','dm','quote','engagement','contact','gap','objection'].forEach(k => {
+    const el = document.getElementById('sf_' + k);
+    const v = el ? parseInt(el.value) || 0 : 0;
+    factors[k] = v;
+    total += v;
+  });
+  total = Math.min(100, total);
+
+  lead.scoreFactors = factors;
+  lead.score = total;
+  lead.updatedAt = new Date().toISOString();
+
+  saveLeads();
+  updateScoreDisplay(total);
+  renderLeadList(null, currentPanelFilter);
+  generateHandoff(lead);
+}
+
+function updateScoreDisplay(score) {
+  const circle = document.getElementById('scoreCircle');
+  const display = document.getElementById('scoreDisplay');
+  const tag = document.getElementById('scoreTag');
+  const bar = document.getElementById('scoreBarFill');
+  const barPct = document.getElementById('scoreBarPct');
+
+  if (score === null || score === undefined) {
+    circle.className = 'score-circle';
+    display.textContent = '—';
+    tag.textContent = 'Not Scored';
+    tag.style.color = 'var(--ink-3)';
+    if (bar) { bar.style.width = '0%'; barPct.textContent = '—'; }
+    return;
+  }
+
+  const tier = score >= 65 ? 'hot' : score >= 35 ? 'warm' : 'cold';
+  circle.className = 'score-circle ' + tier;
+  display.textContent = score;
+  if (bar) { bar.style.width = score + '%'; barPct.textContent = score + '/100'; }
+
+  if (tier === 'hot')  { tag.textContent = '🔥 HOT — Close Now'; tag.style.color = 'var(--red)'; }
+  if (tier === 'warm') { tag.textContent = '⚡ WARM — Active Follow-Up'; tag.style.color = 'var(--amber)'; }
+  if (tier === 'cold') { tag.textContent = '❄ COLD — Nurture Sequence'; tag.style.color = 'var(--blue)'; }
+}
+
+// ════════════════════════════════════════
+// CALL LOG
+// ════════════════════════════════════════
+function addCallEntry() {
+  if (!currentLeadId) return;
+  const lead = leads.find(l => l.id === currentLeadId);
+  if (!lead) return;
+
+  const today = new Date().toISOString().split('T')[0];
+  const callId = 'call_' + Date.now();
+  if (!lead.calls) lead.calls = [];
+  lead.calls.push({
+    id: callId,
+    date: today,
+    outcome: '',
+    notes: '',
+    score: null,
+    duration: ''
+  });
+  saveLeads();
+  renderCallLog(lead.calls);
+  saveCurrentLead();
+}
+
+function renderCallLog(calls) {
+  const container = document.getElementById('callLogContainer');
+  const noMsg = document.getElementById('noCallsMsg');
+
+  if (!calls || calls.length === 0) {
+    container.innerHTML = `<div class="no-leads-msg" id="noCallsMsg">
+      <h3 style="font-size:16px;margin-bottom:4px;">No calls logged yet</h3>
+      Click "+ Log a Call" to record your first contact attempt.
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = calls.map((call, idx) => {
+    const tier = call.score === null || call.score === undefined ? '' :
+                 call.score >= 65 ? 'hot' : call.score >= 35 ? 'warm' : 'cold';
+    const tierLabel = tier === 'hot' ? '🔥 Hot' : tier === 'warm' ? '⚡ Warm' : tier === 'cold' ? '❄ Cold' : '—';
+    const preview = call.notes ? call.notes.substring(0,60) + (call.notes.length > 60 ? '…' : '') : 'No notes';
+    return `
+    <div class="call-entry" id="callEntry_${call.id}">
+      <div class="call-entry-header" onclick="toggleCall('${call.id}')">
+        <span class="call-num">CALL ${idx+1}</span>
+        <input class="call-date-input" type="date" value="${call.date||''}"
+          onclick="event.stopPropagation()"
+          onchange="updateCallField('${call.id}','date',this.value)">
+        <span class="call-summary-preview">${preview}</span>
+        ${tier ? `<span class="call-score-mini ${tier}">${call.score} pts</span>` : ''}
+        <span class="call-expand-icon">▾</span>
+      </div>
+      <div class="call-body">
+        <div class="call-fields">
+          <div class="field-group">
+            <label class="field-label">Outcome</label>
+            <select class="outcome-select" onchange="updateCallField('${call.id}','outcome',this.value)">
+              <option value="" ${!call.outcome?'selected':''}>— Select Outcome —</option>
+              <option value="Connected — Quoted"    ${call.outcome==='Connected — Quoted'?'selected':''}>Connected — Quoted</option>
+              <option value="Connected — No Quote"  ${call.outcome==='Connected — No Quote'?'selected':''}>Connected — No Quote</option>
+              <option value="Left Voicemail"         ${call.outcome==='Left Voicemail'?'selected':''}>Left Voicemail</option>
+              <option value="No Answer"              ${call.outcome==='No Answer'?'selected':''}>No Answer</option>
+              <option value="Text Sent"              ${call.outcome==='Text Sent'?'selected':''}>Text Sent</option>
+              <option value="Appointment Set"        ${call.outcome==='Appointment Set'?'selected':''}>Appointment Set</option>
+              <option value="Closed — Won"           ${call.outcome==='Closed — Won'?'selected':''}>Closed — Won ✓</option>
+              <option value="Closed — Lost"          ${call.outcome==='Closed — Lost'?'selected':''}>Closed — Lost ✗</option>
+              <option value="Not Interested"         ${call.outcome==='Not Interested'?'selected':''}>Not Interested</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Call Duration</label>
+            <input class="field-input mono" type="text" placeholder="e.g. 8:32" value="${call.duration||''}"
+              oninput="updateCallField('${call.id}','duration',this.value)">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Post-Call Lead Score (0–100)</label>
+            <input class="field-input mono" type="number" min="0" max="100" placeholder="0–100" value="${call.score!==null&&call.score!==undefined?call.score:''}"
+              oninput="updateCallField('${call.id}','score',parseInt(this.value)||null)">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Next Action</label>
+            <input class="field-input" type="text" placeholder="e.g. Call back Thu 2pm" value="${call.nextAction||''}"
+              oninput="updateCallField('${call.id}','nextAction',this.value)">
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Call Notes — what was said, discovered, objections, anything the closer needs to know</label>
+          <textarea class="call-notes-area" placeholder="Full notes from this call…"
+            oninput="updateCallField('${call.id}','notes',this.value)">${call.notes||''}</textarea>
+        </div>
+        <div class="call-actions-row">
+          <button class="call-action-btn" onclick="copyCallNotes('${call.id}')">⎘ Copy This Call's Notes</button>
+          <button class="call-action-btn del" onclick="deleteCall('${call.id}')">✕ Delete Call</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCall(callId) {
+  const entry = document.getElementById('callEntry_' + callId);
+  if (entry) entry.classList.toggle('expanded');
+}
+
+function updateCallField(callId, field, value) {
+  if (!currentLeadId) return;
+  const lead = leads.find(l => l.id === currentLeadId);
+  if (!lead) return;
+  const call = lead.calls.find(c => c.id === callId);
+  if (!call) return;
+  call[field] = value;
+  lead.updatedAt = new Date().toISOString();
+  saveLeads();
+  generateHandoff(lead);
+}
+
+function deleteCall(callId) {
+  if (!currentLeadId) return;
+  if (!confirm('Delete this call log entry?')) return;
+  const lead = leads.find(l => l.id === currentLeadId);
+  if (!lead) return;
+  lead.calls = lead.calls.filter(c => c.id !== callId);
+  saveLeads();
+  renderCallLog(lead.calls);
+  generateHandoff(lead);
+}
+
+function copyCallNotes(callId) {
+  if (!currentLeadId) return;
+  const lead = leads.find(l => l.id === currentLeadId);
+  if (!lead) return;
+  const call = lead.calls.find(c => c.id === callId);
+  if (!call) return;
+  const text = `CALL NOTES — ${lead.name || 'Unknown'} | ${call.date || 'No Date'}
+Outcome: ${call.outcome || '—'}
+Duration: ${call.duration || '—'}
+Score: ${call.score !== null && call.score !== undefined ? call.score + '/100' : '—'}
+Next Action: ${call.nextAction || '—'}
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+${call.notes || '[No notes]'}`;
+  copyToClipboard(text);
+  toast('Call notes copied!', 'success');
+}
+
+// ════════════════════════════════════════
+// HANDOFF GENERATOR
+// ════════════════════════════════════════
+function generateHandoff(lead) {
+  if (!lead) return;
+  const c = lead.coverage || {};
+  const sc = lead.score !== null && lead.score !== undefined ? lead.score + '/100' : '—';
+  const tier = lead.score >= 65 ? '🔥 HOT — Close Now' :
+               lead.score >= 35 ? '⚡ WARM — Active Follow-Up' :
+               lead.score !== null && lead.score !== undefined ? '❄ COLD — Nurture' : '— Not Scored';
+
+  const callsSummary = (lead.calls || []).map((call, i) =>
+    `  CALL ${i+1} | ${call.date||'No Date'} | ${call.outcome||'No Outcome'} | Duration: ${call.duration||'—'}
+    Score: ${call.score !== null && call.score !== undefined ? call.score + '/100' : '—'}
+    Next: ${call.nextAction||'—'}
+    Notes: ${call.notes ? call.notes.replace(/\n/g, '\n    ') : '[No notes]'}`
+  ).join('\n\n');
+
+  const text =
+`════════════════════════════════════════════
+LEAD PROFILE HANDOFF — THE STRAUCH AGENCY
+════════════════════════════════════════════
+PROSPECT:        ${lead.name || '[NAME]'}
+CLOSE SCORE:     ${sc} — ${tier}
+LEAD SOURCE:     ${lead.source || '—'}
+CREATED:         ${new Date(lead.createdAt).toLocaleDateString()}
+LAST UPDATED:    ${new Date(lead.updatedAt).toLocaleDateString()}
+TOTAL CALLS:     ${(lead.calls || []).length}
+
+CONTACT
+  Phone:     ${lead.phone || '—'}
+  Email:     ${lead.email || '—'}
+  DOB:       ${lead.dob || '—'}
+  Address:   ${lead.address || '—'}
+  Best Time: ${lead.bestTime || '—'}
+  DMs:       ${lead.dm || '—'}
+  Affinity:  ${lead.military || '—'}
+  Property:  ${lead.propType || '—'}
+
+────────────────────────────────────────────
+COVERAGE COMPARISON
+────────────────────────────────────────────
+  AUTO
+    Current:  ${c.autoCurrentPrem||'—'} / ${c.autoCurrentCarrier||'—'} / Deduct: ${c.autoCurrentDeduct||'—'}
+    Farmers:  ${c.autoFarmersPrem||'—'} / ${c.autoFarmersNote||'—'} / Deduct: ${c.autoFarmersDeduct||'—'}
+
+  HOME / CONDO
+    Current:  ${c.homeCurrentPrem||'—'} / ${c.homeCurrentCarrier||'—'} / Deduct: ${c.homeCurrentDeduct||'—'}
+    Farmers:  ${c.homeFarmersPrem||'—'} / ${c.homeFarmersNote||'—'} / Deduct: ${c.homeFarmersDeduct||'—'}
+
+  Coverage Gaps:  ${lead.gaps || '—'}
+  Add-ons Quoted: ${lead.addons || '—'}
+
+────────────────────────────────────────────
+DIAGNOSTIC INTEL
+────────────────────────────────────────────
+  Primary Pain:  ${lead.pain || '—'}
+  Objections:    ${lead.objections || '—'}
+
+────────────────────────────────────────────
+AGENT PRIORITY NOTE
+────────────────────────────────────────────
+  ${lead.priNote || '[No priority note]'}
+
+────────────────────────────────────────────
+CALL HISTORY (${(lead.calls||[]).length} total)
+────────────────────────────────────────────
+${callsSummary || '  [No calls logged]'}
+
+════════════════════════════════════════════`;
+
+  const el = document.getElementById('handoffPreview');
+  if (el) el.textContent = text;
+  return text;
+}
+
+function copyHandoff(type) {
+  const lead = leads.find(l => l.id === currentLeadId);
+  if (!lead) { toast('No lead selected', 'error'); return; }
+
+  let text;
+  if (type === 'CAL') {
+    const c = lead.coverage || {};
+    const lastCall = lead.calls && lead.calls.length > 0 ? lead.calls[lead.calls.length-1] : null;
+    const sc = lead.score !== null && lead.score !== undefined ? lead.score + '/100' : '—';
+    text =
+`${(lead.name||'[NAME]').toUpperCase()} | ${sc}
+Phone: ${lead.phone||'—'} | Best: ${lead.bestTime||'—'} | DMs: ${lead.dm||'—'}
+Source: ${lead.source||'—'} | Military: ${lead.military||'N/A'}
+AUTO:  ${c.autoCurrentPrem||'—'} (${c.autoCurrentCarrier||'—'}) → ${c.autoFarmersPrem||'—'} (Farmers)
+HOME:  ${c.homeCurrentPrem||'—'} (${c.homeCurrentCarrier||'—'}) → ${c.homeFarmersPrem||'—'} (Farmers)
+Pain: ${lead.pain||'—'}
+Objections: ${lead.objections||'—'}
+${lastCall ? 'Last Call: ' + (lastCall.date||'—') + ' | ' + (lastCall.outcome||'—') + '\n' + (lastCall.notes||'') : 'No calls yet'}`;
+  } else {
+    text = generateHandoff(lead);
+  }
+
+  copyToClipboard(text);
+  toast('Handoff copied!', 'success');
+}
+
+// ════════════════════════════════════════
+// CRM INTEGRATIONS
+// ════════════════════════════════════════
+function pushToGHL() {
+  const lead = leads.find(l => l.id === currentLeadId);
+  if (!lead) { toast('No lead selected', 'error'); return; }
+  const settings = JSON.parse(localStorage.getItem(getSettingsKey()) || '{}');
+  const base = settings.ghl || 'https://app.gohighlevel.com/contacts';
+  const nameParts = (lead.name || '').trim().split(/\s+/);
+  const firstName = encodeURIComponent(nameParts[0] || '');
+  const lastName  = encodeURIComponent(nameParts.slice(1).join(' ') || '');
+  const phone     = encodeURIComponent(lead.phone || '');
+  const email     = encodeURIComponent(lead.email || '');
+  const tags      = encodeURIComponent(
+    [lead.source, lead.military, lead.score !== null ? (lead.score >= 65 ? 'Hot-Lead' : lead.score >= 35 ? 'Warm-Lead' : 'Cold-Lead') : '']
+    .filter(Boolean).join(',')
+  );
+  const notes     = encodeURIComponent(generateHandoff(lead) || '');
+
+  const url = `${base}?firstName=${firstName}&lastName=${lastName}&phone=${phone}&email=${email}&tags=${tags}`;
+  window.open(url, '_blank');
+  toast('Opening in GHL…', 'info');
+
+  // Also copy the handoff to clipboard for pasting into GHL notes
+  copyToClipboard(generateHandoff(lead));
+}
+
+function pushToAZ() {
+  const lead = leads.find(l => l.id === currentLeadId);
+  if (!lead) { toast('No lead selected', 'error'); return; }
+  const settings = JSON.parse(localStorage.getItem(getSettingsKey()) || '{}');
+  const base = settings.az || 'https://app.agencyzoom.com/contacts/new';
+  const nameParts = (lead.name || '').trim().split(/\s+/);
+  const firstName = encodeURIComponent(nameParts[0] || '');
+  const lastName  = encodeURIComponent(nameParts.slice(1).join(' ') || '');
+  const phone     = encodeURIComponent(lead.phone || '');
+  const email     = encodeURIComponent(lead.email || '');
+  const url = `${base}?first_name=${firstName}&last_name=${lastName}&phone=${phone}&email=${email}`;
+  window.open(url, '_blank');
+  toast('Opening in AgencyZoom… handoff copied to clipboard', 'info');
+  copyToClipboard(generateHandoff(lead));
+}
+
+function saveSettings() {
+  const settings = {
+    ghl: gv('settingGHL'),
+    az: gv('settingAZ'),
+    sheet: gv('settingSheet'),
+    ghlPipeline: gv('settingGHLPipeline')
+  };
+  localStorage.setItem(getSettingsKey(), JSON.stringify(settings));
+  // Mirror the sheet URL to the shared key so the other agent's workspace gets it too
+  if (settings.sheet && settings.sheet.trim()) {
+    localStorage.setItem(SHEET_URL_KEY, settings.sheet.trim());
+  }
+}
+
+// ════════════════════════════════════════
+// TABS
+// ════════════════════════════════════════
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+
+  if (name === 'handoff') {
+    const lead = leads.find(l => l.id === currentLeadId);
+    if (lead) generateHandoff(lead);
+  }
+}
+
+// ════════════════════════════════════════
+// UTILITIES
+// ════════════════════════════════════════
+function copyToClipboard(text) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+}
+
+let toastTimer;
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + (type || '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = 'toast'; }, 2800);
+}
+
+function openSettings() {
+  // Switch to handoff tab which has settings
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.tab-panel');
+  tabs.forEach(t => t.classList.remove('active'));
+  panels.forEach(p => p.classList.remove('active'));
+  tabs[3].classList.add('active');
+  document.getElementById('tab-handoff').classList.add('active');
+  document.getElementById('profileEditor').style.display = 'block';
+  document.getElementById('welcomeScreen').style.display = 'none';
+  setTimeout(() => document.getElementById('settingGHL').focus(), 200);
+}
+
+function openPipeline() {
+  var idPart1 = 'AKfycbxLScQsAsL04EGc8A28vEFmQevLNA1E2l1hL7PDidT_';
+  var idPart2 = '6HQf4_3VpsUeQgJseob0w5SIMg';
+  var base = 'https://script.google.com/macros/s/' + idPart1 + idPart2 + '/exec';
+  window.open(base + '?app=board', '_blank');
+}
+
+function openSalesSystem() {
+  window.open('http://localhost:8768/Farmers_Sales_System.html', '_blank');
+}
+
+function exportAll() {
+  const data = JSON.stringify(leads, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'strauch_leads_' + new Date().toISOString().split('T')[0] + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('All leads exported as JSON', 'success');
+}
+
+function clearAll() {
+  if (!confirm('Delete ALL leads? This cannot be undone.')) return;
+  leads = [];
+  currentLeadId = null;
+  saveLeads();
+  renderLeadList(null, currentPanelFilter);
+  document.getElementById('welcomeScreen').style.display = 'flex';
+  document.getElementById('profileEditor').style.display = 'none';
+  toast('All leads cleared', 'info');
+}
+
+// ════════════════════════════════════════
+// LEAD STATUS
+// ════════════════════════════════════════
+function setLeadStatus(status) {
+  if (!currentLeadId) return;
+  const lead = leads.find(l => l.id === currentLeadId);
+  if (!lead) return;
+  lead.status = status;
+  lead.updatedAt = new Date().toISOString();
+  if (status === 'won' && !lead.wonAt) lead.wonAt = new Date().toISOString();
+  saveLeads();
+  updateStatusUI(status);
+  renderLeadList(null, currentPanelFilter);
+  generateHandoff(lead);
+  if (status === 'won') toast('🎉 Marked as Closed — Won!', 'success');
+}
+
+function updateStatusUI(status) {
+  const ids = ['statusActive','statusNurture','statusWon','statusLost'];
+  const map  = { active:'statusActive', nurture:'statusNurture', won:'statusWon', lost:'statusLost' };
+  const cssMap = { active:'active-status-active', nurture:'active-status-nurture', won:'active-status-won', lost:'active-status-lost' };
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.className = 'status-btn';
+  });
+  const activeBtn = document.getElementById(map[status] || 'statusActive');
+  if (activeBtn) activeBtn.className = 'status-btn ' + (cssMap[status] || '');
+
+  // Won banner
+  const banner = document.getElementById('wonBanner');
+  if (banner) {
+    if (status === 'won') {
+      banner.classList.add('show');
+      document.getElementById('wonBannerText').textContent = 'CLOSED — WON 🎉';
+    } else if (status === 'lost') {
+      banner.classList.add('show');
+      banner.style.background = '#ffebee';
+      banner.style.borderColor = '#e57373';
+      banner.style.color = '#c62828';
+      document.getElementById('wonBannerText').textContent = 'CLOSED — LOST';
+    } else {
+      banner.classList.remove('show');
+      banner.style.background = '';
+      banner.style.borderColor = '';
+      banner.style.color = '';
+    }
+  }
+}
+
+// ════════════════════════════════════════
+// AGENT SWITCHER
+// ════════════════════════════════════════
+function switchAgent(agent) {
+  if (agent === currentAgent) return;
+
+  // Save any pending work on current agent before switching
+  saveCurrentLead();
+
+  currentAgent = agent;
+  STORAGE_KEY  = getStorageKey();
+  SETTINGS_KEY = getSettingsKey();
+  localStorage.setItem('strauch_active_agent', agent);
+
+  // Update tab UI
+  document.getElementById('agentTabGreg').classList.toggle('active', agent === 'greg');
+  document.getElementById('agentTabFaith').classList.toggle('active', agent === 'faith');
+
+  // Update nav sync pill label
+  const navText = document.getElementById('navSyncText');
+  if (navText) navText.textContent = 'Not synced';
+
+  // Reset current lead and reload
+  currentLeadId = null;
+  leads = [];
+  panelOpen = false;
+  currentPanelFilter = 'leads';
+  document.getElementById('leadPanel').classList.remove('open');
+  document.querySelectorAll('.rail-btn[id]').forEach(b => b.classList.remove('active'));
+  document.getElementById('welcomeScreen').style.display = 'flex';
+  document.getElementById('profileEditor').style.display = 'none';
+
+  // Re-init for new agent
+  const raw = localStorage.getItem(getStorageKey());
+  if (raw) { try { leads = JSON.parse(raw); } catch(e) { leads = []; } }
+
+  // Seed embedded leads for Greg only
+  if (agent === 'greg' && leads.length === 0 && EMBEDDED_LEADS.length > 0) {
+    leads = EMBEDDED_LEADS;
+    localStorage.setItem(getStorageKey(), JSON.stringify(leads));
+  }
+
+  // Load settings for this agent
+  const settings = JSON.parse(localStorage.getItem(getSettingsKey()) || '{}');
+  const ghlEl = document.getElementById('settingGHL');
+  const azEl  = document.getElementById('settingAZ');
+  const sheetEl = document.getElementById('settingSheet');
+  const pipeEl  = document.getElementById('settingGHLPipeline');
+  if (ghlEl)   ghlEl.value   = settings.ghl || '';
+  if (azEl)    azEl.value    = settings.az  || '';
+  const sheetUrl = getSheetUrl();
+  if (sheetEl) sheetEl.value = sheetUrl;
+  if (pipeEl)  pipeEl.value  = settings.ghlPipeline || '';
+
+  // Restore sync status
+  const lastSync = localStorage.getItem(getSyncKey());
+  const navPill  = document.getElementById('navSyncPill');
+  if (sheetUrl && navPill) {
+    navPill.style.display = 'inline-flex';
+    setSyncStatus(lastSync ? 'ok' : 'idle',
+      lastSync ? leads.length + ' leads — last sync ' + lastSync : 'Connected, not yet synced',
+      lastSync || '');
+  } else if (navPill) {
+    navPill.style.display = 'none';
+  }
+
+  renderLeadList(null, 'leads');
+  if (leads.length > 0) toggleLeadPanel('leads');
+
+  toast('Switched to ' + (agent === 'greg' ? 'Greg' : 'Faith') + "'s workspace", 'info');
+}
+
+// ════════════════════════════════════════
+// BOOT
+// ════════════════════════════════════════
+init();
+</script>
+</body>
+</html>
