@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strauch Agency — Sales Pipeline</title>
+<style>
+  :root {
+    --ink: #1a2332;
+    --ink-2: #5a6577;
+    --ink-3: #9aa3b2;
+    --bg: #eef1f5;
+    --panel: #ffffff;
+    --line: #dde2ea;
+    --blue: #1e5fa8;
+    --blue-bg: #e8f0fa;
+    --green: #2e7d32;
+    --green-bg: #e8f5e9;
+    --amber: #b26a00;
+    --amber-bg: #fff3e0;
+    --red: #c62828;
+    --red-bg: #ffebee;
+    --display: 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
+    --body: 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: var(--body); background: var(--bg); color: var(--ink); font-size: 14px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* ── Header ─────────────────────────────── */
+  header {
+    background: var(--ink); color: #fff; padding: 10px 18px;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap; flex-shrink: 0;
+  }
+  header h1 { font-family: var(--display); font-size: 16px; font-weight: 700; letter-spacing: 0.04em; }
+  header h1 span { color: #7fb2e5; font-weight: 500; }
+  .seg { display: flex; border: 1px solid #3a475c; border-radius: 8px; overflow: hidden; }
+  .seg button {
+    background: transparent; color: #b9c3d3; border: none; padding: 7px 14px;
+    font-family: var(--display); font-size: 12px; font-weight: 700; cursor: pointer; letter-spacing: 0.03em;
+  }
+  .seg button.active { background: var(--blue); color: #fff; }
+  .hdr-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .hdr-btn {
+    background: transparent; color: #b9c3d3; border: 1px solid #3a475c; border-radius: 8px;
+    padding: 7px 14px; font-family: var(--display); font-size: 12px; font-weight: 600; cursor: pointer;
+  }
+  .hdr-btn:hover { color: #fff; border-color: #7fb2e5; }
+  #syncStatus { font-size: 11px; color: #8a95a8; }
+  #syncStatus.err { color: #ff8a80; }
+
+  /* ── Setup banner ───────────────────────── */
+  #setupBanner {
+    display: none; background: var(--amber-bg); color: var(--amber);
+    padding: 10px 18px; font-size: 13px; border-bottom: 1px solid #f0ddb8; flex-shrink: 0;
+  }
+  #setupBanner b { font-weight: 700; }
+
+  /* ── Board ──────────────────────────────── */
+  #board {
+    flex: 1; display: flex; gap: 10px; padding: 14px 18px 6px;
+    overflow-x: auto; overflow-y: hidden; align-items: stretch;
+  }
+  .col {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    width: 250px; min-width: 250px; display: flex; flex-direction: column; max-height: 100%;
+  }
+  .col-head {
+    padding: 10px 12px 8px; border-bottom: 2px solid var(--line);
+    display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+    user-select: none; -webkit-user-select: none;
+  }
+  .col-head .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .col-head .name { font-family: var(--display); font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+  .col-head .count {
+    margin-left: auto; background: var(--bg); color: var(--ink-2); border-radius: 10px;
+    padding: 1px 9px; font-size: 11px; font-weight: 700;
+  }
+  .col-body { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 8px; }
+  .col.drag-over { outline: 2px dashed var(--blue); outline-offset: -4px; background: var(--blue-bg); }
+  .col.rail { width: 210px; min-width: 210px; opacity: 0.92; }
+  .col.rail .col-body { background: repeating-linear-gradient(45deg, transparent, transparent 8px, #f6f7f9 8px, #f6f7f9 16px); border-radius: 0 0 10px 10px; }
+  .col.collapsed { width: 46px; min-width: 46px; cursor: pointer; }
+  .col.collapsed .col-body { display: none; }
+  .col.collapsed .col-head { border-bottom: none; writing-mode: vertical-rl; height: 100%; padding: 14px 0; justify-content: flex-start; gap: 10px; margin: 0 auto; }
+
+  /* ── Cards ──────────────────────────────── */
+  .card {
+    background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--ink-3);
+    border-radius: 8px; padding: 9px 10px; cursor: grab;
+    box-shadow: 0 1px 2px rgba(20,30,50,0.06);
+    user-select: none; -webkit-user-select: none;
+  }
+  .card:active { cursor: grabbing; }
+  .card.dragging { opacity: 0.45; }
+  .card.hot  { border-left-color: var(--red); }
+  .card.warm { border-left-color: var(--amber); }
+  .card.cold { border-left-color: var(--ink-3); }
+  .card-top { display: flex; align-items: baseline; gap: 8px; }
+  .card-name { font-weight: 700; font-size: 13px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .score-chip { font-size: 11px; font-weight: 700; border-radius: 9px; padding: 1px 7px; flex-shrink: 0; }
+  .score-chip.hot  { background: var(--red-bg); color: var(--red); }
+  .score-chip.warm { background: var(--amber-bg); color: var(--amber); }
+  .score-chip.cold { background: var(--bg); color: var(--ink-2); }
+  .card-meta { display: flex; gap: 8px; margin-top: 4px; font-size: 11px; color: var(--ink-2); flex-wrap: wrap; align-items: center; }
+  .agent-chip { font-size: 10px; font-weight: 700; border-radius: 8px; padding: 0 6px; letter-spacing: 0.04em; }
+  .stale { color: var(--red); font-weight: 700; }
+  .card-move { margin-top: 6px; }
+  .movesel { width: 100%; font-size: 11px; padding: 3px 6px; border-radius: 6px; border: 1px solid var(--line, #dde2ea);
+             background: var(--panel, #fff); color: var(--ink-2); cursor: pointer; -webkit-appearance: menulist; appearance: menulist; }
+  .movesel:hover { border-color: var(--blue, #1e5fa8); }
+  .empty-col { color: var(--ink-3); font-size: 12px; text-align: center; padding: 18px 6px; }
+
+  /* ── Dashboard ──────────────────────────── */
+  #dash { flex: 1; overflow-y: auto; padding: 16px 18px; display: none; }
+  .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .tile {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px;
+  }
+  .tile .t-label { font-family: var(--display); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
+  .tile .t-value { font-family: var(--display); font-size: 30px; font-weight: 700; color: var(--ink); line-height: 1.2; margin-top: 2px; }
+  .tile .t-value small { font-size: 15px; font-weight: 600; color: var(--ink-2); }
+  .tile .t-sub { font-size: 11px; color: var(--ink-2); margin-top: 2px; }
+  .meter { height: 8px; background: var(--bg); border-radius: 4px; margin-top: 8px; overflow: hidden; }
+  .meter > div { height: 100%; border-radius: 4px; background: var(--blue); min-width: 2px; }
+  .meter > div.met { background: var(--green); }
+  .meter > div.zero { min-width: 0; }
+
+  .dash-section {
+    font-family: var(--display); font-size: 12px; font-weight: 700; letter-spacing: 0.07em;
+    text-transform: uppercase; color: var(--ink-2); margin: 18px 0 10px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  .legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 11px; font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--ink-2); }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .legend i { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+
+  .lb-wrap { overflow-x: auto; }
+  table.lb { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; font-size: 13px; }
+  table.lb th { font-family: var(--display); font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  table.lb th:nth-child(n+3), table.lb td:nth-child(n+3) { text-align: right; }
+  table.lb td { padding: 11px 14px; border-bottom: 1px solid var(--line); color: var(--ink); white-space: nowrap; }
+  table.lb tbody tr:last-child td { border-bottom: none; }
+  table.lb .lb-rank { font-family: var(--display); font-weight: 700; font-size: 15px; text-align: center; width: 40px; }
+  table.lb .lb-mut { color: var(--ink-3); font-weight: 500; }
+
+  .prow {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 16px; margin-bottom: 12px;
+    display: grid; grid-template-columns: 170px 1fr 200px; gap: 20px; align-items: center;
+  }
+  .prow .p-name { font-family: var(--display); font-size: 15px; font-weight: 700; }
+  .prow .p-binds { font-size: 12px; color: var(--ink-2); margin-top: 3px; }
+  .prow .p-binds b { color: var(--ink); font-size: 16px; }
+  .stagebar { display: flex; height: 26px; border-radius: 5px; overflow: hidden; background: var(--bg); }
+  .stagebar > div { display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 700; border-right: 2px solid var(--panel); min-width: 0; }
+  .stagebar > div:last-child { border-right: none; }
+  .stagebar-labels { display: flex; gap: 14px; margin-top: 6px; font-size: 11px; color: var(--ink-2); flex-wrap: wrap; }
+  .stagebar-labels span { display: inline-flex; align-items: center; gap: 4px; }
+  .stagebar-labels i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+  .p-stats { font-size: 12px; color: var(--ink-2); line-height: 1.8; }
+  .p-stats b { color: var(--ink); }
+  .p-stats .warn { color: var(--red); font-weight: 700; }
+  @media (max-width: 900px) { .prow { grid-template-columns: 1fr; gap: 10px; } }
+
+  /* ── Footer / settings / modal ──────────── */
+  footer { padding: 6px 18px 10px; font-size: 11px; color: var(--ink-3); flex-shrink: 0; display: flex; gap: 14px; align-items: center; }
+  #settingsPanel {
+    display: none; position: fixed; top: 64px; right: 18px; z-index: 50;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; width: 560px; max-width: calc(100vw - 36px); max-height: 80vh; overflow-y: auto;
+    box-shadow: 0 8px 30px rgba(20,30,50,0.18);
+  }
+  #settingsPanel h3 { font-family: var(--display); font-size: 13px; margin: 14px 0 8px; }
+  #settingsPanel h3:first-child { margin-top: 0; }
+  #settingsPanel input[type=text], #settingsPanel input[type=number] {
+    padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; font-size: 12px;
+  }
+  #settingsPanel input.url { width: 100%; font-family: monospace; margin-bottom: 8px; }
+  #settingsPanel .btn {
+    padding: 8px 14px; background: var(--blue); color: #fff; border: none; border-radius: 6px;
+    font-family: var(--display); font-size: 12px; font-weight: 700; cursor: pointer;
+  }
+  #settingsPanel .note { font-size: 11px; color: var(--ink-2); margin-top: 6px; line-height: 1.5; }
+  .prod-row { display: flex; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid var(--bg); }
+  .prod-row .pn { flex: 1; min-width: 70px; font-weight: 600; font-size: 13px; }
+  .prod-row input[type=number] { width: 58px; }
+  .prod-row input[type=number][data-field=premium] { width: 84px; }
+  .prod-row .goal-lbl { white-space: nowrap; }
+  .prod-row .goal-lbl { font-size: 11px; color: var(--ink-2); }
+  .prod-row .rm { background: none; border: none; color: var(--red); cursor: pointer; font-size: 14px; padding: 2px 6px; }
+  #toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 10px 20px; border-radius: 8px;
+    font-size: 13px; display: none; z-index: 99;
+  }
+  #toast.err { background: var(--red); }
+
+  #modalOverlay {
+    display: none; position: fixed; inset: 0; background: rgba(15,22,35,0.55); z-index: 80;
+    align-items: flex-start; justify-content: center; overflow-y: auto; padding: 40px 16px;
+  }
+  #modalOverlay.show { display: flex; }
+  #modal {
+    background: var(--panel); border-radius: 12px; width: 640px; max-width: 100%;
+    box-shadow: 0 16px 48px rgba(10,18,32,0.35); overflow: hidden;
+  }
+  .modal-head { background: var(--ink); color: #fff; padding: 14px 18px; display: flex; align-items: center; gap: 12px; }
+  .modal-head h2 { font-family: var(--display); font-size: 15px; font-weight: 700; flex: 1; }
+  .modal-head .sub { font-size: 11px; color: #8a95a8; }
+  .modal-close { background: none; border: none; color: #b9c3d3; font-size: 20px; cursor: pointer; line-height: 1; }
+  .modal-close:hover { color: #fff; }
+  .modal-body { padding: 18px; max-height: 70vh; overflow-y: auto; }
+  .fgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; margin-bottom: 6px; }
+  .fgrid .full { grid-column: span 2; }
+  .fgroup label {
+    display: block; font-family: var(--display); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 3px;
+  }
+  .fgroup input, .fgroup textarea {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px;
+    font-size: 13px; font-family: var(--body); background: #fff; color: var(--ink);
+  }
+  .fgroup textarea { resize: vertical; min-height: 54px; }
+  .fgroup input:focus, .fgroup textarea:focus { outline: none; border-color: var(--blue); }
+  .fsection {
+    font-family: var(--display); font-size: 11px; font-weight: 700; letter-spacing: 0.07em;
+    text-transform: uppercase; color: var(--blue); margin: 14px 0 8px;
+    border-bottom: 1px solid var(--line); padding-bottom: 4px;
+  }
+  .modal-foot { padding: 14px 18px; border-top: 1px solid var(--line); display: flex; gap: 10px; align-items: center; }
+  .modal-foot .readonly-note { font-size: 11px; color: var(--ink-3); flex: 1; }
+  .btn-save { background: var(--green); color: #fff; border: none; border-radius: 7px; padding: 10px 22px; font-family: var(--display); font-size: 13px; font-weight: 700; cursor: pointer; }
+  .btn-cancel { background: transparent; color: var(--ink-2); border: 1px solid var(--line); border-radius: 7px; padding: 10px 18px; font-family: var(--display); font-size: 13px; font-weight: 600; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>STRAUCH AGENCY <span>| Sales Pipeline</span></h1>
+  <div class="seg" id="modeSeg">
+    <button id="modeBoard" onclick="setMode('board')">BOARD</button>
+    <button id="modeDash"  onclick="setMode('dash')">DASHBOARD</button>
+  </div>
+  <div class="seg" id="agentSeg"></div>
+  <div class="hdr-right">
+    <span id="syncStatus">loading…</span>
+    <button class="hdr-btn" style="border-color:var(--green);color:#9fdca4;" onclick="openNewLead()">+ New Lead</button>
+    <button class="hdr-btn" onclick="loadBoard(false)">↻ Refresh</button>
+    <button class="hdr-btn" onclick="toggleSettings()">⚙ Settings</button>
+  </div>
+</header>
+
+<div id="setupBanner"><b>Setup needed:</b> this board couldn't reach the Lead Tracker sheet. Open ⚙ Settings and paste the current Apps Script Web App URL (same one the Lead Tracker uses).</div>
+
+<div id="board"></div>
+<div id="dash"></div>
+
+<footer>
+  <span>Use the ▾ menu on a card to move the sale (or drag on desktop) · Click a card to edit · Bound = Closed-Won in the Lead Tracker</span>
+  <span id="lastLoaded"></span>
+</footer>
+
+<div id="settingsPanel">
+  <h3>Apps Script Web App URL</h3>
+  <input type="text" class="url" id="scriptUrlInput" placeholder="https://script.google.com/macros/s/…/exec">
+  <button class="btn" onclick="saveScriptUrl()">Save URL</button>
+  <div class="note">Use the same deployment URL as the Lead Profile Tracker. After any backend code change, create a <b>New Deployment</b> in Apps Script and paste the new URL here <b>and</b> in the Lead Tracker's Settings.</div>
+
+  <h3>Producers &amp; Goals</h3>
+  <div id="prodList"></div>
+  <div style="display:flex; gap:8px; margin-top:10px;">
+    <input type="text" id="newProdName" placeholder="Producer first name" style="flex:1;">
+    <button class="btn" onclick="addProducer()">+ Add</button>
+  </div>
+  <div class="note">Adding a producer creates their own pipeline (and their own tab in the Google Sheet on first use). Removing one hides their pipeline here — their leads stay safe in the Sheet.</div>
+
+  <h3>Commission Structure</h3>
+  <div id="commList"></div>
+  <div class="note">Per the agency contracts: a producer's commission is a tiered % of their own new-business premium this folio, and the tier reached applies to the <b>whole</b> amount ($30K at 4.5% = $1,350). Standard producer tiers: 3% from $0 · 4.5% at $20K · 6% at $35K · 8% at $50K. Greg (agent) runs flat 10%. Carrier lines (set per deal on the card's Sold section): <b>Bristol West pays 2 points below</b> the tier rate and <b>Kraft Lake / Life pays 50%</b> of it — all premium still counts toward reaching the tier. Life bonus (+1% tier boost at 5 life apps, +2% at 10) and the $2,800 base are handled outside the board. Only the PIN changes these.</div>
+
+  <h3>Agency Goals</h3>
+  <div style="display:grid; grid-template-columns:auto 1fr; gap:8px 10px; align-items:center; font-size:12px; color:var(--ink-2);">
+    <span>Folio premium goal ($):</span>
+    <input type="number" id="agencyPremGoal" min="0" step="120" style="width:120px;">
+    <span style="align-self:start;padding-top:4px;">Folio schedule (dates):</span>
+    <textarea id="folioScheduleInput" rows="4" placeholder="2026-07-16&#10;2026-08-16&#10;2026-09-16" style="width:160px;font-family:monospace;font-size:12px;"></textarea>
+    <span>Fallback start day:</span>
+    <input type="number" id="folioStartDay" min="1" max="28" style="width:70px;">
+  </div>
+  <div class="note">Pre-seeded with the <b>2026 Farmers folio schedule</b> (start = day after each folio close date). One date per line (YYYY-MM-DD); the board auto-selects whichever folio holds today and advances on its own — the dashboard shows the actual calendar start–end. Edit here to correct or extend into 2027. The countdown counts <b>workdays only</b> (weekends excluded). Quotes/day and closes/day are set per producer above.</div>
+
+  <h3>Admin PIN <span style="font-weight:400; font-size:11px; color:var(--ink-2);">(required to save producers &amp; goals)</span></h3>
+  <div style="display:flex; gap:8px; align-items:center;">
+    <input type="password" id="adminPin" placeholder="PIN" style="width:110px;" autocomplete="off">
+    <button class="btn" onclick="saveConfigFromPanel()">Save Producers &amp; Goals</button>
+  </div>
+  <div class="note">Only Greg and Faith hold the PIN. It lives in the "Board Config" tab of the Google Sheet (cell B1) — change it there anytime. Viewing the dashboard needs no PIN; only editing goals and the roster does.</div>
+</div>
+
+<div id="toast"></div>
+
+<div id="modalOverlay">
+  <div id="modal">
+    <div class="modal-head">
+      <h2 id="modalTitle">Edit Lead</h2>
+      <span class="sub" id="modalSub"></span>
+      <button class="modal-close" onclick="closeEditor()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fgrid">
+        <div class="fgroup full" id="f_agentWrap" style="display:none;"><label>Producer</label>
+          <select id="f_agent" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;font-size:13px;font-family:var(--body);background:#fff;color:var(--ink);"></select>
+        </div>
+        <div class="fgroup full"><label>Name</label><input id="f_name"></div>
+        <div class="fgroup"><label>Phone</label><input id="f_phone"></div>
+        <div class="fgroup"><label>Email</label><input id="f_email"></div>
+        <div class="fgroup full"><label>Address</label><input id="f_address"></div>
+        <div class="fgroup"><label>Source</label><input id="f_source"></div>
+        <div class="fgroup"><label>Best Time to Call</label><input id="f_bestTime"></div>
+        <div class="fgroup full"><label>Pain / Why They're Shopping</label><input id="f_pain"></div>
+        <div class="fgroup full"><label>Notes / Gaps</label><textarea id="f_gaps"></textarea></div>
+        <div class="fgroup full"><label>Objections</label><input id="f_objections"></div>
+        <div class="fgroup full"><label>Priority Note</label><input id="f_priNote"></div>
+      </div>
+      <div class="fsection">Auto</div>
+      <div class="fgrid">
+        <div class="fgroup"><label>Current Carrier</label><input id="f_autoCurrentCarrier"></div>
+        <div class="fgroup"><label>Current Premium</label><input id="f_autoCurrentPrem"></div>
+        <div class="fgroup"><label>Farmers Quote</label><input id="f_autoFarmersPrem"></div>
+        <div class="fgroup"><label>Quote Note</label><input id="f_autoFarmersNote"></div>
+      </div>
+      <div class="fsection">Home</div>
+      <div class="fgrid">
+        <div class="fgroup"><label>Current Carrier</label><input id="f_homeCurrentCarrier"></div>
+        <div class="fgroup"><label>Current Premium</label><input id="f_homeCurrentPrem"></div>
+        <div class="fgroup"><label>Farmers Quote</label><input id="f_homeFarmersPrem"></div>
+        <div class="fgroup"><label>Quote Note</label><input id="f_homeFarmersNote"></div>
+      </div>
+      <div class="fsection">Sold</div>
+      <div class="fgrid">
+        <div class="fgroup"><label>Premium Sold ($, total for the sale)</label><input id="f_premiumSold" type="number" min="0" step="1"></div>
+        <div class="fgroup"><label>Carrier Line (sets the commission rate)</label>
+          <select id="f_premiumLine">
+            <option value="">Farmers (standard rate)</option>
+            <option value="bw">Bristol West (2 pts below)</option>
+            <option value="half">Kraft Lake / Life (50% of rate)</option>
+          </select></div>
+        <div class="fgroup full"><label style="display:flex;gap:8px;align-items:flex-start;font-weight:400;cursor:pointer;"><input id="f_winback" type="checkbox" style="width:auto;margin-top:3px;flex:0 0 auto;"><span><b>Win-back</b> — a returning or previously-lost client. Checking this and saving marks the deal <b>Bound</b> as of today, so it counts toward this folio's agency goal and drops into the pipeline. Enter the Premium Sold above so it counts.</span></label></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <span class="readonly-note" id="modalReadonly"></span>
+      <button class="btn-cancel" onclick="closeEditor()">Cancel</button>
+      <button class="btn-save" onclick="saveEditor()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════ CONFIG ═══════════════ */
+// Same deployment as the Lead Profile Tracker. NOTE: card moves, edits, and the
+// producer roster need the pipeline-enabled backend — deploy the updated .gs and
+// paste the new URL in Settings if anything fails.
+const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz56VTJ3aVMLenw6yeXDqenP1Ljgkx7OTmrpgOab8TqOW-LwEzkWtkiwLAV8rS3NM8I/exec';
+const URL_KEY  = 'strauch_pipeline_script_url';
+const VIEW_KEY = 'strauch_pipeline_view';
+const MODE_KEY = 'strauch_pipeline_mode';
+
+// Stage palette is CVD-validated as a set — change all five together, not one.
+const STAGES = [
+  { key: 'new',         name: 'New Lead',    color: '#8e24aa' },
+  { key: 'contacted',   name: 'Contacted',   color: '#b26a00' },
+  { key: 'quoted',      name: 'Quoted',      color: '#1e5fa8' },
+  { key: 'walkthrough', name: 'Walkthrough', color: '#c2185b' },
+  { key: 'bound',       name: 'Bound',       color: '#2e7d32' }
+];
+const RAILS = [
+  { key: 'nurture', name: 'Nurture', color: '#b26a00' },
+  { key: 'lost',    name: 'Lost',    color: '#c62828' }
+];
+const ALL_KEYS = STAGES.concat(RAILS).map(s => s.key);
+const LANE_STATUS = { bound: 'won', lost: 'lost', nurture: 'nurture' };
+// Stage moves speak the tracker's grading language: a forward drag raises the
+// lead's score FACTORS to the minimums the stage implies (drag to Contacted =
+// you spoke to them; drag to Quoted = a quote was delivered), then the score is
+// recomputed as the factor sum — so the tracker's factor breakdown always
+// explains the number. A backward drag just caps the score at the stage ceiling
+// (it's a mis-staging correction, not evidence the quote was un-delivered).
+const FACTOR_KEYS = ['urgency','dm','quote','engagement','contact','gap','objection'];
+const STAGE_FACTOR_FLOORS = {           // cumulative minimums per stage
+  contacted:   { contact: 10 },                                          // spoke live
+  quoted:      { contact: 10, quote: 10 },                               // quote delivered
+  walkthrough: { contact: 10, quote: 10, engagement: 12 },               // engaged enough to book
+  bound:       { contact: 10, quote: 15, engagement: 12, objection: 5 }  // they bought
+};
+const STAGE_SCORE_CAPS = { new: 34, contacted: 55, quoted: 70, walkthrough: 90, bound: 100 };
+const STAGE_ORDER = STAGES.map(s => s.key);
+// Returns true if the drop changed lead.scoreFactors (so the caller knows to sync them).
+function applyStageScore(lead, fromStage, toStage) {
+  if (!(toStage in STAGE_SCORE_CAPS)) return false;   // nurture/lost: leave scoring alone
+  const fromIdx = STAGE_ORDER.indexOf(fromStage);
+  const toIdx = STAGE_ORDER.indexOf(toStage);
+  const backward = fromIdx !== -1 && toIdx < fromIdx;
+  if (backward) {
+    const s = Number(lead.score);
+    if (!isNaN(s) && lead.score !== null && lead.score !== '' && lead.score !== undefined) {
+      lead.score = Math.min(s, STAGE_SCORE_CAPS[toStage]);
+    }
+    return false;
+  }
+  // Forward (or re-activated from a rail): floor the implied factors, re-sum.
+  const floors = STAGE_FACTOR_FLOORS[toStage] || {};
+  const sf = lead.scoreFactors || {};
+  let changed = false, total = 0;
+  FACTOR_KEYS.forEach(k => {
+    let v = parseInt(sf[k], 10) || 0;
+    if (floors[k] && v < floors[k]) { v = floors[k]; changed = true; }
+    sf[k] = v;
+    total += v;
+  });
+  if (changed || lead.score === null || lead.score === undefined || lead.score === '') {
+    lead.scoreFactors = sf;
+    // never lower a score on a forward move
+    lead.score = Math.max(parseInt(lead.score, 10) || 0, Math.min(100, total));
+  }
+  return changed;
+}
+const STALE_DAYS = 5;
+// producer chip colors, assigned by roster order (labels always accompany them)
+const AGENT_COLORS = ['#1e5fa8', '#7b3fa0', '#00695c', '#b26a00', '#c2185b', '#455a64', '#2e7d32', '#8d4e2a'];
+
+// 2026 Farmers folio schedule — START dates, derived from the official Folio CLOSE
+// Dates calendar (FolioCalendarWide2026.pdf): a folio closes on the calendar's teal
+// date, so the next folio STARTS the day after. Close dates 2026: Jan20 Feb18 Mar18
+// Apr17 May19 Jun18 Jul17 Aug19 Sep18 Oct19 Nov17 Dec17 → starts are each +1 day.
+// Baked in as the default so the board is accurate on load; Greg can override in ⚙ Settings.
+const DEFAULT_FOLIO_SCHEDULE = [
+  '2026-01-21', '2026-02-19', '2026-03-19', '2026-04-18',
+  '2026-05-20', '2026-06-19', '2026-07-18', '2026-08-20',
+  '2026-09-19', '2026-10-20', '2026-11-18', '2026-12-18'
+];
+
+const DEFAULT_CONFIG = {
+  producers: [ { key: 'greg', name: 'Greg' }, { key: 'faith', name: 'Faith' } ],
+  goals: {
+    folioPremium: 0,          // agency premium-sold goal per folio ($)
+    folioSchedule: DEFAULT_FOLIO_SCHEDULE.slice(),  // real folio start dates; auto-advances to the period holding today
+    folioStartDay: 16,        // FALLBACK only, used when folioSchedule is empty (day-of-month model)
+    perProducer: {
+      // Greg is the agent — Farmers pays ~10% avg on his own production.
+      greg:  { quotesPerDay: 6, closesPerDay: 2, premium: 0, commTiers: [{ min: 0, rate: 10 }] },
+      faith: { quotesPerDay: 6, closesPerDay: 2, premium: 0, commTiers: null }   // null → contract tiers below
+    }
+  }
+};
+// Producer commission per the agency contracts (team structure doc): tiered %
+// of the producer's OWN monthly new-business premium, and the tier reached
+// applies to the WHOLE amount ($30K → 4.5% = $1,350; $55K → 8% = $4,400).
+// Life bonus (+1% tier boost at 5 life apps, +2% at 10) and the $2,800 base
+// are handled off-board.
+const CONTRACT_TIERS = [
+  { min: 0,     rate: 3   },
+  { min: 20000, rate: 4.5 },
+  { min: 35000, rate: 6   },
+  { min: 50000, rate: 8   }
+];
+function normalizeGoals() {
+  const g = config.goals || {};
+  config.goals = {
+    folioPremium: parseInt(g.folioPremium, 10) || 0,
+    folioSchedule: (function () {
+      const clean = Array.isArray(g.folioSchedule)
+        ? g.folioSchedule.map(s => String(s).trim()).filter(s => /^\d{4}-\d{2}-\d{2}$/.test(s)).sort()
+        : [];
+      // fall back to the baked-in 2026 Farmers folio schedule when the server has none set
+      return clean.length ? clean : DEFAULT_FOLIO_SCHEDULE.slice();
+    })(),
+    folioStartDay: Math.min(28, Math.max(1, parseInt(g.folioStartDay, 10) || 16)),
+    perProducer: g.perProducer || {}
+  };
+  config.producers.forEach(p => {
+    const pg = config.goals.perProducer[p.key] || {};
+    let tiers = Array.isArray(pg.commTiers) && pg.commTiers.length
+      ? pg.commTiers.map(t => ({ min: parseInt(t.min, 10) || 0, rate: Math.max(0, parseFloat(t.rate) || 0) }))
+      // unset → the standard producer contract; Greg (agent) defaults to flat ~10%
+      : (p.key === 'greg' ? [{ min: 0, rate: 10 }] : JSON.parse(JSON.stringify(CONTRACT_TIERS)));
+    tiers.sort((a, b) => a.min - b.min);
+    if (tiers[0].min !== 0) tiers.unshift({ min: 0, rate: tiers[0].rate });
+    config.goals.perProducer[p.key] = {
+      quotesPerDay: parseInt(pg.quotesPerDay, 10) || 0,
+      closesPerDay: parseInt(pg.closesPerDay, 10) || 0,
+      premium: parseInt(pg.premium, 10) || 0,
+      commTiers: tiers
+    };
+  });
+}
+// The tier reached applies to the WHOLE folio premium (retroactive), matching
+// the contract examples. ALL new-business premium counts toward reaching the
+// tier, but per the contract the rate paid varies by carrier line:
+// Bristol West = 2 points below the tier rate; Kraft Lake / Life = 50% of it.
+// `split` is {std, bw, half} dollars (or a plain number = all standard).
+function commissionFor(key, split) {
+  const tiers = ((config.goals.perProducer[key] || {}).commTiers) || [];
+  if (!tiers.length || !tiers.some(t => t.rate > 0)) return null;
+  const s = (typeof split === 'number') ? { std: split, bw: 0, half: 0 } : split;
+  const total = (s.std || 0) + (s.bw || 0) + (s.half || 0);
+  let cur = tiers[0], next = null;
+  tiers.forEach(t => { if (total >= t.min) cur = t; else if (!next) next = t; });
+  const bwRate = Math.max(0, cur.rate - 2);
+  const halfRate = cur.rate / 2;
+  return {
+    rate: cur.rate, bwRate: bwRate, halfRate: halfRate,
+    earned: Math.round((s.std || 0) * cur.rate + (s.bw || 0) * bwRate + (s.half || 0) * halfRate) / 100,
+    next: next, total: total, split: s, curMin: cur.min
+  };
+}
+
+/* ═══════════════ STATE ═══════════════ */
+let config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+let configLive = false;              // true once loaded from the backend
+let mode = localStorage.getItem(MODE_KEY) || 'board';
+let view = localStorage.getItem(VIEW_KEY) || 'all';
+let leadsByAgent = {};
+let collapsed = { nurture: true, lost: true };
+let dragging = null;
+let editing = null;
+
+function getScriptUrl() {
+  return (localStorage.getItem(URL_KEY) || '').trim() || DEFAULT_SCRIPT_URL;
+}
+function producerKeys() { return config.producers.map(p => p.key); }
+function producerName(key) {
+  const p = config.producers.find(p => p.key === key);
+  return p ? p.name : key;
+}
+function agentColor(key) {
+  const i = producerKeys().indexOf(key);
+  return AGENT_COLORS[(i >= 0 ? i : 0) % AGENT_COLORS.length];
+}
+
+/* ═══════════════ STAGE LOGIC ═══════════════ */
+function effectiveStage(lead) {
+  const status = lead.status || 'active';
+  if (status === 'won')     return 'bound';
+  if (status === 'lost')    return 'lost';
+  if (status === 'nurture') return 'nurture';
+  let s = lead.stage;
+  if (s === 'attempted') s = 'new';   // retired column
+  if (s && ALL_KEYS.includes(s) && !LANE_STATUS[s]) return s;
+  return deriveStage(lead);
+}
+function deriveStage(lead) {
+  const calls = lead.calls || [];
+  const cov = lead.coverage || {};
+  const quoted = (cov.autoFarmersPrem || '').trim() || (cov.homeFarmersPrem || '').trim();
+  const connected = calls.some(c => /appointment|connected|walkthrough|quoted|interested/i.test(c.outcome || ''));
+  const apptSet = calls.some(c => /appointment|walkthrough/i.test(c.outcome || ''));
+  if (apptSet && quoted) return 'walkthrough';
+  if (quoted) return 'quoted';
+  if (apptSet) return 'walkthrough';
+  if (connected) return 'contacted';
+  return 'new';
+}
+
+/* ═══════════════ DATA ═══════════════ */
+async function apiGet(params) {
+  const res = await fetch(getScriptUrl() + '?' + params, { method: 'GET' });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data;
+}
+async function _postTo(url, body) {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },   // avoids CORS preflight
+    body: JSON.stringify(body)
+  });
+  const txt = await res.text();
+  try { return JSON.parse(txt); }
+  catch (e) { throw new Error('The Web App URL did not return data.'); }
+}
+// GET-based write. Some browsers/sessions block cross-site POST (strict privacy
+// settings, Safari, multi-account Google) while GET still works — the board's
+// reads prove GET reaches the backend. The backend's doGet accepts a write when
+// the full payload is passed as ?payload=<json>, so this is a drop-in fallback.
+async function _getWrite(url, body) {
+  const res = await fetch(url + '?payload=' + encodeURIComponent(JSON.stringify(body)), { method: 'GET' });
+  const txt = await res.text();
+  try { return JSON.parse(txt); }
+  catch (e) { throw new Error('The Web App URL did not return data.'); }
+}
+// Resilient write. Tries POST first (normal), then GET (for browsers that block
+// cross-site POST), on the current URL and — if that's a custom Settings URL —
+// the baked-in default too, self-healing a wrong saved link. Returns the first
+// clean success; surfaces a real backend error (bad PIN, lead not found) at once;
+// only a stale-URL "unknown action" is treated as "try the next endpoint".
+async function apiPost(body) {
+  const primary = getScriptUrl();
+  const urls = (primary === DEFAULT_SCRIPT_URL) ? [primary] : [primary, DEFAULT_SCRIPT_URL];
+  const isStale = (msg) => /unknown action|bad payload|no such|not found: action/i.test(msg || '');
+  let lastErr = null;
+  for (const url of urls) {
+    for (const send of [_postTo, _getWrite]) {
+      try {
+        const data = await send(url, body);
+        if (data && data.error) {
+          if (isStale(data.error)) { lastErr = new Error(data.error); continue; } // wrong/old endpoint — try next
+          throw new Error(data.error);                                            // real error — surface it
+        }
+        if (url !== primary) {                 // succeeded on the default after a bad custom URL — heal it
+          localStorage.removeItem(URL_KEY);
+          toast('Reconnected to the Lead Tracker.', false);
+        }
+        return data;
+      } catch (e) { lastErr = e; /* try next method / url */ }
+    }
+  }
+  throw lastErr || new Error('Could not save — the Lead Tracker was unreachable.');
+}
+
+async function loadConfig() {
+  try {
+    const data = await apiGet('action=getConfig');
+    if (data.config && Array.isArray(data.config.producers) && data.config.producers.length) {
+      config = data.config;
+      configLive = true;
+    }
+  } catch (err) { /* old backend — run on the default greg/faith roster */ }
+  normalizeGoals();
+}
+
+async function loadBoard(silent) {
+  const st = document.getElementById('syncStatus');
+  if (!silent) st.textContent = 'loading…';
+  st.classList.remove('err');
+  try {
+    const agents = producerKeys();
+    const results = await Promise.all(agents.map(a => apiGet('action=getAll&agent=' + encodeURIComponent(a))));
+    agents.forEach((a, i) => { leadsByAgent[a] = results[i].leads || []; });
+    document.getElementById('setupBanner').style.display = 'none';
+    st.textContent = 'synced';
+    document.getElementById('lastLoaded').textContent = 'Loaded ' + new Date().toLocaleTimeString();
+    render();
+  } catch (err) {
+    // Auto-heal: if a hand-entered URL is failing but the built-in default
+    // still answers, drop the override instead of staying dead.
+    const custom = (localStorage.getItem(URL_KEY) || '').trim();
+    if (custom && custom !== DEFAULT_SCRIPT_URL && !loadBoard._healing) {
+      loadBoard._healing = true;
+      try {
+        const probe = await fetch(DEFAULT_SCRIPT_URL + '?action=ping', { method: 'GET' });
+        const pd = await probe.json();
+        if (pd && pd.ok) {
+          localStorage.removeItem(URL_KEY);
+          toast('Saved URL was unreachable — reverted to the built-in one', true);
+          loadBoard._healing = false;
+          return loadBoard(silent);
+        }
+      } catch (e2) { /* default is down too — show the banner */ }
+      loadBoard._healing = false;
+    }
+    st.textContent = 'sync failed';
+    st.classList.add('err');
+    document.getElementById('setupBanner').style.display = 'block';
+  }
+}
+
+/* ═══════════════ RENDER SHARED ═══════════════ */
+function tier(score) {
+  if (score === null || score === undefined || score === '') return 'cold';
+  return score >= 70 ? 'hot' : score >= 40 ? 'warm' : 'cold';
+}
+function daysSince(iso) {
+  if (!iso) return null;
+  const ms = Date.now() - new Date(iso).getTime();
+  return isNaN(ms) ? null : Math.floor(ms / 86400000);
+}
+function visibleLeads() {
+  const out = [];
+  const agents = view === 'all' ? producerKeys() : [view];
+  agents.forEach(a => (leadsByAgent[a] || []).forEach(l => { if (l && l.id) out.push({ lead: l, agent: a }); }));
+  return out;
+}
+function render() {
+  renderAgentSeg();
+  if (mode === 'dash') renderDash(); else renderBoard();
+}
+
+function renderAgentSeg() {
+  const seg = document.getElementById('agentSeg');
+  seg.innerHTML = '';
+  const opts = [{ key: 'all', name: 'ALL' }].concat(config.producers.map(p => ({ key: p.key, name: p.name.toUpperCase() })));
+  if (!opts.find(o => o.key === view)) view = 'all';
+  opts.forEach(o => {
+    const b = document.createElement('button');
+    b.textContent = o.name;
+    b.className = view === o.key ? 'active' : '';
+    b.onclick = () => { view = o.key; localStorage.setItem(VIEW_KEY, view); render(); };
+    seg.appendChild(b);
+  });
+  document.getElementById('modeBoard').className = mode === 'board' ? 'active' : '';
+  document.getElementById('modeDash').className  = mode === 'dash'  ? 'active' : '';
+}
+
+/* ═══════════════ BOARD VIEW ═══════════════ */
+function renderBoard() {
+  document.getElementById('board').style.display = 'flex';
+  document.getElementById('dash').style.display = 'none';
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  const all = visibleLeads();
+
+  STAGES.concat(RAILS).forEach(stageDef => {
+    const isRail = !!RAILS.find(r => r.key === stageDef.key);
+    const items = all.filter(x => effectiveStage(x.lead) === stageDef.key);
+    items.sort((a, b) => new Date(b.lead.boardTouchedAt || b.lead.updatedAt || 0) - new Date(a.lead.boardTouchedAt || a.lead.updatedAt || 0));
+
+    const col = document.createElement('div');
+    col.className = 'col' + (isRail ? ' rail' : '') + (isRail && collapsed[stageDef.key] ? ' collapsed' : '');
+    col.dataset.stage = stageDef.key;
+
+    const head = document.createElement('div');
+    head.className = 'col-head';
+    const dot = document.createElement('span'); dot.className = 'dot'; dot.style.background = stageDef.color;
+    const nm = document.createElement('span'); nm.className = 'name'; nm.textContent = stageDef.name;
+    const ct = document.createElement('span'); ct.className = 'count'; ct.textContent = items.length;
+    head.appendChild(dot); head.appendChild(nm); head.appendChild(ct);
+    if (isRail) head.onclick = () => { collapsed[stageDef.key] = !collapsed[stageDef.key]; render(); };
+    col.appendChild(head);
+
+    const body = document.createElement('div');
+    body.className = 'col-body';
+    if (items.length === 0) {
+      const e = document.createElement('div');
+      e.className = 'empty-col';
+      e.textContent = '—';
+      body.appendChild(e);
+    }
+    items.forEach(x => body.appendChild(makeCard(x.lead, x.agent, stageDef.key)));
+    col.appendChild(body);
+
+    col.addEventListener('dragover', ev => { ev.preventDefault(); col.classList.add('drag-over'); });
+    col.addEventListener('dragleave', () => col.classList.remove('drag-over'));
+    col.addEventListener('drop', ev => { ev.preventDefault(); col.classList.remove('drag-over'); handleDrop(stageDef.key); });
+    board.appendChild(col);
+  });
+}
+
+function makeCard(lead, agent, stageKey) {
+  const card = document.createElement('div');
+  const t = tier(lead.score);
+  card.className = 'card ' + t;
+  card.draggable = true;
+
+  const top = document.createElement('div');
+  top.className = 'card-top';
+  const name = document.createElement('span');
+  name.className = 'card-name';
+  name.textContent = lead.name || '(no name)';
+  top.appendChild(name);
+  if (lead.score !== null && lead.score !== undefined && lead.score !== '') {
+    const chip = document.createElement('span');
+    chip.className = 'score-chip ' + t;
+    chip.textContent = lead.score;
+    top.appendChild(chip);
+  }
+  card.appendChild(top);
+
+  const meta = document.createElement('div');
+  meta.className = 'card-meta';
+  if (view === 'all') {
+    const a = document.createElement('span');
+    a.className = 'agent-chip';
+    a.textContent = producerName(agent).toUpperCase();
+    const c = agentColor(agent);
+    a.style.color = c;
+    a.style.background = c + '1a';
+    meta.appendChild(a);
+  }
+  if (lead.source) {
+    const s = document.createElement('span');
+    s.textContent = lead.source;
+    meta.appendChild(s);
+  }
+  if (stageKey === 'bound' && premiumOf(lead) > 0) {
+    const pm = document.createElement('span');
+    pm.textContent = fmtMoney(premiumOf(lead));
+    pm.style.fontWeight = '700';
+    pm.style.color = 'var(--green)';
+    meta.appendChild(pm);
+  }
+  const d = daysSince(lead.boardTouchedAt || lead.updatedAt || lead.createdAt);
+  if (d !== null) {
+    const age = document.createElement('span');
+    const staleHere = d >= STALE_DAYS && !LANE_STATUS[stageKey];
+    age.textContent = d === 0 ? 'today' : d + 'd';
+    if (staleHere) { age.classList.add('stale'); age.textContent += ' ⚠'; age.title = 'No movement in ' + d + ' days'; }
+    meta.appendChild(age);
+  }
+  card.appendChild(meta);
+
+  // Quick-move dropdown — the reliable, touch-safe, sandbox-safe way to change a
+  // card's stage without dragging. Native <select> works everywhere drag doesn't.
+  const mv = document.createElement('div');
+  mv.className = 'card-move';
+  const sel = document.createElement('select');
+  sel.className = 'movesel';
+  sel.title = 'Move this lead to another stage';
+  STAGES.concat(RAILS).forEach(sd => {
+    const o = document.createElement('option');
+    o.value = sd.key;
+    o.textContent = 'Move → ' + sd.name;
+    if (sd.key === stageKey) { o.textContent = '● ' + sd.name; o.selected = true; }
+    sel.appendChild(o);
+  });
+  // Keep the dropdown from opening the editor or starting a drag.
+  sel.addEventListener('click', ev => ev.stopPropagation());
+  sel.addEventListener('mousedown', ev => ev.stopPropagation());
+  sel.addEventListener('change', ev => {
+    ev.stopPropagation();
+    const to = sel.value;
+    if (to !== stageKey) moveLeadToStage(agent, lead.id, stageKey, to);
+  });
+  mv.appendChild(sel);
+  card.appendChild(mv);
+
+  card.addEventListener('click', ev => {
+    if (ev.target.tagName === 'A' || ev.target.tagName === 'SELECT' || ev.target.tagName === 'OPTION') return;
+    openEditor(lead, agent);
+  });
+  card.addEventListener('dragstart', () => {
+    dragging = { id: lead.id, agent: agent, fromStage: stageKey };
+    card.classList.add('dragging');
+  });
+  card.addEventListener('dragend', () => card.classList.remove('dragging'));
+  return card;
+}
+
+async function handleDrop(toStage) {
+  if (!dragging) { dragging = null; return; }
+  const { id, agent, fromStage } = dragging;
+  dragging = null;
+  await moveLeadToStage(agent, id, fromStage, toStage);
+}
+
+// Shared stage-move logic used by BOTH native drag-and-drop AND the card's
+// quick-move dropdown. Native HTML5 drag does not fire a drop inside the Apps
+// Script sandbox iframe (how the team opens the board) or on any touch device,
+// so the dropdown is the reliable path; drag is kept for desktop where it works.
+async function moveLeadToStage(agent, id, fromStage, toStage) {
+  if (!toStage || fromStage === toStage) return;
+  const list = leadsByAgent[agent] || [];
+  const lead = list.find(l => l.id === id);
+  if (!lead) return;
+  const prev = { stage: lead.stage, status: lead.status, boardTouchedAt: lead.boardTouchedAt, wonAt: lead.wonAt, score: lead.score,
+                 scoreFactors: lead.scoreFactors ? JSON.parse(JSON.stringify(lead.scoreFactors)) : lead.scoreFactors };
+  lead.stage = LANE_STATUS[toStage] ? '' : toStage;
+  lead.status = LANE_STATUS[toStage] || 'active';
+  lead.boardTouchedAt = new Date().toISOString();
+  // Stamp wonAt on every fresh close (transition INTO won), not just the first ever.
+  // A win-back reactivated from Lost/Nurture carries an old wonAt; re-stamping to now
+  // is what makes it count in the CURRENT folio's agency goal.
+  if (toStage === 'bound' && prev.status !== 'won') lead.wonAt = lead.boardTouchedAt;
+  if (toStage === 'bound' && (prev.status === 'lost' || prev.status === 'nurture')) { lead.winback = true; lead.winbackAt = lead.boardTouchedAt; }
+  // first arrival at Quoted (or Walkthrough, which implies a quote) starts the quotes-per-day clock
+  if ((toStage === 'quoted' || toStage === 'walkthrough') && !lead.quotedAt) lead.quotedAt = lead.boardTouchedAt;
+  const factorsChanged = applyStageScore(lead, fromStage, toStage);
+  render();
+  try {
+    await apiPost({ action: 'updateStage', agent: agent, id: id, stage: lead.stage, status: lead.status, ts: lead.boardTouchedAt, quotedAt: lead.quotedAt || '', score: lead.score });
+    // persist floored factors (so the tracker breakdown matches the score) and/or the
+    // win-back flag set by reactivating a Lost/Nurture card into Bound
+    const extra = {};
+    if (factorsChanged) extra.scoreFactors = lead.scoreFactors;
+    if (lead.winback && lead.winbackAt === lead.boardTouchedAt) { extra.winback = true; extra.winbackAt = lead.winbackAt; }
+    if (Object.keys(extra).length) {
+      await apiPost({ action: 'updateLead', agent: agent, id: id, fields: extra, ts: lead.boardTouchedAt });
+    }
+    toast('Moved to ' + (STAGES.concat(RAILS).find(s => s.key === toStage) || {}).name);
+  } catch (err) {
+    Object.assign(lead, prev);
+    render();
+    toast('Move failed — check Settings URL (backend may need the new deployment)', true);
+  }
+}
+
+/* ═══════════════ DASHBOARD VIEW ═══════════════ */
+// Folio period. Preferred: config.goals.folioSchedule — a list of real folio start
+// dates (calendar dates, not a day-of-month), so the current folio is whichever
+// scheduled period holds today and it auto-advances as real dates pass. If no
+// schedule is set, fall back to the day-of-month model (folioStartDay).
+function parseLocalDate(s) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s).trim());
+  if (!m) return null;
+  const d = new Date(+m[1], +m[2] - 1, +m[3]);
+  return isNaN(d.getTime()) ? null : d;
+}
+function addMonths(date, n) { return new Date(date.getFullYear(), date.getMonth() + n, date.getDate()); }
+function folioScheduleDates() {
+  const raw = config.goals.folioSchedule;
+  if (!Array.isArray(raw)) return [];
+  return raw.map(parseLocalDate).filter(Boolean).sort((a, b) => a - b);
+}
+function folioWindow() {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const dates = folioScheduleDates();
+  if (dates.length >= 1 && today >= dates[0]) {
+    let idx = 0;
+    for (let i = 0; i < dates.length; i++) { if (dates[i] <= today) idx = i; }
+    let start = dates[idx];
+    let end = dates[idx + 1];
+    if (!end) {                              // past the last entered boundary: continue monthly from it
+      start = dates[dates.length - 1];
+      while (addMonths(start, 1) <= today) start = addMonths(start, 1);
+      end = addMonths(start, 1);
+    }
+    return { start, end };                    // end is exclusive (start of the next folio)
+  }
+  const d = config.goals.folioStartDay || 16; // fallback: day-of-month model
+  let start = new Date(now.getFullYear(), now.getMonth(), d);
+  if (now.getDate() < d) start = new Date(now.getFullYear(), now.getMonth() - 1, d);
+  return { start, end: new Date(start.getFullYear(), start.getMonth() + 1, d) };
+}
+// Count Mon–Fri days in [from, to) — weekends excluded, since the team doesn't work them.
+function businessDaysBetween(from, to) {
+  let count = 0;
+  const d = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+  while (d < to) {
+    const wd = d.getDay();
+    if (wd !== 0 && wd !== 6) count++;
+    d.setDate(d.getDate() + 1);
+  }
+  return count;
+}
+// Workdays left in the folio: today (inclusive, if a weekday) through the day before the next folio.
+function folioDaysLeft() {
+  const { end } = folioWindow();
+  const now = new Date();
+  return businessDaysBetween(new Date(now.getFullYear(), now.getMonth(), now.getDate()), end);
+}
+function inFolio(iso) {
+  if (!iso) return false;
+  const t = new Date(iso);
+  const { start, end } = folioWindow();
+  return t >= start && t < end;
+}
+function isToday(iso) {
+  if (!iso) return false;
+  const t = new Date(iso), now = new Date();
+  return t.getFullYear() === now.getFullYear() && t.getMonth() === now.getMonth() && t.getDate() === now.getDate();
+}
+function premiumOf(lead) {
+  const n = parseFloat(String(lead.premiumSold || '').replace(/[^0-9.]/g, ''));
+  return isNaN(n) ? 0 : n;
+}
+function fmtMoney(n) {
+  return '$' + Math.round(n).toLocaleString('en-US');
+}
+
+// Was this lead ever actually reached (a live two-way conversation), regardless of
+// where it ended up? Used for contact rate — a lead that was contacted then lost still
+// counts as "reached". True if won, if the tracker's contact factor is scored, if the
+// current/stored stage is Contacted-or-beyond, or if a call outcome shows a connect.
+function wasContacted(lead) {
+  if ((lead.status || '') === 'won') return true;
+  const sf = lead.scoreFactors || {};
+  if (Number(sf.contact) >= 10) return true;
+  const reachedStages = ['contacted', 'quoted', 'walkthrough', 'bound'];
+  if (reachedStages.includes(lead.stage)) return true;
+  if (reachedStages.includes(effectiveStage(lead))) return true;
+  if ((lead.calls || []).some(c => /connected|appointment|walkthrough|quoted|interested|spoke|reached/i.test(c.outcome || ''))) return true;
+  return false;
+}
+
+function producerMetrics(key) {
+  const leads = (leadsByAgent[key] || []).filter(l => l && l.id);
+  const byStage = {};
+  ALL_KEYS.forEach(k => byStage[k] = 0);
+  let stale = 0, quotesToday = 0, closesToday = 0, folioPremium = 0, folioCloses = 0;
+  let reached = 0, winbacksFolio = 0;
+  const folioSplit = { std: 0, bw: 0, half: 0 };
+  leads.forEach(l => {
+    const s = effectiveStage(l);
+    byStage[s] = (byStage[s] || 0) + 1;
+    if (!LANE_STATUS[s]) {
+      const d = daysSince(l.boardTouchedAt || l.updatedAt || l.createdAt);
+      if (d !== null && d >= STALE_DAYS) stale++;
+    }
+    if (wasContacted(l)) reached++;
+    if (isToday(l.quotedAt)) quotesToday++;
+    if ((l.status || '') === 'won') {
+      if (isToday(l.wonAt)) closesToday++;
+      if (inFolio(l.wonAt)) {
+        const p = premiumOf(l);
+        folioPremium += p;
+        const line = (l.premiumLine === 'bw' || l.premiumLine === 'half') ? l.premiumLine : 'std';
+        folioSplit[line] += p;
+        folioCloses++;
+        if (l.winback) winbacksFolio++;
+      }
+    }
+  });
+  const won = leads.filter(l => (l.status || '') === 'won').length;
+  const lost = leads.filter(l => (l.status || '') === 'lost').length;
+  const active = byStage.new + byStage.contacted + byStage.quoted + byStage.walkthrough;
+  return {
+    key: key, byStage: byStage, active: active, stale: stale,
+    wonTotal: won, lostTotal: lost, totalLeads: leads.length, reached: reached,
+    contactRate: leads.length > 0 ? Math.round(100 * reached / leads.length) : null,
+    winRate: (won + lost) > 0 ? Math.round(100 * won / (won + lost)) : null,
+    quotesToday: quotesToday, closesToday: closesToday, winbacksFolio: winbacksFolio,
+    folioPremium: folioPremium, folioCloses: folioCloses, folioSplit: folioSplit
+  };
+}
+
+function meterHtml(value, goal) {
+  const pct = goal > 0 ? Math.min(100, Math.round(100 * value / goal)) : 0;
+  const cls = (goal > 0 && value >= goal ? ' met' : '') + (value === 0 ? ' zero' : '');
+  return '<div class="meter"><div class="' + cls + '" style="width:' + pct + '%"></div></div>';
+}
+
+function renderDash() {
+  document.getElementById('board').style.display = 'none';
+  const dash = document.getElementById('dash');
+  dash.style.display = 'block';
+
+  const goals = config.goals;
+  const keys = view === 'all' ? producerKeys() : [view];
+  const metrics = keys.map(producerMetrics);
+  const goalSum = f => keys.reduce((s, k) => s + ((goals.perProducer[k] || {})[f] || 0), 0);
+  const agg = {
+    active: metrics.reduce((s, m) => s + m.active, 0),
+    stale: metrics.reduce((s, m) => s + m.stale, 0),
+    won: metrics.reduce((s, m) => s + m.wonTotal, 0),
+    lost: metrics.reduce((s, m) => s + m.lostTotal, 0),
+    nurture: metrics.reduce((s, m) => s + m.byStage.nurture, 0),
+    quotesToday: metrics.reduce((s, m) => s + m.quotesToday, 0),
+    closesToday: metrics.reduce((s, m) => s + m.closesToday, 0),
+    folioPremium: metrics.reduce((s, m) => s + m.folioPremium, 0),
+    folioCloses: metrics.reduce((s, m) => s + m.folioCloses, 0),
+    winbacks: metrics.reduce((s, m) => s + m.winbacksFolio, 0),
+    reached: metrics.reduce((s, m) => s + m.reached, 0),
+    totalLeads: metrics.reduce((s, m) => s + m.totalLeads, 0),
+    folioSplit: {
+      std: metrics.reduce((s, m) => s + m.folioSplit.std, 0),
+      bw: metrics.reduce((s, m) => s + m.folioSplit.bw, 0),
+      half: metrics.reduce((s, m) => s + m.folioSplit.half, 0)
+    }
+  };
+  const premGoal = view === 'all' ? (goals.folioPremium || 0) : ((goals.perProducer[view] || {}).premium || 0);
+  const qGoal = goalSum('quotesPerDay');
+  const cGoal = goalSum('closesPerDay');
+  const winRate = (agg.won + agg.lost) > 0 ? Math.round(100 * agg.won / (agg.won + agg.lost)) : null;
+  const scopeName = view === 'all' ? 'Agency' : producerName(view);
+  const fw = folioWindow();
+  const folioLabel = fw.start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' – ' +
+    new Date(fw.end - 86400000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const daysLeft = folioDaysLeft();
+  const toGo = Math.max(0, premGoal - agg.folioPremium);
+  const perDay = (premGoal > 0 && daysLeft > 0 && toGo > 0) ? toGo / daysLeft : 0;
+  const winbackNote = agg.winbacks > 0 ? ' · ' + agg.winbacks + ' win-back' + (agg.winbacks > 1 ? 's' : '') : '';
+
+  let h = '';
+  h += '<div class="dash-grid">';
+  h += '<div class="tile"><div class="t-label">' + esc(scopeName) + ' Folio Premium · ' + folioLabel + '</div>' +
+       '<div class="t-value">' + fmtMoney(agg.folioPremium) + (premGoal > 0 ? ' <small>/ ' + fmtMoney(premGoal) + '</small>' : '') + '</div>' +
+       (premGoal > 0 ? meterHtml(agg.folioPremium, premGoal) +
+         '<div class="t-sub">' + (agg.folioPremium >= premGoal ? 'Goal met — keep stacking' : fmtMoney(toGo) + ' to go, ' + daysLeft + ' workday' + (daysLeft === 1 ? '' : 's') + ' left' + (perDay > 0 ? ' — need <b>' + fmtMoney(perDay) + '/workday</b>' : '')) + ' · ' + agg.folioCloses + ' sold' + winbackNote + '</div>'
+         : '<div class="t-sub">' + agg.folioCloses + ' sold this folio' + winbackNote + ' · set a goal in ⚙ Settings</div>') + '</div>';
+  h += '<div class="tile"><div class="t-label">' + esc(scopeName) + ' Contact Rate</div>' +
+       '<div class="t-value">' + (agg.totalLeads > 0 ? Math.round(100 * agg.reached / agg.totalLeads) + '<small>%</small>' : '—') + '</div>' +
+       (agg.totalLeads > 0 ? meterHtml(agg.reached, agg.totalLeads) : '') +
+       '<div class="t-sub">' + agg.reached + ' of ' + agg.totalLeads + ' leads reached a live conversation</div></div>';
+  h += '<div class="tile"><div class="t-label">Quotes Today</div>' +
+       '<div class="t-value">' + agg.quotesToday + (qGoal > 0 ? ' <small>/ ' + qGoal + '</small>' : '') + '</div>' +
+       (qGoal > 0 ? meterHtml(agg.quotesToday, qGoal) : '') +
+       '<div class="t-sub">counted when a deal hits Quoted or gets a Farmers quote</div></div>';
+  h += '<div class="tile"><div class="t-label">Closes Today</div>' +
+       '<div class="t-value">' + agg.closesToday + (cGoal > 0 ? ' <small>/ ' + cGoal + '</small>' : '') + '</div>' +
+       (cGoal > 0 ? meterHtml(agg.closesToday, cGoal) : '') +
+       '<div class="t-sub">deals moved to Bound today</div></div>';
+  if (view !== 'all') {
+    const ci = commissionFor(view, agg.folioSplit);
+    if (ci) {
+      const sp = ci.split;
+      let breakdown = '';
+      if ((sp.bw || 0) > 0 || (sp.half || 0) > 0) {
+        const parts = [];
+        if ((sp.std || 0) > 0) parts.push('Farmers ' + fmtMoney(sp.std) + ' at ' + ci.rate + '%');
+        if ((sp.bw || 0) > 0) parts.push('Bristol West ' + fmtMoney(sp.bw) + ' at ' + ci.bwRate + '%');
+        if ((sp.half || 0) > 0) parts.push('Kraft Lake/Life ' + fmtMoney(sp.half) + ' at ' + ci.halfRate + '%');
+        breakdown = '<div class="t-sub">' + parts.join(' · ') + '</div>';
+      }
+      let counter;
+      if (ci.next) {
+        const toGo = Math.max(0, ci.next.min - ci.total);
+        counter = meterHtml(ci.total - ci.curMin, ci.next.min - ci.curMin) +
+          '<div class="t-sub"><b>' + fmtMoney(toGo) + '</b> more NB premium to the ' + ci.next.rate + '% tier — the new rate applies to the whole folio</div>';
+      } else {
+        counter = '<div class="t-sub">Top tier — every added dollar pays ' + ci.rate + '%</div>';
+      }
+      h += '<div class="tile"><div class="t-label">Commission This Folio</div>' +
+           '<div class="t-value">' + fmtMoney(ci.earned) + ' <small>' + (((sp.bw || 0) > 0 || (sp.half || 0) > 0) ? 'blended · ' + ci.rate + '% tier' : 'at ' + ci.rate + '%') + '</small></div>' +
+           breakdown + counter +
+           '<div class="t-sub">base pay + life-bonus tier boost not included</div></div>';
+    }
+  }
+  h += '<div class="tile"><div class="t-label">Active Pipeline</div><div class="t-value">' + agg.active + '</div><div class="t-sub">deals in play (New → Walkthrough)</div></div>';
+  h += '<div class="tile"><div class="t-label">Win Rate</div><div class="t-value">' + (winRate === null ? '—' : winRate + '<small>%</small>') + '</div><div class="t-sub">' + agg.won + ' won · ' + agg.lost + ' lost, all time</div></div>';
+  h += '<div class="tile"><div class="t-label">Stale Deals</div><div class="t-value">' + agg.stale + '</div><div class="t-sub">active, no touch in ' + STALE_DAYS + '+ days' + (agg.nurture ? ' · ' + agg.nurture + ' in nurture' : '') + '</div></div>';
+  h += '</div>';
+
+  // Leaderboard — always ranks the whole team by folio premium so it reads as one scoreboard
+  const lbRows = producerKeys().map(producerMetrics).sort((a, b) => b.folioPremium - a.folioPremium);
+  const medals = ['🥇', '🥈', '🥉'];
+  h += '<div class="dash-section">Leaderboard · This Folio</div>';
+  h += '<div class="lb-wrap"><table class="lb"><thead><tr>' +
+       '<th style="text-align:center;">#</th><th>Producer</th><th>Folio Premium</th><th>% of Goal</th><th>Closes</th><th>Contact Rate</th></tr></thead><tbody>';
+  lbRows.forEach((m, i) => {
+    const pg = goals.perProducer[m.key] || {};
+    const goalPct = (pg.premium > 0) ? Math.round(100 * m.folioPremium / pg.premium) : null;
+    const rankCell = (m.folioPremium > 0 && i < 3) ? medals[i] : (i + 1);
+    h += '<tr>' +
+      '<td class="lb-rank">' + rankCell + '</td>' +
+      '<td><span class="agent-chip" style="color:' + agentColor(m.key) + ';background:' + agentColor(m.key) + '1a;margin-right:6px;">●</span>' + esc(producerName(m.key)) + '</td>' +
+      '<td><b>' + fmtMoney(m.folioPremium) + '</b>' + (pg.premium > 0 ? ' <span class="lb-mut">/ ' + fmtMoney(pg.premium) + '</span>' : '') + '</td>' +
+      '<td>' + (goalPct === null ? '<span class="lb-mut">—</span>' : goalPct + '%') + '</td>' +
+      '<td>' + m.folioCloses + (m.winbacksFolio ? ' <span class="lb-mut">(' + m.winbacksFolio + ' WB)</span>' : '') + '</td>' +
+      '<td>' + (m.contactRate === null ? '<span class="lb-mut">—</span>' : m.contactRate + '%') + '</td>' +
+      '</tr>';
+  });
+  h += '</tbody></table></div>';
+
+  h += '<div class="dash-section">Pipeline by Producer <span class="legend">' +
+       STAGES.filter(s => s.key !== 'bound').map(s => '<span><i style="background:' + s.color + '"></i>' + esc(s.name) + '</span>').join('') +
+       '</span></div>';
+
+  producerKeys().forEach(k => {   // per-producer rows always show everyone for comparison
+    const m = producerMetrics(k);
+    const pg = goals.perProducer[k] || { quotesPerDay: 0, closesPerDay: 0, premium: 0 };
+    const activeStages = STAGES.filter(s => s.key !== 'bound');
+    const total = activeStages.reduce((s, st) => s + m.byStage[st.key], 0);
+    let bar = '';
+    if (total > 0) {
+      bar = '<div class="stagebar">' + activeStages.map(st => {
+        const n = m.byStage[st.key];
+        if (!n) return '';
+        return '<div style="background:' + st.color + ';flex:' + n + '" title="' + esc(st.name) + ': ' + n + '">' + n + '</div>';
+      }).join('') + '</div>';
+    } else {
+      bar = '<div class="stagebar"></div>';
+    }
+    bar += '<div class="stagebar-labels">' + activeStages.map(st =>
+      '<span><i style="background:' + st.color + '"></i>' + esc(st.name) + ' <b>' + m.byStage[st.key] + '</b></span>').join('') + '</div>';
+
+    h += '<div class="prow">' +
+      '<div><div class="p-name"><span class="agent-chip" style="color:' + agentColor(k) + ';background:' + agentColor(k) + '1a;margin-right:6px;">●</span>' + esc(producerName(k)) + '</div>' +
+      '<div class="p-binds"><b>' + fmtMoney(m.folioPremium) + '</b>' + (pg.premium > 0 ? ' / ' + fmtMoney(pg.premium) : '') + ' premium this folio</div>' +
+      (pg.premium > 0 ? meterHtml(m.folioPremium, pg.premium) : '') +
+      (function () {
+        const ci = commissionFor(k, m.folioSplit);
+        if (!ci) return '';
+        const mixed = (ci.split.bw || 0) > 0 || (ci.split.half || 0) > 0;
+        let hh = '<div class="p-binds" style="margin-top:4px;">💰 <b>' + fmtMoney(ci.earned) + '</b> commission ' +
+          (mixed ? '(blended, ' + ci.rate + '% tier' +
+            ((ci.split.bw || 0) > 0 ? ' · BW ' + fmtMoney(ci.split.bw) + ' at ' + ci.bwRate + '%' : '') +
+            ((ci.split.half || 0) > 0 ? ' · KL/Life ' + fmtMoney(ci.split.half) + ' at ' + ci.halfRate + '%' : '') + ')'
+           : 'at ' + ci.rate + '%') + '</div>';
+        if (ci.next) {
+          hh += '<div class="p-binds">→ <b>' + fmtMoney(Math.max(0, ci.next.min - ci.total)) + '</b> to the ' + ci.next.rate + '% tier</div>' +
+                meterHtml(ci.total - ci.curMin, ci.next.min - ci.curMin);
+        } else {
+          hh += '<div class="p-binds">Top tier</div>';
+        }
+        return hh;
+      })() + '</div>' +
+      '<div>' + bar + '</div>' +
+      '<div class="p-stats">' +
+        'Today: <b>' + m.quotesToday + '</b>' + (pg.quotesPerDay > 0 ? '/' + pg.quotesPerDay : '') + ' quoted · <b>' + m.closesToday + '</b>' + (pg.closesPerDay > 0 ? '/' + pg.closesPerDay : '') + ' closed<br>' +
+        'Win rate: <b>' + (m.winRate === null ? '—' : m.winRate + '%') + '</b> (' + m.wonTotal + 'W/' + m.lostTotal + 'L) · Contact: <b>' + (m.contactRate === null ? '—' : m.contactRate + '%') + '</b><br>' +
+        'Folio sales: <b>' + m.folioCloses + '</b>' + (m.winbacksFolio ? ' (' + m.winbacksFolio + ' win-back' + (m.winbacksFolio > 1 ? 's' : '') + ')' : '') + '<br>' +
+        (m.stale > 0 ? '<span class="warn">⚠ ' + m.stale + ' stale deal' + (m.stale > 1 ? 's' : '') + '</span>' : 'No stale deals') +
+      '</div></div>';
+  });
+
+  dash.innerHTML = h;
+}
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s == null ? '' : String(s);
+  return d.innerHTML;
+}
+
+/* ═══════════════ EDIT MODAL ═══════════════ */
+const LEAD_FIELDS = ['name', 'phone', 'email', 'address', 'source', 'bestTime', 'pain', 'gaps', 'objections', 'priNote', 'premiumSold', 'premiumLine'];
+const COV_FIELDS  = ['autoCurrentCarrier', 'autoCurrentPrem', 'autoFarmersPrem', 'autoFarmersNote',
+                     'homeCurrentCarrier', 'homeCurrentPrem', 'homeFarmersPrem', 'homeFarmersNote'];
+
+function openNewLead() {
+  editing = { id: null, agent: view !== 'all' ? view : producerKeys()[0] };
+  document.getElementById('modalTitle').textContent = 'New Lead';
+  document.getElementById('modalSub').textContent = '';
+  LEAD_FIELDS.forEach(f => { document.getElementById('f_' + f).value = ''; });
+  COV_FIELDS.forEach(f => { document.getElementById('f_' + f).value = ''; });
+  document.getElementById('f_winback').checked = false;
+  const sel = document.getElementById('f_agent');
+  sel.innerHTML = '';
+  config.producers.forEach(p => {
+    const o = document.createElement('option');
+    o.value = p.key;
+    o.textContent = p.name;
+    if (p.key === editing.agent) o.selected = true;
+    sel.appendChild(o);
+  });
+  document.getElementById('f_agentWrap').style.display = 'block';
+  document.getElementById('modalReadonly').textContent = 'New leads start in the New Lead column. Call log & scoring live in the Lead Tracker.';
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function openEditor(lead, agent) {
+  editing = { id: lead.id, agent: agent };
+  document.getElementById('f_agentWrap').style.display = 'none';
+  document.getElementById('modalTitle').textContent = lead.name || '(no name)';
+  document.getElementById('modalSub').textContent = producerName(agent).toUpperCase() + (lead.score != null && lead.score !== '' ? ' · Score ' + lead.score : '');
+  LEAD_FIELDS.forEach(f => { document.getElementById('f_' + f).value = lead[f] || ''; });
+  const cov = lead.coverage || {};
+  COV_FIELDS.forEach(f => { document.getElementById('f_' + f).value = cov[f] || ''; });
+  document.getElementById('f_winback').checked = !!lead.winback;
+  const calls = lead.calls || [];
+  const last = calls.length ? calls[calls.length - 1] : null;
+  document.getElementById('modalReadonly').textContent =
+    (last ? 'Last call ' + (last.date || '') + (last.outcome ? ' — ' + last.outcome : '') + '. ' : '') +
+    'Call log & scoring live in the Lead Tracker.';
+  document.getElementById('modalOverlay').classList.add('show');
+}
+function closeEditor() {
+  editing = null;
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+async function saveEditor() {
+  if (!editing) return;
+  const { id } = editing;
+  const fields = {};
+  LEAD_FIELDS.forEach(f => { fields[f] = document.getElementById('f_' + f).value; });
+  fields.coverage = {};
+  COV_FIELDS.forEach(f => { fields.coverage[f] = document.getElementById('f_' + f).value; });
+
+  if (id === null) {   // create mode
+    const agent = document.getElementById('f_agent').value || producerKeys()[0];
+    if (!(fields.name || '').trim()) { toast('Lead needs a name', true); return; }
+    const now = new Date().toISOString();
+    const newLead = {
+      id: 'lead_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      name: fields.name, phone: fields.phone, email: fields.email, address: fields.address,
+      source: fields.source, bestTime: fields.bestTime, dob: '', dm: '', military: '', propType: '',
+      pain: fields.pain, gaps: fields.gaps, addons: '', objections: fields.objections,
+      priNote: fields.priNote, premiumSold: fields.premiumSold, premiumLine: fields.premiumLine,
+      score: null, status: 'active', stage: 'new', wonAt: '',
+      coverage: Object.assign({
+        autoCurrentPrem: '', autoFarmersPrem: '', autoCurrentCarrier: '', autoFarmersNote: '',
+        autoCurrentDeduct: '', autoFarmersDeduct: '', homeCurrentPrem: '', homeFarmersPrem: '',
+        homeCurrentCarrier: '', homeFarmersNote: '', homeCurrentDeduct: '', homeFarmersDeduct: ''
+      }, fields.coverage),
+      calls: [],
+      scoreFactors: { urgency: 0, dm: 0, quote: 0, engagement: 0, contact: 0, gap: 0, objection: 0 },
+      createdAt: now, updatedAt: now, boardTouchedAt: now, boardCreated: true
+    };
+    if ((newLead.coverage.autoFarmersPrem || '').trim() || (newLead.coverage.homeFarmersPrem || '').trim()) {
+      newLead.quotedAt = now;
+      newLead.stage = 'quoted';
+    }
+    if (document.getElementById('f_winback').checked) {
+      // A win-back entered fresh: close it now so it counts this folio and lands in Bound.
+      newLead.winback = true; newLead.winbackAt = now;
+      newLead.status = 'won'; newLead.stage = 'bound'; newLead.wonAt = now;
+    }
+    closeEditor();
+    (leadsByAgent[agent] = leadsByAgent[agent] || []).push(newLead);
+    render();
+    try {
+      await apiPost({ action: 'addLead', agent: agent, lead: newLead });
+      toast('Added ' + newLead.name);
+    } catch (err) {
+      leadsByAgent[agent] = leadsByAgent[agent].filter(l => l.id !== newLead.id);
+      render();
+      toast('Add failed — check Settings URL (backend may need the new deployment)', true);
+    }
+    return;
+  }
+
+  const agent = editing.agent;
+  const list = leadsByAgent[agent] || [];
+  const lead = list.find(l => l.id === id);
+  if (!lead) { closeEditor(); return; }
+
+  const prevCopy = JSON.parse(JSON.stringify(lead));
+  LEAD_FIELDS.forEach(f => { lead[f] = fields[f]; });
+  lead.coverage = Object.assign({}, lead.coverage || {}, fields.coverage);
+  lead.boardTouchedAt = new Date().toISOString();
+  // entering a Farmers quote for the first time also starts the quotes-per-day clock
+  const nowQuoted = (fields.coverage.autoFarmersPrem || '').trim() || (fields.coverage.homeFarmersPrem || '').trim();
+  if (nowQuoted && !lead.quotedAt) {
+    lead.quotedAt = lead.boardTouchedAt;
+    fields.quotedAt = lead.quotedAt;
+  }
+  // Win-back: checking the box on an open (not-yet-won) lead closes it as of today so it
+  // counts toward this folio's agency goal and moves into Bound. Persist status via both
+  // the merged fields (dashboard reads JSON) and updateStage (Stage column + tracker flip).
+  const isWinback = document.getElementById('f_winback').checked;
+  fields.winback = isWinback;
+  lead.winback = isWinback;
+  let winbackClosed = false;
+  if (isWinback && lead.status !== 'won') {
+    lead.status = 'won'; lead.stage = 'bound';
+    lead.wonAt = lead.boardTouchedAt; lead.winbackAt = lead.boardTouchedAt;
+    fields.status = 'won'; fields.stage = 'bound';
+    fields.wonAt = lead.wonAt; fields.winbackAt = lead.winbackAt;
+    winbackClosed = true;
+  }
+  closeEditor();
+  render();
+  try {
+    await apiPost({ action: 'updateLead', agent: agent, id: id, fields: fields, ts: lead.boardTouchedAt });
+    if (winbackClosed) {
+      await apiPost({ action: 'updateStage', agent: agent, id: id, stage: 'bound', status: 'won', ts: lead.boardTouchedAt, quotedAt: lead.quotedAt || '', score: lead.score });
+    }
+    toast(winbackClosed ? 'Win-back closed — ' + (lead.name || 'lead') + ' counts this folio' : 'Saved ' + (lead.name || 'lead'));
+  } catch (err) {
+    Object.assign(lead, prevCopy);
+    render();
+    toast('Save failed — check Settings URL (backend may need the new deployment)', true);
+  }
+}
+document.getElementById('modalOverlay').addEventListener('click', ev => {
+  if (ev.target === document.getElementById('modalOverlay')) closeEditor();
+});
+document.addEventListener('keydown', ev => { if (ev.key === 'Escape') closeEditor(); });
+
+/* ═══════════════ SETTINGS ═══════════════ */
+function toggleSettings() {
+  const p = document.getElementById('settingsPanel');
+  const showing = p.style.display === 'block';
+  p.style.display = showing ? 'none' : 'block';
+  if (!showing) {
+    document.getElementById('scriptUrlInput').value = localStorage.getItem(URL_KEY) || DEFAULT_SCRIPT_URL;
+    renderProdList();
+    renderCommList();
+    document.getElementById('agencyPremGoal').value = config.goals.folioPremium || 0;
+    document.getElementById('folioScheduleInput').value = (config.goals.folioSchedule || []).join('\n');
+    document.getElementById('folioStartDay').value = config.goals.folioStartDay || 16;
+    document.getElementById('adminPin').value = '';
+  }
+}
+function saveScriptUrl() {
+  const v = document.getElementById('scriptUrlInput').value.trim();
+  if (v) localStorage.setItem(URL_KEY, v); else localStorage.removeItem(URL_KEY);
+  toast('URL saved');
+  init();
+}
+function renderProdList() {
+  const box = document.getElementById('prodList');
+  box.innerHTML = '';
+  config.producers.forEach(p => {
+    const pg = config.goals.perProducer[p.key] || { quotesPerDay: 0, closesPerDay: 0, premium: 0 };
+    const row = document.createElement('div');
+    row.className = 'prod-row';
+    const nm = document.createElement('span'); nm.className = 'pn'; nm.textContent = p.name;
+    row.appendChild(nm);
+    [['quotesPerDay', 'quotes/day', pg.quotesPerDay], ['closesPerDay', 'closes/day', pg.closesPerDay], ['premium', 'premium $', pg.premium]].forEach(def => {
+      const lbl = document.createElement('span'); lbl.className = 'goal-lbl'; lbl.textContent = def[1];
+      const inp = document.createElement('input'); inp.type = 'number'; inp.min = '0';
+      if (def[0] === 'premium') { inp.step = '100'; inp.style.width = '90px'; }
+      inp.value = def[2];
+      inp.dataset.key = p.key;
+      inp.dataset.field = def[0];
+      inp.className = 'goal-input';
+      row.appendChild(lbl); row.appendChild(inp);
+    });
+    const rm = document.createElement('button'); rm.className = 'rm'; rm.textContent = '✕'; rm.title = 'Remove pipeline (leads stay in the Sheet)';
+    rm.onclick = () => removeProducer(p.key);
+    row.appendChild(rm);
+    box.appendChild(row);
+  });
+}
+function renderCommList() {
+  const box = document.getElementById('commList');
+  box.innerHTML = '';
+  config.producers.forEach(p => {
+    const pg = config.goals.perProducer[p.key] = config.goals.perProducer[p.key] || {};
+    if (!Array.isArray(pg.commTiers) || !pg.commTiers.length) pg.commTiers = JSON.parse(JSON.stringify(CONTRACT_TIERS));
+    const row = document.createElement('div');
+    row.className = 'prod-row';
+    row.style.flexWrap = 'wrap';
+    const nm = document.createElement('span'); nm.className = 'pn'; nm.textContent = p.name;
+    row.appendChild(nm);
+    pg.commTiers.forEach((t, i) => {
+      const wrap = document.createElement('span');
+      wrap.style.cssText = 'display:inline-flex; align-items:center; gap:4px; font-size:11px; color:var(--ink-2);';
+      const minInp = document.createElement('input');
+      minInp.type = 'number'; minInp.min = '0'; minInp.step = '500'; minInp.style.width = '80px';
+      minInp.value = t.min; minInp.className = 'comm-input'; minInp.dataset.key = p.key; minInp.dataset.idx = i; minInp.dataset.field = 'min';
+      if (i === 0) { minInp.disabled = true; minInp.title = 'Base tier always starts at $0'; }
+      const rateInp = document.createElement('input');
+      rateInp.type = 'number'; rateInp.min = '0'; rateInp.max = '100'; rateInp.step = '0.5'; rateInp.style.width = '58px';
+      rateInp.value = t.rate; rateInp.className = 'comm-input'; rateInp.dataset.key = p.key; rateInp.dataset.idx = i; rateInp.dataset.field = 'rate';
+      wrap.append('$', minInp, '→', rateInp, '%');
+      if (i > 0) {
+        const rm = document.createElement('button'); rm.className = 'rm'; rm.textContent = '✕'; rm.title = 'Remove tier';
+        rm.onclick = () => { readCommInputs(); pg.commTiers.splice(i, 1); renderCommList(); };
+        wrap.appendChild(rm);
+      }
+      row.appendChild(wrap);
+    });
+    const add = document.createElement('button');
+    add.className = 'btn'; add.textContent = '+ tier'; add.style.padding = '2px 8px';
+    add.onclick = () => {
+      readCommInputs();
+      const last = pg.commTiers[pg.commTiers.length - 1];
+      pg.commTiers.push({ min: (last.min || 0) + 15000, rate: last.rate });
+      renderCommList();
+    };
+    row.appendChild(add);
+    box.appendChild(row);
+  });
+}
+function readCommInputs() {
+  document.querySelectorAll('#commList .comm-input').forEach(inp => {
+    const pg = config.goals.perProducer[inp.dataset.key];
+    const t = pg && pg.commTiers && pg.commTiers[inp.dataset.idx];
+    if (!t) return;
+    if (inp.dataset.field === 'min') t.min = parseInt(inp.value, 10) || 0;
+    else t.rate = Math.max(0, parseFloat(inp.value) || 0);
+  });
+}
+function addProducer() {
+  const name = document.getElementById('newProdName').value.trim();
+  if (!name) { toast('Enter a producer name', true); return; }
+  const key = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (!key) { toast('Name needs letters or numbers', true); return; }
+  if (config.producers.find(p => p.key === key)) { toast(name + ' already has a pipeline', true); return; }
+  config.producers.push({ key: key, name: name.charAt(0).toUpperCase() + name.slice(1) });
+  config.goals.perProducer[key] = { quotesPerDay: 6, closesPerDay: 2, premium: 0, commTiers: JSON.parse(JSON.stringify(CONTRACT_TIERS)) };
+  document.getElementById('newProdName').value = '';
+  renderProdList();
+  renderCommList();
+}
+function removeProducer(key) {
+  if (config.producers.length <= 1) { toast('Keep at least one producer', true); return; }
+  config.producers = config.producers.filter(p => p.key !== key);
+  renderProdList();
+  renderCommList();
+}
+async function saveConfigFromPanel() {
+  const pin = document.getElementById('adminPin').value.trim();
+  if (!pin) { toast('Enter the admin PIN to save goals', true); return; }
+  document.querySelectorAll('#prodList .goal-input').forEach(inp => {
+    const pg = config.goals.perProducer[inp.dataset.key] = config.goals.perProducer[inp.dataset.key] || {};
+    pg[inp.dataset.field] = parseInt(inp.value, 10) || 0;
+  });
+  readCommInputs();
+  config.goals.folioPremium = parseInt(document.getElementById('agencyPremGoal').value, 10) || 0;
+  config.goals.folioSchedule = (document.getElementById('folioScheduleInput').value || '')
+    .split(/[\n,]+/).map(s => s.trim()).filter(s => /^\d{4}-\d{2}-\d{2}$/.test(s)).sort();
+  config.goals.folioStartDay = Math.min(28, Math.max(1, parseInt(document.getElementById('folioStartDay').value, 10) || 16));
+  try {
+    await apiPost({ action: 'setConfig', config: config, pin: pin });
+    toast('Producers & goals saved');
+    document.getElementById('settingsPanel').style.display = 'none';
+    normalizeGoals();
+    render();
+    loadBoard(true);
+  } catch (err) {
+    if (/pin/i.test(err.message)) {
+      toast('Wrong PIN — goals not saved', true);
+    } else {
+      toast('Save failed — backend may need the new deployment', true);
+    }
+    await loadConfig();   // discard local edits, reload the shared truth
+    renderProdList();
+  }
+}
+
+/* ═══════════════ UI PLUMBING ═══════════════ */
+function setMode(m) {
+  mode = m;
+  localStorage.setItem(MODE_KEY, m);
+  render();
+}
+function toast(msg, isErr) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = isErr ? 'err' : '';
+  t.style.display = 'block';
+  clearTimeout(t._h);
+  t._h = setTimeout(() => { t.style.display = 'none'; }, isErr ? 5000 : 2200);
+}
+
+/* ═══════════════ INIT ═══════════════ */
+async function init() {
+  await loadConfig();
+  await loadBoard(false);
+}
+init();
+setInterval(() => { if (!dragging && !editing) loadBoard(true); }, 60000);
+
+// Keep the folio locked to the live clock. folioWindow() already reads the current
+// date/time on every render, but a board left open across midnight (or across a folio
+// close date) needs a nudge to recompute. This watcher re-renders the instant the
+// calendar day rolls over — locally, with no network call — so the folio's start/end
+// and the workday countdown auto-update even if the backend is unreachable.
+function _dayKey(d) { return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(); }
+let _folioDayKey = _dayKey(new Date());
+setInterval(() => {
+  const key = _dayKey(new Date());
+  if (key !== _folioDayKey && !dragging && !editing) { _folioDayKey = key; render(); }
+}, 30000);
+</script>
+</body>
+</html>
