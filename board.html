@@ -362,6 +362,9 @@
 // producer roster need the pipeline-enabled backend — deploy the updated .gs and
 // paste the new URL in Settings if anything fails.
 const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz56VTJ3aVMLenw6yeXDqenP1Ljgkx7OTmrpgOab8TqOW-LwEzkWtkiwLAV8rS3NM8I/exec';
+// Shared access key — must match API_KEY in the Apps Script backend. Blocks
+// anyone who finds the bare deployment URL from reading/writing lead data.
+const API_KEY = '1aayVUlCj1XYzUUHLDs6pTtqSROi496D';
 const URL_KEY  = 'strauch_pipeline_script_url';
 const VIEW_KEY = 'strauch_pipeline_view';
 const MODE_KEY = 'strauch_pipeline_mode';
@@ -564,7 +567,7 @@ function deriveStage(lead) {
 
 /* ═══════════════ DATA ═══════════════ */
 async function apiGet(params) {
-  const res = await fetch(getScriptUrl() + '?' + params, { method: 'GET' });
+  const res = await fetch(getScriptUrl() + '?' + params + '&key=' + encodeURIComponent(API_KEY), { method: 'GET' });
   const data = await res.json();
   if (data.error) throw new Error(data.error);
   return data;
@@ -595,6 +598,7 @@ async function _getWrite(url, body) {
 // clean success; surfaces a real backend error (bad PIN, lead not found) at once;
 // only a stale-URL "unknown action" is treated as "try the next endpoint".
 async function apiPost(body) {
+  body = Object.assign({ key: API_KEY }, body);
   const primary = getScriptUrl();
   const urls = (primary === DEFAULT_SCRIPT_URL) ? [primary] : [primary, DEFAULT_SCRIPT_URL];
   const isStale = (msg) => /unknown action|bad payload|no such|not found: action/i.test(msg || '');

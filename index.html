@@ -1593,6 +1593,9 @@ function getSyncKey()     { return SYNC_KEYS[currentAgent]; }
 // One Apps Script URL shared by both workspaces — set it once, works for Greg and Faith
 const SHEET_URL_KEY = 'strauch_sheet_url_shared_v1';
 const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz56VTJ3aVMLenw6yeXDqenP1Ljgkx7OTmrpgOab8TqOW-LwEzkWtkiwLAV8rS3NM8I/exec';
+// Shared access key — must match API_KEY in the Apps Script backend. Blocks
+// anyone who finds the bare deployment URL from reading/writing lead data.
+const API_KEY = '1aayVUlCj1XYzUUHLDs6pTtqSROi496D';
 function getSheetUrl() {
   const settings = JSON.parse(localStorage.getItem(getSettingsKey()) || '{}');
   return (settings.sheet && settings.sheet.trim()) || (localStorage.getItem(SHEET_URL_KEY) || '').trim() || DEFAULT_SCRIPT_URL;
@@ -1875,7 +1878,7 @@ async function syncAllToSheet(silent) {
   }
   if (!silent) setSyncStatus('syncing', 'Pushing all leads…');
   try {
-    const payload = { action: 'syncAll', agent: currentAgent, leads: leads };
+    const payload = { action: 'syncAll', agent: currentAgent, leads: leads, key: API_KEY };
     // text/plain avoids the CORS preflight that Apps Script can't answer
     await fetch(url, {
       method: 'POST',
@@ -1901,7 +1904,7 @@ async function restoreFromSheet() {
   toast('Fetching leads from Google Sheet…', 'info');
 
   try {
-    const res = await fetch(url + '?action=getAll&agent=' + currentAgent, { method: 'GET' });
+    const res = await fetch(url + '?action=getAll&agent=' + currentAgent + '&key=' + encodeURIComponent(API_KEY), { method: 'GET' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
 
