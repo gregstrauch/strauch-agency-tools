@@ -134,6 +134,27 @@
   .legend span { display: inline-flex; align-items: center; gap: 5px; }
   .legend i { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
 
+  /* ── Producer charts ────────────────────── */
+  /* Ordinal blue ramp, light→dark: funnel stages get deeper as the lead advances.
+     Steps 250/350/450/650 of the sequential blue ramp — validated monotone with
+     visible step gaps and a light end clearing the white panel at 2.11:1. */
+  .viz-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
+  .viz-card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px 12px; }
+  .viz-title { font-family: var(--display); font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-2); }
+  .viz-note { font-size: 11px; color: var(--ink-3); margin-top: 2px; line-height: 1.45; }
+  .viz-card svg { display: block; width: 100%; height: auto; margin-top: 10px; overflow: visible; }
+  .viz-empty { font-size: 12px; color: var(--ink-3); padding: 22px 0 12px; text-align: center; }
+  .viz-axis { fill: var(--ink-3); font-size: 10px; font-family: var(--body); }
+  .viz-lbl  { fill: var(--ink); font-size: 11px; font-family: var(--display); font-weight: 700; }
+  .viz-sub  { fill: var(--ink-2); font-size: 10px; font-family: var(--body); }
+  .viz-grid-line { stroke: var(--line); stroke-width: 1; }
+  .viz-mark:hover { opacity: 0.82; }
+  .stat-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin-bottom: 12px; }
+  .stat-strip > div { background: var(--panel); padding: 11px 14px; }
+  .stat-strip .s-k { font-family: var(--display); font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
+  .stat-strip .s-v { font-family: var(--display); font-size: 19px; font-weight: 700; color: var(--ink); line-height: 1.25; }
+  .stat-strip .s-s { font-size: 10px; color: var(--ink-3); }
+
   .lb-wrap { overflow-x: auto; }
   table.lb { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; font-size: 13px; }
   table.lb th { font-family: var(--display); font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
@@ -335,6 +356,10 @@
         <div class="fgroup"><label>Current Premium</label><input id="f_homeCurrentPrem"></div>
         <div class="fgroup"><label>Farmers Quote</label><input id="f_homeFarmersPrem"></div>
         <div class="fgroup"><label>Quote Note</label><input id="f_homeFarmersNote"></div>
+      </div>
+      <div class="fsection">Quoted</div>
+      <div class="fgrid">
+        <div class="fgroup full"><label>Total Quoted Premium ($/yr — what is on the table)</label><input id="f_quotedPremium" type="number" min="0" step="1" placeholder="Counts toward Quoted · Not Closed until this deal is won or lost"></div>
       </div>
       <div class="fsection">Sold</div>
       <div class="fgrid">
@@ -555,7 +580,10 @@ function effectiveStage(lead) {
 function deriveStage(lead) {
   const calls = lead.calls || [];
   const cov = lead.coverage || {};
-  const quoted = (cov.autoFarmersPrem || '').trim() || (cov.homeFarmersPrem || '').trim();
+  // The tracker's Total Quoted Premium field counts as a quote too — commercial
+  // leads never fill in the personal auto/home grid, so that was the only signal.
+  const quoted = (cov.autoFarmersPrem || '').trim() || (cov.homeFarmersPrem || '').trim()
+              || (String(lead.quotedPremium || '').trim());
   const connected = calls.some(c => /appointment|connected|walkthrough|quoted|interested/i.test(c.outcome || ''));
   const apptSet = calls.some(c => /appointment|walkthrough/i.test(c.outcome || ''));
   if (apptSet && quoted) return 'walkthrough';
@@ -977,14 +1005,49 @@ function wasContacted(lead) {
   return false;
 }
 
+// Premium the producer has quoted on a lead — the tracker's explicit total wins,
+// otherwise fall back to summing the Farmers side of the personal coverage grid.
+function quotedPremiumOf(lead) {
+  const explicit = parseFloat(String(lead.quotedPremium || '').replace(/[^0-9.]/g, ''));
+  if (!isNaN(explicit) && explicit > 0) return explicit;
+  const cov = lead.coverage || {};
+  const num = v => { const n = parseFloat(String(v || '').replace(/[^0-9.]/g, '')); return isNaN(n) ? 0 : n; };
+  return num(cov.autoFarmersPrem) + num(cov.homeFarmersPrem);
+}
+// Has a real quote been put in front of this lead, at any point?
+function hasQuote(lead) {
+  if ((lead.status || '') === 'won') return true;
+  if (quotedPremiumOf(lead) > 0) return true;
+  return ['quoted', 'walkthrough', 'bound'].includes(effectiveStage(lead));
+}
+// "On the table": quoted, still alive, not yet won or lost. Nurture is excluded —
+// a lead parked for six months is not money the team is about to collect.
+function isOpenQuote(lead) {
+  const st = lead.status || 'active';
+  if (st === 'won' || st === 'lost' || st === 'nurture') return false;
+  return quotedPremiumOf(lead) > 0;
+}
+
 function producerMetrics(key) {
   const leads = (leadsByAgent[key] || []).filter(l => l && l.id);
   const byStage = {};
   ALL_KEYS.forEach(k => byStage[k] = 0);
   let stale = 0, quotesToday = 0, closesToday = 0, folioPremium = 0, folioCloses = 0;
   let reached = 0, winbacksFolio = 0;
+  let openPremium = 0, openCount = 0, quotedEver = 0, daysToCloseSum = 0, daysToCloseN = 0;
+  const bySource = {};
   const folioSplit = { std: 0, bw: 0, half: 0 };
   leads.forEach(l => {
+    if (isOpenQuote(l)) { openPremium += quotedPremiumOf(l); openCount++; }
+    if (hasQuote(l)) quotedEver++;
+    if ((l.status || '') === 'won') {
+      const src = (l.source || '').trim() || 'Unspecified';
+      bySource[src] = (bySource[src] || 0) + premiumOf(l);
+      if (l.createdAt && l.wonAt) {
+        const d = (new Date(l.wonAt) - new Date(l.createdAt)) / 86400000;
+        if (d >= 0 && d < 3650) { daysToCloseSum += d; daysToCloseN++; }
+      }
+    }
     const s = effectiveStage(l);
     byStage[s] = (byStage[s] || 0) + 1;
     if (!LANE_STATUS[s]) {
@@ -1008,14 +1071,185 @@ function producerMetrics(key) {
   const won = leads.filter(l => (l.status || '') === 'won').length;
   const lost = leads.filter(l => (l.status || '') === 'lost').length;
   const active = byStage.new + byStage.contacted + byStage.quoted + byStage.walkthrough;
+  // Funnel steps are defined as supersets — Bound ⊆ Quoted ⊆ Contacted ⊆ All — so
+  // the funnel is monotone by construction and can never render a wider later stage.
+  const funnel = [
+    { name: 'Leads',     n: leads.length },
+    { name: 'Contacted', n: leads.filter(l => wasContacted(l) || hasQuote(l)).length },
+    { name: 'Quoted',    n: quotedEver },
+    { name: 'Bound',     n: won }
+  ];
   return {
     key: key, byStage: byStage, active: active, stale: stale,
     wonTotal: won, lostTotal: lost, totalLeads: leads.length, reached: reached,
     contactRate: leads.length > 0 ? Math.round(100 * reached / leads.length) : null,
     winRate: (won + lost) > 0 ? Math.round(100 * won / (won + lost)) : null,
     quotesToday: quotesToday, closesToday: closesToday, winbacksFolio: winbacksFolio,
-    folioPremium: folioPremium, folioCloses: folioCloses, folioSplit: folioSplit
+    folioPremium: folioPremium, folioCloses: folioCloses, folioSplit: folioSplit,
+    openPremium: openPremium, openCount: openCount, quotedEver: quotedEver,
+    funnel: funnel, bySource: bySource,
+    avgDeal: won > 0 ? leads.filter(l => (l.status || '') === 'won').reduce((s, l) => s + premiumOf(l), 0) / won : 0,
+    avgDaysToClose: daysToCloseN > 0 ? daysToCloseSum / daysToCloseN : null
   };
+}
+
+/* ═══════════════ PRODUCER CHARTS ═══════════════ */
+// Ordinal ramp for the funnel — one hue, monotone light→dark (validated).
+const FUNNEL_RAMP = ['#86b6ef', '#5598e7', '#2a78d6', '#104281'];
+const VIZ_HUE = '#2a78d6';
+
+// The last n folio windows, oldest first, ending with the one holding today.
+function folioWindows(n) {
+  const dates = folioScheduleDates();
+  const cur = folioWindow();
+  const out = [];
+  if (dates.length) {
+    const starts = dates.filter(d => d <= cur.start);
+    for (let i = Math.max(0, starts.length - n); i < starts.length; i++) {
+      const start = starts[i];
+      const end = dates[dates.indexOf(start) + 1] || addMonths(start, 1);
+      out.push({ start, end });
+    }
+  }
+  if (!out.length) out.push(cur);
+  return out;
+}
+function folioLabelShort(w) {
+  return w.start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+function premiumInWindow(leads, w) {
+  return leads.reduce((s, l) => {
+    if ((l.status || '') !== 'won' || !l.wonAt) return s;
+    const t = new Date(l.wonAt);
+    return (t >= w.start && t < w.end) ? s + premiumOf(l) : s;
+  }, 0);
+}
+
+function vizCard(title, note, body) {
+  return '<div class="viz-card"><div class="viz-title">' + esc(title) + '</div>' +
+         (note ? '<div class="viz-note">' + esc(note) + '</div>' : '') + body + '</div>';
+}
+
+// Conversion funnel. Bars are proportional to the top of the funnel; the step-down
+// percentage sits between rows so the reader sees where leads actually leak out.
+function funnelSvg(m) {
+  const steps = m.funnel;
+  const top = steps[0].n;
+  if (!top) return '<div class="viz-empty">No leads yet</div>';
+  const rowH = 40, gap = 8, labelW = 96, w = 460;
+  const h = steps.length * rowH + (steps.length - 1) * gap;
+  const barW = w - labelW - 70;
+  let s = '<svg viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="Conversion funnel">';
+  steps.forEach((st, i) => {
+    const y = i * (rowH + gap);
+    const pct = top > 0 ? st.n / top : 0;
+    const bw = Math.max(st.n > 0 ? 3 : 0, barW * pct);
+    s += '<text class="viz-lbl" x="0" y="' + (y + 17) + '">' + esc(st.name) + '</text>';
+    s += '<text class="viz-sub" x="0" y="' + (y + 31) + '">' + Math.round(pct * 100) + '% of leads</text>';
+    if (bw > 0) {
+      s += '<rect class="viz-mark" x="' + labelW + '" y="' + (y + 4) + '" width="' + bw + '" height="' + (rowH - 8) +
+           '" rx="4" fill="' + FUNNEL_RAMP[i] + '"><title>' + esc(st.name) + ': ' + st.n + ' of ' + top +
+           ' leads (' + Math.round(pct * 100) + '%)</title></rect>';
+    }
+    s += '<text class="viz-lbl" x="' + (labelW + bw + 8) + '" y="' + (y + rowH / 2 + 4) + '">' + st.n + '</text>';
+    // Step-to-step conversion — the number that tells a producer what to fix.
+    if (i < steps.length - 1) {
+      const nxt = steps[i + 1].n;
+      const conv = st.n > 0 ? Math.round(100 * nxt / st.n) : null;
+      s += '<text class="viz-sub" x="' + (labelW + 2) + '" y="' + (y + rowH + gap - 1) + '">&#8595; ' +
+           (conv === null ? '—' : conv + '% convert') + '</text>';
+    }
+  });
+  return s + '</svg>';
+}
+
+// Won premium by folio — single series, so no legend; every column is direct-labeled.
+function folioTrendSvg(leads, goal) {
+  const wins = folioWindows(6);
+  const vals = wins.map(w => ({ w: w, v: premiumInWindow(leads, w) }));
+  const max = Math.max(goal || 0, ...vals.map(d => d.v));
+  if (max <= 0) return '<div class="viz-empty">No premium recorded yet</div>';
+  const w = 460, h = 190, padB = 34, padT = 20, padL = 6;
+  const plotH = h - padB - padT;
+  const colW = (w - padL) / vals.length;
+  const bw = Math.min(52, colW - 12);
+  let s = '<svg viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="Premium by folio">';
+  s += '<line class="viz-grid-line" x1="0" y1="' + (padT + plotH) + '" x2="' + w + '" y2="' + (padT + plotH) + '"/>';
+  if (goal > 0) {
+    const gy = padT + plotH - plotH * (goal / max);
+    s += '<line x1="0" y1="' + gy + '" x2="' + w + '" y2="' + gy + '" stroke="' + VIZ_HUE +
+         '" stroke-width="1" stroke-dasharray="4 4" opacity="0.5"/>';
+    s += '<text class="viz-sub" x="' + (w - 2) + '" y="' + (gy - 4) + '" text-anchor="end">goal ' + fmtMoney(goal) + '</text>';
+  }
+  vals.forEach((d, i) => {
+    const bh = d.v > 0 ? Math.max(3, plotH * (d.v / max)) : 0;
+    const x = padL + i * colW + (colW - bw) / 2;
+    const y = padT + plotH - bh;
+    const isCur = i === vals.length - 1;
+    if (bh > 0) {
+      s += '<rect class="viz-mark" x="' + x + '" y="' + y + '" width="' + bw + '" height="' + bh + '" rx="4" fill="' +
+           VIZ_HUE + '" opacity="' + (isCur ? 1 : 0.55) + '"><title>' + esc(folioLabelShort(d.w)) + ': ' +
+           fmtMoney(d.v) + '</title></rect>';
+    }
+    s += '<text class="viz-sub" x="' + (x + bw / 2) + '" y="' + (y - 5) + '" text-anchor="middle">' +
+         (d.v > 0 ? fmtMoney(d.v) : '—') + '</text>';
+    s += '<text class="viz-axis" x="' + (x + bw / 2) + '" y="' + (h - 16) + '" text-anchor="middle">' +
+         esc(folioLabelShort(d.w)) + '</text>';
+  });
+  s += '<text class="viz-axis" x="' + (w - 2) + '" y="' + (h - 2) + '" text-anchor="end">current folio at right</text>';
+  return s + '</svg>';
+}
+
+// Won premium by lead source — magnitude comparison, so one hue, sorted high→low.
+function sourceSvg(bySource) {
+  const rows = Object.keys(bySource).map(k => ({ k: k, v: bySource[k] }))
+                     .filter(r => r.v > 0).sort((a, b) => b.v - a.v).slice(0, 7);
+  if (!rows.length) return '<div class="viz-empty">No closed premium to attribute yet</div>';
+  const max = rows[0].v;
+  const rowH = 26, labelW = 132, w = 460;
+  const h = rows.length * rowH;
+  const barW = w - labelW - 76;
+  let s = '<svg viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="Won premium by lead source">';
+  rows.forEach((r, i) => {
+    const y = i * rowH;
+    const bw = Math.max(3, barW * (r.v / max));
+    const name = r.k.length > 19 ? r.k.slice(0, 18) + '…' : r.k;
+    s += '<text class="viz-sub" x="0" y="' + (y + rowH / 2 + 4) + '">' + esc(name) + '</text>';
+    s += '<rect class="viz-mark" x="' + labelW + '" y="' + (y + 5) + '" width="' + bw + '" height="' + (rowH - 10) +
+         '" rx="4" fill="' + VIZ_HUE + '"><title>' + esc(r.k) + ': ' + fmtMoney(r.v) + ' won</title></rect>';
+    s += '<text class="viz-lbl" x="' + (labelW + bw + 8) + '" y="' + (y + rowH / 2 + 4) + '">' + fmtMoney(r.v) + '</text>';
+  });
+  return s + '</svg>';
+}
+
+function producerDetailHtml(m) {
+  const leads = (leadsByAgent[m.key] || []).filter(l => l && l.id);
+  const pg = (config.goals.perProducer[m.key] || {});
+  const rank = producerKeys().map(producerMetrics).sort((a, b) => b.folioPremium - a.folioPremium)
+                             .findIndex(x => x.key === m.key) + 1;
+  const q2c = m.quotedEver > 0 ? Math.round(100 * m.wonTotal / m.quotedEver) : null;
+  const c2q = m.reached > 0 ? Math.round(100 * m.quotedEver / m.reached) : null;
+  let h = '<div class="dash-section">' + esc(producerName(m.key)) + ' · Performance Detail</div>';
+  h += '<div class="stat-strip">' +
+    '<div><div class="s-k">Quoted, Not Closed</div><div class="s-v">' + fmtMoney(m.openPremium) + '</div><div class="s-s">' + m.openCount + ' open quote' + (m.openCount === 1 ? '' : 's') + ' on the table</div></div>' +
+    '<div><div class="s-k">Avg Deal Size</div><div class="s-v">' + (m.wonTotal ? fmtMoney(m.avgDeal) : '—') + '</div><div class="s-s">across ' + m.wonTotal + ' sale' + (m.wonTotal === 1 ? '' : 's') + '</div></div>' +
+    '<div><div class="s-k">Contact &rarr; Quote</div><div class="s-v">' + (c2q === null ? '—' : c2q + '<small>%</small>') + '</div><div class="s-s">of reached leads get quoted</div></div>' +
+    '<div><div class="s-k">Quote &rarr; Close</div><div class="s-v">' + (q2c === null ? '—' : q2c + '<small>%</small>') + '</div><div class="s-s">of quotes turn into policies</div></div>' +
+    '<div><div class="s-k">Avg Days to Close</div><div class="s-v">' + (m.avgDaysToClose === null ? '—' : Math.round(m.avgDaysToClose)) + '</div><div class="s-s">lead created &rarr; bound</div></div>' +
+    '<div><div class="s-k">Folio Rank</div><div class="s-v">#' + rank + '</div><div class="s-s">of ' + producerKeys().length + ' by premium</div></div>' +
+    '</div>';
+  h += '<div class="viz-grid">';
+  h += vizCard('Conversion Funnel',
+       'Every lead this producer has ever owned. The step-down percentages show where they leak out.',
+       funnelSvg(m));
+  h += vizCard('Premium by Folio',
+       'Bound premium per folio period, last 6. The dashed line is the personal premium goal.',
+       folioTrendSvg(leads, pg.premium || 0));
+  h += vizCard('Won Premium by Lead Source',
+       'Where the money that actually closed came from — not where the leads came from.',
+       sourceSvg(m.bySource));
+  h += '</div>';
+  return h;
 }
 
 function meterHtml(value, goal) {
@@ -1046,6 +1280,8 @@ function renderDash() {
     winbacks: metrics.reduce((s, m) => s + m.winbacksFolio, 0),
     reached: metrics.reduce((s, m) => s + m.reached, 0),
     totalLeads: metrics.reduce((s, m) => s + m.totalLeads, 0),
+    openPremium: metrics.reduce((s, m) => s + m.openPremium, 0),
+    openCount: metrics.reduce((s, m) => s + m.openCount, 0),
     folioSplit: {
       std: metrics.reduce((s, m) => s + m.folioSplit.std, 0),
       bw: metrics.reduce((s, m) => s + m.folioSplit.bw, 0),
@@ -1072,6 +1308,15 @@ function renderDash() {
        (premGoal > 0 ? meterHtml(agg.folioPremium, premGoal) +
          '<div class="t-sub">' + (agg.folioPremium >= premGoal ? 'Goal met — keep stacking' : fmtMoney(toGo) + ' to go, ' + daysLeft + ' workday' + (daysLeft === 1 ? '' : 's') + ' left' + (perDay > 0 ? ' — need <b>' + fmtMoney(perDay) + '/workday</b>' : '')) + ' · ' + agg.folioCloses + ' sold' + winbackNote + '</div>'
          : '<div class="t-sub">' + agg.folioCloses + ' sold this folio' + winbackNote + ' · set a goal in ⚙ Settings</div>') + '</div>';
+  // What has been quoted but not yet won or lost — the money still in play.
+  h += '<div class="tile"><div class="t-label">' + esc(scopeName) + ' Quoted &middot; Not Closed</div>' +
+       '<div class="t-value">' + fmtMoney(agg.openPremium) + '</div>' +
+       '<div class="t-sub">' + agg.openCount + ' open quote' + (agg.openCount === 1 ? '' : 's') +
+       ' still on the table' + (agg.openPremium > 0 && premGoal > 0 && toGo > 0
+         ? ' &middot; ' + (agg.openPremium >= toGo
+             ? 'covers the ' + fmtMoney(toGo) + ' still needed to hit goal'
+             : fmtMoney(toGo) + ' still needed — this covers ' + Math.round(100 * agg.openPremium / toGo) + '% of it')
+         : '') + '</div></div>';
   h += '<div class="tile"><div class="t-label">' + esc(scopeName) + ' Contact Rate</div>' +
        '<div class="t-value">' + (agg.totalLeads > 0 ? Math.round(100 * agg.reached / agg.totalLeads) + '<small>%</small>' : '—') + '</div>' +
        (agg.totalLeads > 0 ? meterHtml(agg.reached, agg.totalLeads) : '') +
@@ -1115,7 +1360,14 @@ function renderDash() {
   h += '<div class="tile"><div class="t-label">Stale Deals</div><div class="t-value">' + agg.stale + '</div><div class="t-sub">active, no touch in ' + STALE_DAYS + '+ days' + (agg.nurture ? ' · ' + agg.nurture + ' in nurture' : '') + '</div></div>';
   h += '</div>';
 
-  // Leaderboard — always ranks the whole team by folio premium so it reads as one scoreboard
+  // A producer tab is that producer's view — the team leaderboard and everyone
+  // else's stage rows do not belong on it. The charts take their place instead.
+  if (view !== 'all') {
+    dash.innerHTML = h + producerDetailHtml(metrics[0]);
+    return;
+  }
+
+  // Leaderboard — ranks the whole team by folio premium so it reads as one scoreboard
   const lbRows = producerKeys().map(producerMetrics).sort((a, b) => b.folioPremium - a.folioPremium);
   const medals = ['🥇', '🥈', '🥉'];
   h += '<div class="dash-section">Leaderboard · This Folio</div>';
@@ -1140,7 +1392,7 @@ function renderDash() {
        STAGES.filter(s => s.key !== 'bound').map(s => '<span><i style="background:' + s.color + '"></i>' + esc(s.name) + '</span>').join('') +
        '</span></div>';
 
-  producerKeys().forEach(k => {   // per-producer rows always show everyone for comparison
+  producerKeys().forEach(k => {   // agency view only — every producer, side by side
     const m = producerMetrics(k);
     const pg = goals.perProducer[k] || { quotesPerDay: 0, closesPerDay: 0, premium: 0 };
     const activeStages = STAGES.filter(s => s.key !== 'bound');
@@ -1184,6 +1436,7 @@ function renderDash() {
         'Today: <b>' + m.quotesToday + '</b>' + (pg.quotesPerDay > 0 ? '/' + pg.quotesPerDay : '') + ' quoted · <b>' + m.closesToday + '</b>' + (pg.closesPerDay > 0 ? '/' + pg.closesPerDay : '') + ' closed<br>' +
         'Win rate: <b>' + (m.winRate === null ? '—' : m.winRate + '%') + '</b> (' + m.wonTotal + 'W/' + m.lostTotal + 'L) · Contact: <b>' + (m.contactRate === null ? '—' : m.contactRate + '%') + '</b><br>' +
         'Folio sales: <b>' + m.folioCloses + '</b>' + (m.winbacksFolio ? ' (' + m.winbacksFolio + ' win-back' + (m.winbacksFolio > 1 ? 's' : '') + ')' : '') + '<br>' +
+        'On the table: <b>' + fmtMoney(m.openPremium) + '</b> (' + m.openCount + ' open quote' + (m.openCount === 1 ? '' : 's') + ')<br>' +
         (m.stale > 0 ? '<span class="warn">⚠ ' + m.stale + ' stale deal' + (m.stale > 1 ? 's' : '') + '</span>' : 'No stale deals') +
       '</div></div>';
   });
@@ -1197,7 +1450,7 @@ function esc(s) {
 }
 
 /* ═══════════════ EDIT MODAL ═══════════════ */
-const LEAD_FIELDS = ['name', 'phone', 'email', 'address', 'source', 'bestTime', 'pain', 'gaps', 'objections', 'priNote', 'premiumSold', 'premiumLine'];
+const LEAD_FIELDS = ['name', 'phone', 'email', 'address', 'source', 'bestTime', 'pain', 'gaps', 'objections', 'priNote', 'quotedPremium', 'premiumSold', 'premiumLine'];
 const COV_FIELDS  = ['autoCurrentCarrier', 'autoCurrentPrem', 'autoFarmersPrem', 'autoFarmersNote',
                      'homeCurrentCarrier', 'homeCurrentPrem', 'homeFarmersPrem', 'homeFarmersNote'];
 
@@ -1259,7 +1512,9 @@ async function saveEditor() {
       name: fields.name, phone: fields.phone, email: fields.email, address: fields.address,
       source: fields.source, bestTime: fields.bestTime, dob: '', dm: '', military: '', propType: '',
       pain: fields.pain, gaps: fields.gaps, addons: '', objections: fields.objections,
-      priNote: fields.priNote, premiumSold: fields.premiumSold, premiumLine: fields.premiumLine,
+      priNote: fields.priNote, quotedPremium: fields.quotedPremium,
+      premiumSold: fields.premiumSold, premiumLine: fields.premiumLine,
+      leadType: 'personal', business: {},
       score: null, status: 'active', stage: 'new', wonAt: '',
       coverage: Object.assign({
         autoCurrentPrem: '', autoFarmersPrem: '', autoCurrentCarrier: '', autoFarmersNote: '',

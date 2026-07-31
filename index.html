@@ -1071,6 +1071,7 @@
     </div>
   </div>
   <div class="topnav-actions">
+    <a href="#" class="nav-btn" onclick="newLead();return false;" title="Start a new lead profile" style="background:#c8102e;border-color:#c8102e;color:#fff;font-weight:700;">+ New Lead</a>
     <a href="#" class="nav-btn" onclick="openPipeline()" title="Sales Pipeline Board (works on any computer, requires Google login)">Pipeline</a>
     <a href="#" class="nav-btn" onclick="openSalesSystem()" title="Sales System / SOPs">Sales System</a>
     <span id="navSyncPill" style="display:none;font-family:var(--mono);font-size:10px;padding:5px 12px;border-radius:20px;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.4);letter-spacing:0.3px;align-items:center;gap:6px;">
@@ -1179,6 +1180,13 @@
                 <option>Cold Outreach</option>
               </select>
             </span>
+
+            <span class="meta-chip">Type:
+              <select id="pLeadType" onchange="saveCurrentLead();applyLeadType();">
+                <option value="personal">Personal Lines</option>
+                <option value="commercial">Commercial</option>
+              </select>
+            </span>
           </div>
         </div>
         <div class="profile-header-right">
@@ -1284,7 +1292,7 @@
                 </optgroup>
               </select>
             </div>
-            <div class="field-group">
+            <div class="field-group" id="propTypeGroup">
               <label class="field-label">Property Type</label>
               <select class="field-input" id="pPropType" onchange="saveCurrentLead()">
                 <option value="">Select…</option>
@@ -1302,9 +1310,114 @@
           </div>
         </div>
 
-        <div class="card">
-          <div class="card-title">Coverage Comparison</div>
-          <div class="compare-grid">
+        <div class="card" id="commercialCard" style="display:none;">
+          <div class="card-title">Business Details</div>
+          <div class="field-grid">
+            <div class="field-group">
+              <label class="field-label">Legal Business Name</label>
+              <input class="field-input" id="bLegalName" placeholder="As it appears on the filing" oninput="saveCurrentLead()">
+            </div>
+            <div class="field-group">
+              <label class="field-label">DBA / Trade Name</label>
+              <input class="field-input" id="bDBA" placeholder="If different" oninput="saveCurrentLead()">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Entity Type</label>
+              <select class="field-input" id="bEntity" onchange="saveCurrentLead()">
+                <option value="">Select…</option>
+                <option>Sole Proprietor</option>
+                <option>LLC — Single Member</option>
+                <option>LLC — Multi Member</option>
+                <option>S-Corporation</option>
+                <option>C-Corporation</option>
+                <option>Partnership</option>
+                <option>Non-Profit</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Industry / Operations</label>
+              <input class="field-input" id="bIndustry" placeholder="What do they actually do day to day" oninput="saveCurrentLead()">
+            </div>
+            <div class="field-group">
+              <label class="field-label">NAICS / Class Code</label>
+              <input class="field-input mono" id="bNAICS" placeholder="e.g. 238220" oninput="saveCurrentLead()">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Years in Business</label>
+              <input class="field-input mono" id="bYears" placeholder="e.g. 7" oninput="saveCurrentLead()">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Annual Revenue</label>
+              <input class="field-input mono" id="bRevenue" placeholder="$0" oninput="saveCurrentLead()">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Annual Payroll</label>
+              <input class="field-input mono" id="bPayroll" placeholder="$0 — drives Work Comp" oninput="saveCurrentLead()">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Employees (FT / PT)</label>
+              <input class="field-input" id="bEmployees" placeholder="e.g. 6 FT / 3 PT" oninput="saveCurrentLead()">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Locations</label>
+              <input class="field-input mono" id="bLocations" placeholder="e.g. 2" oninput="saveCurrentLead()">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Vehicles / Fleet Size</label>
+              <input class="field-input mono" id="bVehicles" placeholder="e.g. 4" oninput="saveCurrentLead()">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Building Owned or Leased</label>
+              <select class="field-input" id="bPropertyStatus" onchange="saveCurrentLead()">
+                <option value="">Select…</option>
+                <option>Owned</option>
+                <option>Leased</option>
+                <option>Owned + Leased (multiple sites)</option>
+                <option>Home-Based / No Location</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Building Value</label>
+              <input class="field-input mono" id="bBuildingValue" placeholder="$0 — if owned" oninput="saveCurrentLead()">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Business Personal Property</label>
+              <input class="field-input mono" id="bBPP" placeholder="$0 — equipment, stock, contents" oninput="saveCurrentLead()">
+            </div>
+          </div>
+          <div style="margin-top:14px;">
+            <div class="field-label" style="margin-bottom:8px;">Lines Needed</div>
+            <div id="bLinesWrap" style="display:flex;flex-wrap:wrap;gap:8px 18px;"></div>
+          </div>
+        </div>
+
+        <div class="card" id="commercialIncumbentCard" style="display:none;">
+          <div class="card-title">Incumbent Program &amp; Loss History</div>
+          <div class="field-grid">
+            <div class="field-group">
+              <label class="field-label">Current Carrier</label>
+              <input class="field-input" id="bCurrentCarrier" placeholder="Carrier / broker" oninput="saveCurrentLead()">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Expiration Date (X-Date)</label>
+              <input class="field-input mono" id="bXDate" type="date" oninput="saveCurrentLead()">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Current Total Premium</label>
+              <input class="field-input mono" id="bCurrentPremium" placeholder="$0/yr — all lines" oninput="saveCurrentLead()">
+            </div>
+          </div>
+          <div style="margin-top:14px;">
+            <div class="field-group">
+              <label class="field-label">Loss History (last 5 years)</label>
+              <textarea class="field-input" id="bLosses" rows="2" oninput="saveCurrentLead()" placeholder="Date, line, description, paid amount, open or closed. Write 'None reported' if clean."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="coverageCard">
+          <div class="card-title" id="coverageCardTitle">Coverage Comparison</div>
+          <div class="compare-grid" id="personalCompareGrid">
             <div class="cg-header"></div>
             <div class="cg-header">Current Carrier</div>
             <div class="cg-header farmers">Farmers Quote</div>
@@ -1332,6 +1445,17 @@
             <div class="cg-row-label">Home — Deductible</div>
             <div class="cg-cell"><input class="cg-input" id="cHomeCurrentDeduct" placeholder="$1,000" oninput="saveCurrentLead()"></div>
             <div class="cg-cell"><input class="cg-input" id="cHomeFarmersDeduct" placeholder="$1,000" oninput="saveCurrentLead()"></div>
+          </div>
+
+          <div style="margin-top:16px;padding:14px 16px;border:1px solid var(--border);border-left:3px solid #c47c00;border-radius:8px;background:rgba(196,124,0,0.06);">
+            <div class="field-group">
+              <label class="field-label" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                <span>Total Quoted Premium (annual)</span>
+                <button type="button" onclick="sumQuotedPremium()" style="font-size:10px;padding:3px 9px;border:1px solid var(--border);background:transparent;color:inherit;border-radius:6px;cursor:pointer;font-family:var(--mono);">Sum from above</button>
+              </label>
+              <input class="field-input mono" id="pQuotedPremium" placeholder="$0/yr — what you put on the table" oninput="saveCurrentLead()">
+              <div style="font-size:11px;color:var(--ink-3);margin-top:5px;line-height:1.5;">Total annual premium quoted to this prospect. Until the lead is marked Closed — Won, this rolls into <b>Quoted · Not Closed</b> on the Pipeline dashboard so the team can see what is still on the table.</div>
+            </div>
           </div>
 
           <div style="margin-top:14px;">
@@ -1676,6 +1800,10 @@ function newLead() {
     addons: '',
     objections: '',
     priNote: '',
+    leadType: 'personal',
+    quotedPremium: '',
+    quotedAt: null,
+    business: {},
     score: null,
     scoreFactors: {},
     coverage: {},
@@ -1738,6 +1866,14 @@ function loadLeadIntoEditor(lead) {
   sv('cHomeFarmersNote',    c.homeFarmersNote);
   sv('cHomeCurrentDeduct',  c.homeCurrentDeduct);
   sv('cHomeFarmersDeduct',  c.homeFarmersDeduct);
+
+  // Quoted premium & commercial intake
+  sv('pQuotedPremium', lead.quotedPremium);
+  sv('pLeadType', lead.leadType || 'personal', true);
+  const b = lead.business || {};
+  COMMERCIAL_FIELDS.forEach(f => sv(f.id, b[f.key]));
+  renderCommercialLines(b.lines || []);
+  applyLeadType();
 
   // Status
   updateStatusUI(lead.status || 'active');
@@ -1804,6 +1940,15 @@ function saveCurrentLead() {
     homeFarmersDeduct:  gv('cHomeFarmersDeduct'),
   };
 
+  lead.leadType      = gv('pLeadType') || 'personal';
+  lead.quotedPremium = gv('pQuotedPremium');
+  lead.business = COMMERCIAL_FIELDS.reduce((o, f) => { o[f.key] = gv(f.id); return o; }, {});
+  lead.business.lines = Array.from(document.querySelectorAll('#bLinesWrap input:checked')).map(i => i.value);
+  // Stamp the first time a premium is actually quoted. The Pipeline board uses
+  // quotedAt for its Quotes Today counter and only sets it on a board drag —
+  // quoting from here should count the same.
+  if (parseMoney(lead.quotedPremium) > 0 && !lead.quotedAt) lead.quotedAt = new Date().toISOString();
+
   saveLeads();
   renderLeadList(null, currentPanelFilter);
   generateHandoff(lead);
@@ -1812,6 +1957,73 @@ function saveCurrentLead() {
 function gv(id) {
   const el = document.getElementById(id);
   return el ? el.value.trim() : '';
+}
+
+/* ═══════════════ COMMERCIAL LINES ═══════════════ */
+// Commercial quoting needs a different intake than personal lines. Rather than a
+// second app, a lead carries leadType and a business{} block; the personal
+// coverage grid and the commercial cards swap based on it.
+const COMMERCIAL_FIELDS = [
+  { id: 'bLegalName',      key: 'legalName',      label: 'Legal Name' },
+  { id: 'bDBA',            key: 'dba',            label: 'DBA' },
+  { id: 'bEntity',         key: 'entity',         label: 'Entity Type' },
+  { id: 'bIndustry',       key: 'industry',       label: 'Industry / Operations' },
+  { id: 'bNAICS',          key: 'naics',          label: 'NAICS / Class Code' },
+  { id: 'bYears',          key: 'years',          label: 'Years in Business' },
+  { id: 'bRevenue',        key: 'revenue',        label: 'Annual Revenue' },
+  { id: 'bPayroll',        key: 'payroll',        label: 'Annual Payroll' },
+  { id: 'bEmployees',      key: 'employees',      label: 'Employees' },
+  { id: 'bLocations',      key: 'locations',      label: 'Locations' },
+  { id: 'bVehicles',       key: 'vehicles',       label: 'Vehicles' },
+  { id: 'bPropertyStatus', key: 'propertyStatus', label: 'Building Owned/Leased' },
+  { id: 'bBuildingValue',  key: 'buildingValue',  label: 'Building Value' },
+  { id: 'bBPP',            key: 'bpp',            label: 'Business Personal Property' },
+  { id: 'bCurrentCarrier', key: 'currentCarrier', label: 'Current Carrier' },
+  { id: 'bXDate',          key: 'xDate',          label: 'X-Date' },
+  { id: 'bCurrentPremium', key: 'currentPremium', label: 'Current Premium' },
+  { id: 'bLosses',         key: 'losses',         label: 'Loss History' }
+];
+const COMMERCIAL_LINES = [
+  'General Liability', 'BOP', 'Commercial Property', 'Commercial Auto',
+  'Workers Comp', 'Umbrella / Excess', 'Professional Liability / E&O',
+  'Cyber', 'EPLI', 'Inland Marine', 'Crime', 'Liquor Liability'
+];
+
+function renderCommercialLines(selected) {
+  const wrap = document.getElementById('bLinesWrap');
+  if (!wrap) return;
+  const sel = new Set(selected || []);
+  wrap.innerHTML = COMMERCIAL_LINES.map(l =>
+    '<label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;">' +
+    '<input type="checkbox" value="' + l + '"' + (sel.has(l) ? ' checked' : '') + ' onchange="saveCurrentLead()">' +
+    l + '</label>').join('');
+}
+
+function applyLeadType() {
+  const isComm = (gv('pLeadType') || 'personal') === 'commercial';
+  const show = (id, on) => { const el = document.getElementById(id); if (el) el.style.display = on ? '' : 'none'; };
+  show('commercialCard', isComm);
+  show('commercialIncumbentCard', isComm);
+  show('personalCompareGrid', !isComm);
+  show('propTypeGroup', !isComm);   // "Own — Single Family" means nothing on a business
+  const title = document.getElementById('coverageCardTitle');
+  if (title) title.textContent = isComm ? 'Quoted Premium & Coverage Notes' : 'Coverage Comparison';
+  const nameInput = document.getElementById('pName');
+  if (nameInput) nameInput.placeholder = isComm ? 'Business Name / Primary Contact' : 'Prospect Full Name';
+}
+
+function parseMoney(v) {
+  const n = parseFloat(String(v == null ? '' : v).replace(/[^0-9.]/g, ''));
+  return isNaN(n) ? 0 : n;
+}
+
+function sumQuotedPremium() {
+  const total = parseMoney(gv('cAutoFarmersPrem')) + parseMoney(gv('cHomeFarmersPrem'));
+  if (total <= 0) { toast('No Farmers premiums entered above yet', 'error'); return; }
+  const el = document.getElementById('pQuotedPremium');
+  el.value = '$' + total.toLocaleString('en-US');
+  saveCurrentLead();
+  toast('Quoted premium set to $' + total.toLocaleString('en-US'), 'success');
 }
 
 function saveLeads() {
@@ -2245,6 +2457,37 @@ function generateHandoff(lead) {
                lead.score >= 35 ? '⚡ WARM — Active Follow-Up' :
                lead.score !== null && lead.score !== undefined ? '❄ COLD — Nurture' : '— Not Scored';
 
+  const b = lead.business || {};
+  const isComm = (lead.leadType || 'personal') === 'commercial';
+  // A commercial handoff is useless without the risk profile — swap the personal
+  // auto/home grid for the business block rather than appending both.
+  const commBlock = !isComm ? '' :
+`────────────────────────────────────────────
+BUSINESS PROFILE
+────────────────────────────────────────────
+  Legal Name:    ${b.legalName || '—'}
+  DBA:           ${b.dba || '—'}
+  Entity:        ${b.entity || '—'}
+  Operations:    ${b.industry || '—'}
+  NAICS/Class:   ${b.naics || '—'}
+  Years:         ${b.years || '—'}
+  Revenue:       ${b.revenue || '—'}
+  Payroll:       ${b.payroll || '—'}
+  Employees:     ${b.employees || '—'}
+  Locations:     ${b.locations || '—'}
+  Vehicles:      ${b.vehicles || '—'}
+  Building:      ${b.propertyStatus || '—'} / Value: ${b.buildingValue || '—'} / BPP: ${b.bpp || '—'}
+  Lines Needed:  ${(b.lines || []).length ? (b.lines || []).join(', ') : '—'}
+
+────────────────────────────────────────────
+INCUMBENT PROGRAM
+────────────────────────────────────────────
+  Carrier:       ${b.currentCarrier || '—'}
+  X-Date:        ${b.xDate || '—'}
+  Current Prem:  ${b.currentPremium || '—'}
+  Loss History:  ${b.losses || '—'}
+`;
+
   const callsSummary = (lead.calls || []).map((call, i) =>
     `  CALL ${i+1} | ${call.date||'No Date'} | ${call.outcome||'No Outcome'} | Duration: ${call.duration||'—'}
     Score: ${call.score !== null && call.score !== undefined ? call.score + '/100' : '—'}
@@ -2257,7 +2500,9 @@ function generateHandoff(lead) {
 LEAD PROFILE HANDOFF — THE STRAUCH AGENCY
 ════════════════════════════════════════════
 PROSPECT:        ${lead.name || '[NAME]'}
+LEAD TYPE:       ${isComm ? 'COMMERCIAL' : 'Personal Lines'}
 CLOSE SCORE:     ${sc} — ${tier}
+QUOTED PREMIUM:  ${lead.quotedPremium || '—'}${lead.quotedPremium && (lead.status||'') !== 'won' ? '  (on the table — not closed)' : ''}
 LEAD SOURCE:     ${lead.source || '—'}
 CREATED:         ${new Date(lead.createdAt).toLocaleDateString()}
 LAST UPDATED:    ${new Date(lead.updatedAt).toLocaleDateString()}
@@ -2273,7 +2518,7 @@ CONTACT
   Affinity:  ${lead.military || '—'}
   Property:  ${lead.propType || '—'}
 
-────────────────────────────────────────────
+${isComm ? commBlock : `────────────────────────────────────────────
 COVERAGE COMPARISON
 ────────────────────────────────────────────
   AUTO
@@ -2283,7 +2528,7 @@ COVERAGE COMPARISON
   HOME / CONDO
     Current:  ${c.homeCurrentPrem||'—'} / ${c.homeCurrentCarrier||'—'} / Deduct: ${c.homeCurrentDeduct||'—'}
     Farmers:  ${c.homeFarmersPrem||'—'} / ${c.homeFarmersNote||'—'} / Deduct: ${c.homeFarmersDeduct||'—'}
-
+`}
   Coverage Gaps:  ${lead.gaps || '—'}
   Add-ons Quoted: ${lead.addons || '—'}
 
@@ -2452,12 +2697,54 @@ function openSettings() {
   setTimeout(() => document.getElementById('settingGHL').focus(), 200);
 }
 
+// All three tools live on GitHub Pages — the only host that works from any computer
+// AND can still reach the Apps Script backend (HTTPS→HTTPS). The Sales System link
+// used to point at http://localhost:8768, which an HTTPS page cannot open at all,
+// and which only ever existed on one Mac. That was the broken link.
+const TOOLS_BASE = 'https://gregstrauch.github.io/strauch-agency-tools/';
+
+// If a pop-up blocker eats the new tab, show the URL as selectable text instead of
+// failing silently — the old behaviour looked identical to "the button is broken".
+function openExternal(url, label) {
+  let win = null;
+  try { win = window.open(url, '_blank'); } catch (e) { win = null; }
+  if (win) { try { win.focus(); } catch (e) {} return; }
+  showLinkFallback(url, label);
+}
+
+function showLinkFallback(url, label) {
+  const old = document.getElementById('linkFallback');
+  if (old) old.remove();
+  const wrap = document.createElement('div');
+  wrap.id = 'linkFallback';
+  wrap.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(10,12,20,0.78);display:flex;align-items:center;justify-content:center;padding:20px;';
+  wrap.onclick = e => { if (e.target === wrap) wrap.remove(); };
+  const box = document.createElement('div');
+  box.style.cssText = 'background:#14161f;border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:26px 28px;max-width:560px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.55);color:#fff;';
+  const h = document.createElement('div');
+  h.style.cssText = 'font-size:16px;font-weight:800;margin-bottom:8px;';
+  h.textContent = 'Open ' + label;
+  const p = document.createElement('div');
+  p.style.cssText = 'font-size:13px;line-height:1.55;color:rgba(255,255,255,0.6);margin-bottom:14px;';
+  p.textContent = 'This browser blocked the pop-up. Triple-click the address below to select it, copy it, and paste it into a new tab. Bookmark it once and it is one click from then on.';
+  const a = document.createElement('div');
+  a.style.cssText = 'user-select:all;-webkit-user-select:all;font-family:var(--mono);font-size:13px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:12px 14px;word-break:break-all;';
+  a.textContent = url;
+  const btn = document.createElement('button');
+  btn.textContent = 'Close';
+  btn.style.cssText = 'margin-top:16px;padding:9px 18px;border:1px solid rgba(255,255,255,0.18);background:transparent;color:#fff;border-radius:8px;font-size:13px;cursor:pointer;';
+  btn.onclick = () => wrap.remove();
+  box.appendChild(h); box.appendChild(p); box.appendChild(a); box.appendChild(btn);
+  wrap.appendChild(box);
+  document.body.appendChild(wrap);
+}
+
 function openPipeline() {
-  window.open('https://gregstrauch.github.io/strauch-agency-tools/board.html', '_blank');
+  openExternal(TOOLS_BASE + 'board.html', 'the Sales Pipeline Board');
 }
 
 function openSalesSystem() {
-  window.open('http://localhost:8768/Farmers_Sales_System.html', '_blank');
+  openExternal(TOOLS_BASE + 'sales-system.html', 'the Sales System');
 }
 
 function exportAll() {

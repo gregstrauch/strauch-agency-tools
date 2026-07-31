@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<script type="application/json" id="cowork-artifact-meta">
+{
+  "name": "Farmers Co Sales System",
+  "schemaVersion": 1,
+  "description": "Farmers Insurance Colorado Master Sales System — cold call script, voicemail/text templates, CSR winback script, reply handlers, 24 objections with phase filtering, email picker, and 6 follow-up sequences (No Contact, Post-Quote, Post-Bind, Dead Lead, Renewal, No-Show)."
+}
+</script>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Farmers Insurance — Colorado Sales System</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0A0A0F;--bg3:#111118;--border:#1A1A2A;--green:#00D4AA;--yellow:#FFB547;--purple:#A78BFA;--red:#F87171;--orange:#FB923C;--blue:#60A5FA;--teal:#34D399;--text:#E0E0D8;--muted:#777;--dim:#555;--cbg:#091410;--ctxt:#7ABFA0;--mono:"DM Mono",monospace;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:"Georgia",serif;font-size:15px;line-height:1.7;}
+#sn{position:fixed;top:0;left:0;width:230px;height:100vh;background:#07070D;border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;overflow-y:auto;}
+.nl{padding:18px 20px 15px;border-bottom:1px solid var(--border);}
+.ns{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase;display:block;margin-bottom:4px;}
+.nt{font-size:13px;color:#E8E8E0;line-height:1.4;}.nt span{color:var(--green);}
+.stw{padding:11px 13px;border-bottom:1px solid var(--border);}
+.ng{font-family:var(--mono);font-size:8px;letter-spacing:.25em;color:#252535;text-transform:uppercase;padding:12px 20px 4px;}
+.ni{display:block;padding:9px 20px;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);border:none;border-left:2px solid transparent;background:none;transition:all .15s;cursor:pointer;text-align:left;width:100%;}
+.ni:hover{color:var(--text);background:#0F0F18;}.ni.active{color:var(--green);border-left-color:var(--green);background:#0A1410;}
+#main{margin-left:230px;min-height:100vh;}
+.ph{padding:30px 46px 24px;border-bottom:1px solid var(--border);}
+.ps{font-family:var(--mono);font-size:10px;letter-spacing:.25em;color:var(--dim);text-transform:uppercase;margin-bottom:8px;}
+.pt{font-size:25px;font-weight:normal;letter-spacing:-.5px;color:#F0F0E8;margin-bottom:4px;}
+.pm{font-size:13px;color:var(--muted);font-style:italic;}
+.sec{display:none;padding:28px 46px 56px;max-width:860px;}.sec.active{display:block;}
+.stag{display:flex;align-items:center;gap:12px;margin-bottom:12px;margin-top:30px;}.stag.f{margin-top:0;}
+.tll{height:1px;width:20px;}.tln{font-family:var(--mono);font-size:9px;letter-spacing:.2em;font-weight:bold;text-transform:uppercase;white-space:nowrap;}.tlr{flex:1;height:1px;opacity:.2;}
+.sn{margin:0 0 13px 28px;font-size:13px;color:var(--muted);font-style:italic;line-height:1.65;}
+.lines{display:flex;flex-direction:column;gap:8px;}
+.lc{border-radius:7px;overflow:hidden;margin-bottom:8px;}.lb{display:flex;gap:13px;padding:11px 15px;border:1px solid var(--border);}
+.lb.y{background:#0F1A16;}.lb.th{background:#0D0D14;border-color:#1A1A2A;}.lb.fa{background:var(--bg3);}.lb.wa{background:#130A0A;border-color:#2A1414;}
+.ls{font-family:var(--mono);font-size:9px;letter-spacing:.08em;font-weight:bold;min-width:46px;padding-top:3px;flex-shrink:0;line-height:1.4;}
+.lt{flex:1;font-size:14px;line-height:1.8;}.lt.th{color:#666;font-style:italic;}.lt.wa{color:#997777;}.lt.fa{color:#A8A8A0;font-size:13px;}
+.ct{margin-top:7px;background:none;border:none;cursor:pointer;font-family:var(--mono);font-size:9px;letter-spacing:.12em;padding:0;opacity:.7;text-transform:uppercase;display:block;}
+.cn{display:none;padding:10px 15px 12px 76px;background:var(--cbg);border-left:1px solid;border-right:1px solid;border-bottom:1px solid;border-radius:0 0 7px 7px;font-size:12px;color:var(--ctxt);line-height:1.68;font-style:italic;}.cn.open{display:block;}
+.lc.open .lb{border-radius:7px 7px 0 0;}
+.mb{background:var(--bg3);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:12px;}
+.mm{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--border);background:var(--bg);}
+.mt{font-family:var(--mono);font-size:10px;color:var(--dim);}
+.cb{font-family:var(--mono);font-size:10px;padding:4px 10px;background:transparent;border:1px solid var(--border);color:var(--dim);border-radius:4px;cursor:pointer;transition:all .15s;}
+.cb:hover{border-color:var(--green);color:var(--green);}.cb.copied{border-color:var(--teal);color:var(--teal);}
+.msub{padding:8px 12px;border-bottom:1px solid var(--border);font-size:12px;}.msub strong{font-family:var(--mono);font-size:9px;color:var(--dim);margin-right:6px;}
+.mc{padding:12px;font-size:13px;line-height:1.8;white-space:pre-wrap;color:var(--text);font-family:var(--mono);}
+.sc{margin-top:10px;padding:9px 12px;border:1px solid #2A2000;background:#1A1500;border-radius:8px;font-size:12px;color:#C8A030;line-height:1.65;}
+.sc strong{font-family:var(--mono);font-size:9px;letter-spacing:.08em;color:var(--yellow);display:block;margin-bottom:3px;}
+.stab{display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:3px;gap:3px;margin-bottom:20px;}
+.stabtn{flex:1;font-family:var(--mono);font-size:10px;padding:7px 0;border:1px solid transparent;border-radius:4px;cursor:pointer;background:transparent;color:var(--dim);transition:all .15s;text-align:center;}
+.stabtn.av{background:#0A1A10;border-color:rgba(0,212,170,.35);color:var(--green);}
+.stabtn.ab{background:#0A1018;border-color:rgba(96,165,250,.35);color:var(--blue);}
+.stabtn.at{background:#100A1A;border-color:rgba(167,139,250,.35);color:var(--purple);}
+.ep-tag{padding:6px 12px;border-radius:5px;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--dim);transition:all .15s;user-select:none;font-family:var(--mono);font-size:11px;letter-spacing:.05em;}
+.ep-tag:hover{border-color:var(--blue);color:var(--text);}.ep-tag.active{background:#0A1018;border-color:rgba(96,165,250,.4);color:var(--blue);}
+.ep-card{background:#0F0F18;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;transition:border-color .2s;margin-bottom:12px;}
+.ep-ch{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;cursor:pointer;border-bottom:1px solid var(--border);background:var(--bg3);}
+.ep-cl{font-size:14px;color:#C8D4E8;}
+.ep-bb{font-family:var(--mono);font-size:9px;text-transform:uppercase;background:#0A1018;color:var(--blue);padding:3px 8px;border-radius:3px;margin-right:8px;border:1px solid rgba(96,165,250,.3);}
+.ep-arr{font-size:10px;color:var(--dim);transition:transform .2s;font-family:var(--mono);}.ep-arr.open{transform:rotate(180deg);}
+.ep-st{display:flex;gap:5px;flex-wrap:wrap;padding:7px 14px;border-bottom:1px solid var(--border);}
+.ep-ct{font-family:var(--mono);font-size:10px;text-transform:uppercase;color:var(--dim);background:#141820;padding:3px 7px;border-radius:3px;}
+.ep-bd{padding:14px;display:none;}.ep-bd.open{display:block;}
+.ep-es{font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:6px;}.ep-es span{color:#A0B8D0;}
+.ep-et{font-size:13px;line-height:1.8;color:#B0BCD0;white-space:pre-wrap;background:#080B12;border:1px solid var(--border);border-radius:6px;padding:12px;font-family:var(--mono);}
+.ep-cb{margin-top:10px;padding:7px 17px;background:#0A1018;color:var(--blue);border:1px solid rgba(96,165,250,.3);border-radius:5px;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .15s;}
+.ep-cb.copied{background:#0A1A14;color:var(--teal);border-color:rgba(52,211,153,.4);}
+.ep-nr{padding:30px;text-align:center;color:#2A3448;font-family:var(--mono);font-size:12px;letter-spacing:.1em;}
+.tc{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:11px;}
+.tc:hover{border-color:#2A2A3A;}
+.tch{display:flex;align-items:center;gap:11px;padding:11px 16px;cursor:pointer;background:var(--bg3);user-select:none;}
+.tn{font-family:var(--mono);font-size:10px;color:var(--dim);width:25px;flex-shrink:0;}
+.ch-t{background:#0A1A14;color:var(--teal);border:1px solid #1A3A2A;font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:4px;}
+.ch-e{background:#0A1018;color:var(--blue);border:1px solid #1A2A4A;font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:4px;}
+.ch-v{background:#1A100A;color:var(--orange);border:1px solid #3A200A;font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:4px;}
+.ch-c{background:#0A1A10;color:var(--green);border:1px solid #1A3A20;font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:4px;}
+.ttl{font-size:12px;color:var(--text);font-weight:bold;}.tgl{font-size:12px;color:var(--muted);font-style:italic;margin-left:auto;}
+.tcv{color:var(--dim);font-size:10px;margin-left:6px;transition:transform .2s;font-family:var(--mono);}
+.tc.open .tcv{transform:rotate(180deg);}
+.tcb{display:none;padding:0 16px 16px;background:#0D0D14;}.tc.open .tcb{display:block;}
+.obj-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
+.ofb{padding:6px 14px;border-radius:5px;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--dim);transition:all .15s;font-family:var(--mono);font-size:10px;letter-spacing:.05em;}
+.ofb:hover{border-color:var(--blue);color:var(--text);}.ofb.active{background:#0A1018;border-color:rgba(96,165,250,.4);color:var(--blue);}
+.oc{border-radius:8px;overflow:hidden;margin-bottom:10px;border:1px solid var(--border);}
+.ot{padding:7px 15px 10px;background:#0F0F18;border-bottom:1px solid var(--border);font-size:14px;font-style:italic;color:var(--text);}
+.or{padding:12px 15px;background:#0F1A16;font-size:14px;line-height:1.8;color:#C8E0D0;}
+.owt{margin-top:8px;background:none;border:none;cursor:pointer;font-family:var(--mono);font-size:9px;letter-spacing:.12em;padding:0;opacity:.7;text-transform:uppercase;display:block;color:var(--ctxt);}
+.ow{display:none;padding:10px 15px 12px;background:var(--cbg);border-top:1px solid var(--border);font-size:12px;color:var(--ctxt);font-style:italic;line-height:1.68;}.ow.open{display:block;}
+.obj-copy{margin-top:10px;display:flex;justify-content:flex-end;}
+</style>
+</head>
+<body>
+<nav id="sn">
+  <div class="nl">
+    <span class="ns">Farmers Insurance</span>
+    <div class="nt">Colorado <span>Sales System</span></div>
+  </div>
+  <span class="ng">Scripts</span>
+  <button class="ni active" onclick="showSec('s1',this)">01 &mdash; Cold Call Script</button>
+  <button class="ni" onclick="showSec('s2',this)">02 &mdash; Voicemail &amp; Texts</button>
+  <button class="ni" onclick="showSec('swb',this)">06 &mdash; Winback (CSR)</button>
+  <span class="ng">Handling</span>
+  <button class="ni" onclick="showSec('s3',this)">03 &mdash; Objections (26)</button>
+  <span class="ng">Follow-Up</span>
+  <button class="ni" onclick="showSec('s4',this)">04 &mdash; Email Picker</button>
+  <button class="ni" onclick="showSec('s5',this)">05 &mdash; Sequences</button>
+</nav>
+
+<div id="main">
+
+<!-- ══════════════════════════════════════════
+     S1 — COLD CALL SCRIPT
+═══════════════════════════════════════════ -->
+<div id="s1" class="sec active">
+  <div class="ph">
+    <div class="ps">01 — Script</div>
+    <div class="pt">Cold Call Script</div>
+    <div class="pm">Colorado home &amp; auto leads</div>
+  </div>
+
+  <div class="stag f" style="margin-top:28px">
+    <div class="tll" style="background:var(--dim)"></div>
+    <div class="tln" style="color:var(--muted)">Pre-Screen Handler</div>
+    <div class="tlr" style="background:var(--dim)"></div>
+  </div>
+  <div class="lc">
+    <div class="lb th">
+      <div class="ls" style="color:#444">GKPR</div>
+      <div class="lt th">"[Agent Name]'s office"</div>
+    </div>
+  </div>
+  <div class="lc">
+    <div class="lb y">
+      <div class="ls" style="color:var(--green)">YOU</div>
+      <div class="lt">[Your First Name] — returning a call.</div>
+    </div>
+  </div>
+
+  <div class="stag">
+    <div class="tll" style="background:var(--green)"></div>
+    <div class="tln" style="color:var(--green)">Pattern Interrupt Opener</div>
+    <div class="tlr" style="background:var(--green)"></div>
+  </div>
+  <div class="lc">
+    <div class="lb y">
+      <div class="ls" style="color:var(--green)">YOU</div>
+      <div class="lt">Hey, is this [Name]?</div>
+    </div>
+  </div>
+  <div class="lc">
+    <div class="lb th">
+      <div class="ls" style="color:#444">THEM</div>
+      <div class="lt th">Yeah, who's this?</div>
+    </div>
+  </div>
+  <div class="lc" id="lc-opener">
+    <div class="lb y">
+      <div class="ls" style="color:var(--green)">YOU</div>
+      <div class="lt">Hey [Name], this is [Agent Name] — I am a Farmers agent out of [Your City]. Looks like you were doing some research on insurance earlier — I am not calling to pitch you anything, I just had a quick question before I looked at anything on my end.
+        <button class="ct" style="color:var(--ctxt)" onclick="toggleCn('cn-opener')">&#9657; coaching note</button>
+      </div>
+    </div>
+    <div class="cn" id="cn-opener" style="border-color:var(--border)">"I am not calling to pitch you anything" immediately lowers resistance. "A quick question before I looked at anything" signals that you are doing personalized work, not mass-quoting. Tonality: slightly unsure, conversational — not rehearsed sales energy.</div>
+  </div>
+
+  <div class="stag">
+    <div class="tll" style="background:var(--blue)"></div>
+    <div class="tln" style="color:var(--blue)">Reframe</div>
+    <div class="tlr" style="background:var(--blue)"></div>
+  </div>
+  <div class="lc" id="lc-reframe">
+    <div class="lb y">
+      <div class="ls" style="color:var(--green)">YOU</div>
+      <div class="lt">When you were looking at quotes — was it mainly about finding a better rate, or was there something specific going on that made you start looking? Like a renewal coming up, a rate hike, something change on your end?
+        <button class="ct" style="color:var(--ctxt)" onclick="toggleCn('cn-reframe')">&#9657; coaching note</button>
+      </div>
+    </div>
+    <div class="cn" id="cn-reframe" style="border-color:var(--border)">This is not a discovery question — it is a reframe. You are finding out whether they are price-shopping or situation-driven. Situation-driven leads (rate hike, renewal, life change) close at 2-3x the rate of pure price shoppers. What they say here determines which path you take.</div>
+  </div>
+
+  <div class="stag">
+    <div class="tll" style="background:var(--purple)"></div>
+    <div class="tln" style="color:var(--purple)">Situation Questions</div>
+    <div class="tlr" style="background:var(--purple)"></div>
+  </div>
+  <div class="lc" id="lc-sit1">
+    <div class="lb y">
+      <div class="ls" style="color:var(--purple)">YOU</div>
+      <div class="lt">What are you currently with, and is it just auto, home, or both?
+        <button class="ct" style="color:var(--ctxt)" onclick="toggleCn('cn-sit1')">&#9657; coaching note</button>
+      </div>
+    </div>
+    <div class="cn" id="cn-sit1" style="border-color:var(--border)">Bundle intel. Both with one carrier means strong retention reason on their end. Split across carriers means major opening — you can consolidate and likely save them money while upgrading coverage.</div>
+  </div>
+  <div class="lc" id="lc-sit2">
+    <div class="lb y">
+      <div class="ls" style="color:var(--purple)">YOU</div>
+      <div class="lt">And roughly what are you paying now — combined if you have both?
+        <button class="ct" style="color:var(--ctxt)" onclick="toggleCn('cn-sit2')">&#9657; coaching note</button>
+      </div>
+    </div>
+    <div class="cn" id="cn-sit2" style="border-color:var(--border)">You need this number. If they will not give it: "I am not asking to beat it — I just want to know if I am even in the same ballpark before I waste your time."</div>
+  </div>
+  <div class="lc" id="lc-sit3">
+    <div class="lb y">
+      <div class="ls" style="color:var(--purple)">YOU</div>
+      <div class="lt">One thing I like to check that most agents skip — do you know offhand what your liability limits are on your auto? Like what you are actually covered for if there is a serious accident?
+        <button class="ct" style="color:var(--ctxt)" onclick="toggleCn('cn-sit3')">&#9657; coaching note</button>
+      </div>
+    </div>
+    <div class="cn" id="cn-sit3" style="border-color:var(--border)">Most people have state minimum liability — completely inadequate. When they say "I don't know": "Yeah, most people don't — carriers don't usually highlight it." This single question pivots from price to protection.</div>
+  </div>
+
+  <div class="stag">
+    <div class="tll" style="background:var(--red)"></div>
+    <div class="tln" style="color:var(--red)">Problem Awareness — The Coverage Gap</div>
+    <div class="tlr" style="background:var(--red)"></div>
+  </div>
+  <div class="lc" id="lc-prob1">
+    <div class="lb y">
+      <div class="ls" style="color:var(--red)">YOU</div>
+      <div class="lt">Here is something I want to flag — and I ask this because I have seen it bite people — with how much rebuild costs and car values have changed the last few years, a lot of people who think they are fully covered are actually sitting on some real gaps. Not because they did anything wrong, just because the policy did not keep up. Is that something anyone has talked to you about, or has it just been a price conversation so far?
+        <button class="ct" style="color:var(--ctxt)" onclick="toggleCn('cn-prob1')">&#9657; coaching note</button>
+      </div>
+    </div>
+    <div class="cn" id="cn-prob1" style="border-color:var(--border)">"Not because they did anything wrong" removes shame. "Has it just been a price conversation so far" positions every other agent as shallow. They almost always say yes — now you own the conversation.</div>
+  </div>
+  <div class="lc" id="lc-prob2">
+    <div class="lb y">
+      <div class="ls" style="color:var(--red)">YOU</div>
+      <div class="lt">For example — on your home, do you know if your dwelling coverage is based on what you paid for the house, or what it would actually cost to rebuild it today?
+        <button class="ct" style="color:var(--ctxt)" onclick="toggleCn('cn-prob2')">&#9657; coaching note</button>
+      </div>
+    </div>
+    <div class="cn" id="cn-prob2" style="border-color:var(--border)">Purchase price vs. rebuild cost is the most common underinsurance trap. When they do not know — and they will not — they just felt a real gap.<br><br><strong style="color:var(--yellow)">COLORADO:</strong> Front Range rebuild costs up 35-45% since 2020. With the fire history in this area, making sure your rebuild coverage is current is not optional.</div>
+  </div>
+
+  <div class="stag">
+    <div class="tll" style="background:var(--orange)"></div>
+    <div class="tln" style="color:var(--orange)">Consequence + Solution Pivot</div>
+    <div class="tlr" style="background:var(--orange)"></div>
+  </div>
+  <div class="lc" id="lc-conseq">
+    <div class="lb y">
+      <div class="ls" style="color:var(--orange)">YOU</div>
+      <div class="lt">If something happened and coverage came up short — what does that look like for you, financially?
+        <button class="ct" style="color:var(--ctxt)" onclick="toggleCn('cn-conseq')">&#9657; coaching note</button>
+      </div>
+    </div>
+    <div class="cn" id="cn-conseq" style="border-color:var(--border)">Short. Pointed. Wait for the answer. Do not add to the question. The silence is productive — they are doing the math in their head.</div>
+  </div>
+  <div class="lc" id="lc-pivot">
+    <div class="lb y">
+      <div class="ls" style="color:var(--orange)">YOU</div>
+      <div class="lt">Here is what I would rather do than just run you a number — let me actually look at what you have and build something that covers the real gaps, then show you what that costs. That way you are comparing an actual policy to what you have, not just a price to a price. Does that make sense?
+        <button class="ct" style="color:var(--ctxt)" onclick="toggleCn('cn-pivot')">&#9657; coaching note</button>
+      </div>
+    </div>
+    <div class="cn" id="cn-pivot" style="border-color:var(--border)">"A policy to what you have, not a price to a price" reframes your quote as a diagnostic, not a bid. You are no longer competing on price — you are competing on quality and clarity.</div>
+  </div>
+
+  <div class="stag">
+    <div class="tll" style="background:var(--blue)"></div>
+    <div class="tln" style="color:var(--blue)">Set the Quote Walkthrough — Critical</div>
+    <div class="tlr" style="background:var(--blue)"></div>
+  </div>
+  <p class="sn">Do not end this call without scheduling the walkthrough. "I will send it over" is the single most expensive habit in your business.</p>
+  <div class="lc" id="lc-close1">
+    <div class="lb y">
+      <div class="ls" style="color:var(--blue)">YOU</div>
+      <div class="lt">I have enough to put something together — it will take me about 15-20 minutes. I want to walk you through it rather than just send you a number, because without context a quote does not tell you much. Are you available later today — like around [time] — for a quick 10-minute call?
+        <button class="ct" style="color:var(--ctxt)" onclick="toggleCn('cn-close1')">&#9657; coaching note</button>
+      </div>
+    </div>
+    <div class="cn" id="cn-close1" style="border-color:var(--border)">"Rather than just send you a number" subtly positions every other agent who emailed a quote as doing inferior work. "10-minute call" lowers the commitment threshold. Most people say yes.</div>
+  </div>
+  <div class="lc" id="lc-close2">
+    <div class="lb y">
+      <div class="ls" style="color:var(--blue)">YOU</div>
+      <div class="lt">Perfect. I will send you the quote right before we talk so you have it in front of you — but I want to be on the phone when you open it so I can point out the two or three things that actually matter. I will call you at [time].
+        <button class="ct" style="color:var(--ctxt)" onclick="toggleCn('cn-close2')">&#9657; coaching note</button>
+      </div>
+    </div>
+    <div class="cn" id="cn-close2" style="border-color:var(--border)">"Right before we talk" is intentional — you are not sending it hours early so they form opinions without you. "The two or three things that actually matter" creates anticipation.</div>
+  </div>
+  <div class="lc">
+    <div class="lb fa">
+      <div class="ls" style="color:var(--yellow)">NOTE</div>
+      <div class="lt fa">Tonality reminder: slightly unsure opener, genuinely curious questions, zero urgency in your voice until THEY bring urgency. If you sound like you need the sale, you have already lost it.</div>
+    </div>
+  </div>
+
+  <div class="stag">
+    <div class="tll" style="background:var(--purple)"></div>
+    <div class="tln" style="color:var(--purple)">On the Walkthrough Call: Pivot to Life</div>
+    <div class="tlr" style="background:var(--purple)"></div>
+  </div>
+  <p class="sn">Once they say yes to home/auto on the walkthrough call, you are in the highest-trust moment you will have with this person. Do not let them hang up without asking this. It costs you 30 seconds and the downside is "no."</p>
+  <div class="lc" id="lc-life1">
+    <div class="lb y">
+      <div class="ls" style="color:var(--purple)">YOU</div>
+      <div class="lt">Awesome — I will get this set up on my end. One more thing before I let you go, totally separate question: do you have life insurance through work, or on your own?
+        <button class="ct" style="color:var(--ctxt)" onclick="toggleCn('cn-life1')">&#9657; coaching note</button>
+      </div>
+    </div>
+    <div class="cn" id="cn-life1" style="border-color:var(--border)">"Totally separate question" lowers their guard — you are not bundling it into the home/auto sale, which makes it feel less like an upsell. Ask AFTER they have committed, never before. They are most receptive right after saying yes to something.</div>
+  </div>
+  <div class="lc">
+    <div class="lb th">
+      <div class="ls" style="color:#444">THEM</div>
+      <div class="lt th">"Yeah, I have some through work" / "No, I don't really have any."</div>
+    </div>
+  </div>
+  <div class="lc" id="lc-life2">
+    <div class="lb y">
+      <div class="ls" style="color:var(--purple)">YOU</div>
+      <div class="lt">Okay, good to know. Most workplace life policies are pretty thin and they go away the day you leave the job — so a lot of people end up underinsured without realizing it. I am not trying to sell you anything right now, but would it be worth me running a quick number on what term life would cost to fill that gap? Takes me two minutes, no obligation, and at least then you know where you stand.
+        <button class="ct" style="color:var(--ctxt)" onclick="toggleCn('cn-life2')">&#9657; coaching note</button>
+      </div>
+    </div>
+    <div class="cn" id="cn-life2" style="border-color:var(--border)">Works for both answers. "I am not trying to sell you anything right now" + "no obligation" removes pressure entirely. "At least then you know where you stand" reframes this as information, not a pitch — almost no one says no to a free number.</div>
+  </div>
+  <div class="lc">
+    <div class="lb th">
+      <div class="ls" style="color:#444">THEM</div>
+      <div class="lt th">"Sure, go ahead and run it."</div>
+    </div>
+  </div>
+  <div class="lc" id="lc-life3">
+    <div class="lb y">
+      <div class="ls" style="color:var(--purple)">YOU</div>
+      <div class="lt">Perfect — I will put that together along with everything else and walk you through it next time we talk, so it is all in one place. Same deal as today: no pressure, just numbers so you can make an informed call.
+        <button class="ct" style="color:var(--ctxt)" onclick="toggleCn('cn-life3')">&#9657; coaching note</button>
+      </div>
+    </div>
+    <div class="cn" id="cn-life3" style="border-color:var(--border)">Do not turn this into a second sales call right now — you just closed home/auto, do not risk it by overloading the moment. Bundle the life quote into your next scheduled touchpoint (bind confirmation, follow-up call, or post-bind sequence) where it gets dedicated attention.</div>
+  </div>
+  <div class="lc">
+    <div class="lb fa">
+      <div class="ls" style="color:var(--yellow)">NOTE</div>
+      <div class="lt fa">If they decline outright ("not interested," "I'm good"), do not push. Just say: "No problem at all — just wanted to put it on your radar. If that ever changes, I'm easy to reach." Then move on. This plants the seed for a future renewal or referral conversation without costing you anything today.</div>
+    </div>
+  </div>
+
+  <div class="stag">
+    <div class="tll" style="background:var(--muted)"></div>
+    <div class="tln" style="color:var(--muted)">If They Push Back on the Walkthrough</div>
+    <div class="tlr" style="background:var(--muted)"></div>
+  </div>
+  <div class="lc">
+    <div class="lb th">
+      <div class="ls" style="color:#444">THEM</div>
+      <div class="lt th">Just send it over, I will take a look.</div>
+    </div>
+  </div>
+  <div class="lc" id="lc-pushback1">
+    <div class="lb y">
+      <div class="ls" style="color:var(--green)">YOU</div>
+      <div class="lt">I can do that — I just want to flag one thing. There is a coverage number in there that is going to look different from what you have seen from other carriers, and without context it might look like I am more expensive. I am not — I just built it differently. It will take me two minutes to show you why. What is a better time — later today or tomorrow morning?
+        <button class="ct" style="color:var(--ctxt)" onclick="toggleCn('cn-pushback1')">&#9657; coaching note</button>
+      </div>
+    </div>
+    <div class="cn" id="cn-pushback1" style="border-color:var(--border)">You are giving them a specific, legitimate reason why a naked email will mislead them. "It might look like I am more expensive" is honest — and honesty builds trust. Binary close at the end.</div>
+  </div>
+  <div class="lc">
+    <div class="lb th">
+      <div class="ls" style="color:#444">THEM</div>
+      <div class="lt th">I really just want to see the number first.</div>
+    </div>
+  </div>
+  <div class="lc" id="lc-pushback2">
+    <div class="lb y">
+      <div class="ls" style="color:var(--green)">YOU</div>
+      <div class="lt">Fair enough — I will send it now. One thing I will ask: if a number looks off or something is confusing, just text me before you make any decisions. I would rather explain it than have you compare apples to oranges and think Farmers is not the right fit when it actually might be.
+        <button class="ct" style="color:var(--ctxt)" onclick="toggleCn('cn-pushback2')">&#9657; coaching note</button>
+      </div>
+    </div>
+    <div class="cn" id="cn-pushback2" style="border-color:var(--border)">If they absolutely will not schedule: send it but plant seeds. "If a number looks off" gives them a low-friction action instead of ghosting. "Apples to oranges" primes them to question their own comparison process.</div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════
+     S2 — VOICEMAIL & TEXTS
+═══════════════════════════════════════════ -->
+<div id="s2" class="sec">
+  <div class="ph">
+    <div class="ps">02 — Scripts</div>
+    <div class="pt">Voicemail &amp; Texts</div>
+    <div class="pm">Leave one VM, follow with a text — Colorado</div>
+  </div>
+
+  <div style="padding-top:20px">
+  <div class="stab">
+    <button class="stabtn av active" onclick="vmTab('vms',this,'av')">Voicemails</button>
+    <button class="stabtn ab" onclick="vmTab('texts',this,'ab')">Text Messages</button>
+    <button class="stabtn" onclick="vmTab('replies',this,'')" style="color:var(--dim)">Reply Handlers</button>
+  </div>
+
+  <!-- VOICEMAILS -->
+  <div id="vms" class="vm-content" style="display:block">
+
+    <div class="stag f">
+      <div class="tll" style="background:var(--purple)"></div>
+      <div class="tln" style="color:var(--purple)">VM 1 — First Attempt</div>
+      <div class="tlr" style="background:var(--purple)"></div>
+    </div>
+    <div class="mb">
+      <div class="mm">
+        <span class="mt">Voicemail · ~20 seconds</span>
+        <button class="cb" onclick="copyBlock(this,'vm1')">Copy</button>
+      </div>
+      <div class="mc" id="vm1">Hey [Name], it is [Agent Name] — [Your Number]. I saw your information come through earlier and I had a quick question before I put anything together on my end — it will actually change what I look at for you. Give me a call back when you get a chance. Again, [Agent Name], [Your Number].</div>
+      <div class="msub" style="font-style:italic;color:var(--ctxt);background:var(--cbg);">"A quick question before I put anything together" signals customization, not mass-quoting. "It will actually change what I look at" implies their situation matters. Number given twice — people are not ready to write it down the first time.</div>
+    </div>
+
+    <div class="stag">
+      <div class="tll" style="background:var(--purple)"></div>
+      <div class="tln" style="color:var(--purple)">VM 2 — Follow-Up (Day 3–5)</div>
+      <div class="tlr" style="background:var(--purple)"></div>
+    </div>
+    <div class="mb">
+      <div class="mm">
+        <span class="mt">Voicemail · ~20 seconds</span>
+        <button class="cb" onclick="copyBlock(this,'vm2')">Copy</button>
+      </div>
+      <div class="mc" id="vm2">Hey [Name], [Agent Name] again at [Your Number]. I was looking at some info on my end and noticed something I think is worth a 2-minute conversation before you make any decisions on coverage. Nothing urgent — just something I would want to know if I were in your position. [Your Number].</div>
+      <div class="msub" style="font-style:italic;color:var(--ctxt);background:var(--cbg);">"Something I would want to know if I were in your position" implies information that serves them, not you. They feel like they might be missing something. That is the callback trigger.</div>
+    </div>
+
+    <div class="stag">
+      <div class="tll" style="background:var(--purple)"></div>
+      <div class="tln" style="color:var(--purple)">VM 3 — Breakup (Day 10+)</div>
+      <div class="tlr" style="background:var(--purple)"></div>
+    </div>
+    <div class="mb">
+      <div class="mm">
+        <span class="mt">Voicemail · breakup tone</span>
+        <button class="cb" onclick="copyBlock(this,'vm3')">Copy</button>
+      </div>
+      <div class="mc" id="vm3">Hey [Name], [Agent Name] at [Your Number] — last time I will reach out. I get it, timing is probably just not right. If that changes and you want someone to actually walk through your coverage instead of just throwing a number at you, I am here. Take care.</div>
+      <div class="msub" style="font-style:italic;color:var(--ctxt);background:var(--cbg);">"Last time I will reach out" releases all pressure and creates scarcity. The casual sign-off signals confident indifference — you have other clients, you will be fine. That posture often triggers a callback within 24–48 hours.</div>
+    </div>
+  </div>
+
+  <!-- TEXTS -->
+  <div id="texts" class="vm-content" style="display:none">
+
+    <div class="stag f">
+      <div class="tll" style="background:var(--teal)"></div>
+      <div class="tln" style="color:var(--teal)">Text 1 — After 1st Missed Call</div>
+      <div class="tlr" style="background:var(--teal)"></div>
+    </div>
+    <div class="mb">
+      <div class="mm">
+        <span class="mt">Text · send within 5 min of VM</span>
+        <button class="cb" onclick="copyBlock(this,'txt1')">Copy</button>
+      </div>
+      <div class="mc" id="txt1">Hey [Name] — [Agent Name] here, Farmers agent. Just tried to reach you. Had a quick question before I put anything together on your end — easier to talk now or later today?</div>
+      <div class="msub" style="font-style:italic;color:var(--ctxt);background:var(--cbg);">"Before I put anything together" creates mild obligation. Binary close makes it easy to respond. No pitch, no company name. Send within 5 minutes of the missed call.</div>
+    </div>
+
+    <div class="stag">
+      <div class="tll" style="background:var(--teal)"></div>
+      <div class="tln" style="color:var(--teal)">Text 2 — After 2nd Missed Call</div>
+      <div class="tlr" style="background:var(--teal)"></div>
+    </div>
+    <div class="mb">
+      <div class="mm">
+        <span class="mt">Text · after 2nd attempt</span>
+        <button class="cb" onclick="copyBlock(this,'txt2')">Copy</button>
+      </div>
+      <div class="mc" id="txt2">Hey [Name], [Agent Name] — Farmers. I was looking at your area and there is something specific about coverage in CO right now I think is worth knowing before you make any decisions. Two minutes on the phone — what time works today?</div>
+      <div class="msub" style="font-style:italic;color:var(--ctxt);background:var(--cbg);">Shift from "I have a question" to "I have information" — higher value. In CO: hail season activity. Both are real and timely.</div>
+    </div>
+
+    <div class="stag">
+      <div class="tll" style="background:var(--teal)"></div>
+      <div class="tln" style="color:var(--teal)">Text 3 — Day 2, 3rd Missed Call</div>
+      <div class="tlr" style="background:var(--teal)"></div>
+    </div>
+    <div class="mb">
+      <div class="mm">
+        <span class="mt">Text · day 2 no contact</span>
+        <button class="cb" onclick="copyBlock(this,'txt3')">Copy</button>
+      </div>
+      <div class="mc" id="txt3">[Name] — I noticed something when I was reviewing your info that most people in [their city] do not catch until it is too late. Not trying to be dramatic — just want to make sure you have the full picture before you decide anything. Worth a 2-min call?</div>
+      <div class="msub" style="font-style:italic;color:var(--ctxt);background:var(--cbg);">Drop the greeting formality — just "[Name]" is a pattern interrupt. "Most people in [their city] do not catch until it is too late" creates FOMO. "Not trying to be dramatic" makes it more credible.</div>
+    </div>
+
+    <div class="stag">
+      <div class="tll" style="background:var(--teal)"></div>
+      <div class="tln" style="color:var(--teal)">Text 4 — Breakup</div>
+      <div class="tlr" style="background:var(--teal)"></div>
+    </div>
+    <div class="mb">
+      <div class="mm">
+        <span class="mt">Text · final outreach</span>
+        <button class="cb" onclick="copyBlock(this,'txt4')">Copy</button>
+      </div>
+      <div class="mc" id="txt4">Hey [Name] — last time I will reach out. If the timing is not right, totally get it. If you ever want someone to actually look at your coverage instead of just send you a number, [Your Number]. Take care.</div>
+      <div class="msub" style="font-style:italic;color:var(--ctxt);background:var(--cbg);">Phone number in the text body so they can tap it directly on mobile. Casual sign-off signals confidence — you will be fine either way. This posture triggers late callbacks when their renewal hits.</div>
+    </div>
+
+    <div class="stag">
+      <div class="tll" style="background:var(--yellow)"></div>
+      <div class="tln" style="color:var(--yellow)">Text 5 — Pre-Appointment (send the morning of)</div>
+      <div class="tlr" style="background:var(--yellow)"></div>
+    </div>
+    <div class="mb">
+      <div class="mm">
+        <span class="mt">Text · morning of the scheduled call</span>
+        <button class="cb" onclick="copyBlock(this,'txt5')">Copy</button>
+      </div>
+      <div class="mc" id="txt5">Morning [Name] — [Your First Name] with Farmers. Still good for [TIME] today? I have your quote built and it will take about 15 minutes to walk through. Two things to have handy if you can: your current declarations page and your driver's license numbers. If today got away from you, just say the word and I will move it.</div>
+      <div class="msub" style="font-style:italic;color:var(--ctxt);background:var(--cbg);">Send this the morning of, not the night before — day-of beats night-before for show rate. Three jobs in one text: (1) re-confirm so a silent no-show becomes a reply, (2) set the time expectation so 15 minutes feels small, (3) get the dec page and DL numbers gathered before the call so you are not stalling mid-quote. Offering to move it removes the shame that makes people ghost instead of reschedule — a reschedule is a live lead, a no-show is a dead one. If they do not reply and do not show, roll straight into the No-Show sequence in section 05.</div>
+    </div>
+  </div>
+
+  <!-- REPLY HANDLERS -->
+  <div id="replies" class="vm-content" style="display:none">
+    <div class="stag f">
+      <div class="tll" style="background:var(--teal)"></div>
+      <div class="tln" style="color:var(--teal)">Reply Handlers</div>
+      <div class="tlr" style="background:var(--teal)"></div>
+    </div>
+    <div id="reply-list"></div>
+  </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     S3 — OBJECTIONS
+═══════════════════════════════════════════ -->
+<div id="s3" class="sec">
+  <div class="ph">
+    <div class="ps">03 — Handling</div>
+    <div class="pt">Objections</div>
+    <div class="pm">24 objections — filter by phase</div>
+  </div>
+  <div style="padding-top:20px">
+    <div class="stag f"><div class="tll" style="background:var(--purple)"></div><span class="tln" style="color:var(--purple)">The 3-Step: Clarify &rarr; Discuss &rarr; Diffuse</span><div class="tlr" style="background:var(--purple)"></div></div>
+    <p class="sn">Every objection response below uses this structure. Before firing a response, run through these three steps.</p>
+    <div class="ig" style="margin-top:0;margin-bottom:20px">
+      <div class="ic" style="border-color:rgba(167,139,250,.3)"><div class="icl" style="color:var(--purple)">Step 1 &mdash; Clarify</div><p class="ict">Do not assume you know what they mean. Ask a clarifying question first. "When you say [repeat back] — how do you mean?" Most salespeople skip this and answer the wrong objection entirely.</p></div>
+      <div class="ic" style="border-color:rgba(255,181,71,.3)"><div class="icl" style="color:var(--yellow)">Step 2 &mdash; Discuss</div><p class="ict">Once you understand what is behind the concern, discuss it conversationally — not defensively. Talk through it as two people on the same side of the table trying to solve their problem.</p></div>
+      <div class="ic" style="border-color:rgba(0,212,170,.3)"><div class="icl" style="color:var(--teal)">Step 3 &mdash; Diffuse</div><p class="ict">Ask how they see themselves resolving the concern. Let them talk themselves toward the next step. "If there was a way you could [what they want] — would that help?" Then get a specific commitment.</p></div>
+    </div>
+    <div class="stag"><div class="tll" style="background:var(--purple)"></div><span class="tln" style="color:var(--purple)">Step 1 Clarifying Questions &mdash; Pull From These Before Responding</span><div class="tlr" style="background:var(--purple)"></div></div>
+    <p class="sn">Any of these can follow any objection. Using one instead of immediately defending yourself changes the entire dynamic.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px">
+      <div style="padding:10px 14px;background:#0D0D1A;border:1px solid var(--border);border-radius:6px;font-size:13px;color:#aaa;font-style:italic">"When you say [repeat back] &mdash; what do you mean by that?"</div>
+      <div style="padding:10px 14px;background:#0D0D1A;border:1px solid var(--border);border-radius:6px;font-size:13px;color:#aaa;font-style:italic">"How did you arrive at that?"</div>
+      <div style="padding:10px 14px;background:#0D0D1A;border:1px solid var(--border);border-radius:6px;font-size:13px;color:#aaa;font-style:italic">"I am curious &mdash; why do you feel that way?"</div>
+      <div style="padding:10px 14px;background:#0D0D1A;border:1px solid var(--border);border-radius:6px;font-size:13px;color:#aaa;font-style:italic">"Can you tell me more about that?"</div>
+      <div style="padding:10px 14px;background:#0D0D1A;border:1px solid var(--border);border-radius:6px;font-size:13px;color:#aaa;font-style:italic">"Can I ask where you got that from?"</div>
+      <div style="padding:10px 14px;background:#0D0D1A;border:1px solid var(--border);border-radius:6px;font-size:13px;color:#aaa;font-style:italic">"Why do you ask that?"</div>
+      <div style="padding:10px 14px;background:#0D0D1A;border:1px solid var(--border);border-radius:6px;font-size:13px;color:#aaa;font-style:italic">"Can you tell me exactly what you mean by that?"</div>
+      <div style="padding:10px 14px;background:#0D0D1A;border:1px solid var(--border);border-radius:6px;font-size:13px;color:#aaa;font-style:italic">"How did you arrive at thinking that way?"</div>
+    </div>
+    <div class="fb" style="margin-bottom:20px"><div class="fbl" style="color:var(--yellow)">The Pre-Close Commitment Check</div><p class="fbs">Before asking for payment or the next step, surface any remaining resistance: "Do you have anything else you would like to address before we move forward?" or "Are we on the same page with this?" If yes — close. If something surfaces — better now than after they ghost you.</p></div>
+    <div style="display:flex;gap:7px;margin-bottom:24px;flex-wrap:wrap">
+      <button class="pb" id="pf-all" style="background:#1A1A28;border-color:rgba(0,212,170,.4);color:var(--green)" onclick="fObj('all',this)">All 24</button>
+      <button class="pb" id="pf-early" style="background:var(--bg3);border-color:var(--border);color:var(--dim)" onclick="fObj('early',this)">&#128308; Early Call (6)</button>
+      <button class="pb" id="pf-mid" style="background:var(--bg3);border-color:var(--border);color:var(--dim)" onclick="fObj('mid',this)">&#128993; Mid-Call (8)</button>
+      <button class="pb" id="pf-post" style="background:var(--bg3);border-color:var(--border);color:var(--dim)" onclick="fObj('post',this)">&#128994; Post-Quote (10)</button>
+    </div>
+    <div id="obj-list"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     S4 — EMAIL PICKER
+═══════════════════════════════════════════ -->
+<div id="s4" class="sec">
+  <div class="ph">
+    <div class="ps">04 — Emails</div>
+    <div class="pt">Email Picker</div>
+    <div class="pm">Select your situation — get the right email</div>
+  </div>
+  <div style="padding-top:20px">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--blue);margin-bottom:6px">When are you sending this?</div>
+    <div style="display:flex;gap:7px;margin-bottom:14px" id="ep-phase-tabs">
+      <button class="pb" id="ept-send" style="background:#1A1A28;border-color:rgba(96,165,250,.4);color:var(--blue)" onclick="epSetPhase('send',this)">Sending the Quote</button>
+      <button class="pb" id="ept-post" style="background:var(--bg3);border-color:var(--border);color:var(--dim)" onclick="epSetPhase('post',this)">After the Walkthrough Call</button>
+      <button class="pb" id="ept-all" style="background:var(--bg3);border-color:var(--border);color:var(--dim)" onclick="epSetPhase('all',this)">All Emails</button>
+    </div>
+    <div id="ep-taglabel" style="font-family:var(--mono);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--blue);margin-bottom:6px">Situation — select all that apply</div>
+    <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:4px" id="ep-tags">
+      <div class="ep-tag" data-v="cheaper">Price — I am cheaper</div>
+      <div class="ep-tag" data-v="expensive">Price — I am more expensive</div>
+      <div class="ep-tag" data-v="ghost">Might ghost</div>
+      <div class="ep-tag" data-v="rapport">Strong rapport</div>
+      <div class="ep-tag" data-v="shopping">Shopping carriers</div>
+      <div class="ep-tag" data-v="hesitant">Hesitant / unsure</div>
+      <div class="ep-tag" data-v="generic">No special context</div>
+      <div class="ep-tag" data-v="post-undecided" style="display:none">Still undecided</div>
+      <div class="ep-tag" data-v="post-price" style="display:none">Price was the hesitation</div>
+      <div class="ep-tag" data-v="post-spouse" style="display:none">Spouse / partner not involved</div>
+      <div class="ep-tag" data-v="post-comparing" style="display:none">Still comparing carriers</div>
+      <div class="ep-tag" data-v="post-coverage" style="display:none">Had coverage questions</div>
+      <div class="ep-tag" data-v="post-positive" style="display:none">Call ended on a positive note</div>
+    </div>
+    <div style="height:1px;background:var(--border);margin:20px 0"></div>
+    <div id="ep-results"><div class="ep-nr">Select a situation above to see matching emails</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     S5 — SEQUENCES
+═══════════════════════════════════════════ -->
+<div id="s5" class="sec">
+  <div class="ph">
+    <div class="ps">05 — Follow-Up</div>
+    <div class="pt">Sequences</div>
+    <div class="pm">Colorado — touch-by-touch playbooks</div>
+  </div>
+  <div style="padding-top:20px">
+    <div class="stab">
+      <button class="stabtn av active" onclick="seqTabNew('s6',this,'av')">No Contact (6)</button>
+      <button class="stabtn ab" onclick="seqTabNew('s7',this,'ab')">Post-Quote (5)</button>
+      <button class="stabtn" onclick="seqTabNew('s8',this,'')" style="color:var(--dim)">Post-Bind (6)</button>
+      <button class="stabtn" onclick="seqTabNew('s9',this,'')" style="color:var(--dim)">Dead Lead (3)</button>
+      <button class="stabtn" onclick="seqTabNew('s10',this,'')" style="color:var(--dim)">Renewal (4)</button>
+      <button class="stabtn" onclick="seqTabNew('s11',this,'')" style="color:var(--dim)">No-Show (3)</button>
+    </div>
+    <div id="r-s6" class="seq-content" style="display:block"></div>
+    <div id="r-s7" class="seq-content" style="display:none"></div>
+    <div id="r-s8" class="seq-content" style="display:none"></div>
+    <div id="r-s9" class="seq-content" style="display:none"></div>
+    <div id="r-s10" class="seq-content" style="display:none"></div>
+    <div id="r-s11" class="seq-content" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SWB — WINBACK SCRIPT (CSR)
+═══════════════════════════════════════════ -->
+<div id="swb" class="sec">
+  <div class="ph">
+    <div class="ps">06 &mdash; Script</div>
+    <div class="pt">Winback Call Script</div>
+    <div class="pm">CSR outreach &mdash; former Farmers customers who left. Goal: book the re-quote review, not close the sale.</div>
+  </div>
+
+  <div class="stag f" style="margin-top:28px">
+    <div class="tll" style="background:var(--dim)"></div>
+    <div class="tln" style="color:var(--muted)">Pre-Call Prep &mdash; never dial blind</div>
+    <div class="tlr" style="background:var(--dim)"></div>
+  </div>
+  <div class="lc" id="lc-wb-prep">
+    <div class="lb th">
+      <div class="ls" style="color:#444">PREP</div>
+      <div class="lt th">Pull the file before you dial: what policies they had, how long they were with us, WHY they left (rate increase, claim, service, moved carriers with a new car/home), and when. If they left angry over a claim or a service failure, flag it &mdash; that call takes the Path B track below. Have their old premium and coverages in front of you.
+        <button class="ct" style="color:var(--ctxt)" onclick="toggleCn('cn-wb-prep')">&#9657; coaching note</button>
+      </div>
+    </div>
+    <div class="cn" id="cn-wb-prep" style="border-color:var(--border)">A winback is NOT a cold call. You have history &mdash; use it or lose the one advantage you have. Nothing kills a winback faster than obviously not knowing they filed a hail claim with us in 2024. Two minutes of prep doubles the connect-to-appointment rate.</div>
+  </div>
+
+  <div class="stag">
+    <div class="tll" style="background:var(--green)"></div>
+    <div class="tln" style="color:var(--green)">Opener &mdash; familiar, honest, zero pitch</div>
+    <div class="tlr" style="background:var(--green)"></div>
+  </div>
+  <div class="lc">
+    <div class="lb y">
+      <div class="ls" style="color:var(--green)">YOU</div>
+      <div class="lt">Hey, is this [Name]?</div>
+    </div>
+  </div>
+  <div class="lc">
+    <div class="lb th">
+      <div class="ls" style="color:#444">THEM</div>
+      <div class="lt th">Yeah, who's this?</div>
+    </div>
+  </div>
+  <div class="lc" id="lc-wb-opener">
+    <div class="lb y">
+      <div class="ls" style="color:var(--green)">YOU</div>
+      <div class="lt">Hey [Name], this is [Your Name] from [Agent Name]'s Farmers office here in [City] &mdash; you had your [auto/home] with us until about [month/year]. I'm not calling to talk you into anything today. Honest reason for the call: [Agent Name] has me checking in with folks who left, because a lot has changed on our end since then &mdash; and before I looked at anything, I wanted to ask you one question.
+        <button class="ct" style="color:var(--ctxt)" onclick="toggleCn('cn-wb-opener')">&#9657; coaching note</button>
+      </div>
+    </div>
+    <div class="cn" id="cn-wb-opener" style="border-color:var(--border)">Three moves in one breath: (1) identity + history &mdash; you are not a stranger; (2) "not calling to talk you into anything" &mdash; drops resistance; (3) "one question" &mdash; earns 30 more seconds. Tonality: warm and unhurried, like calling an old client, because that is exactly what this is.</div>
+  </div>
+
+  <div class="stag">
+    <div class="tll" style="background:var(--blue)"></div>
+    <div class="tln" style="color:var(--blue)">The Exit Reframe &mdash; find out why they really left</div>
+    <div class="tlr" style="background:var(--blue)"></div>
+  </div>
+  <div class="lc" id="lc-wb-reframe">
+    <div class="lb y">
+      <div class="ls" style="color:var(--green)">YOU</div>
+      <div class="lt">When you moved your coverage &mdash; was that mostly about the rate at the time, or did something happen that pushed you out the door? I ask because it tells me whether it's even worth your time to hear what's changed.
+        <button class="ct" style="color:var(--ctxt)" onclick="toggleCn('cn-wb-reframe')">&#9657; coaching note</button>
+      </div>
+    </div>
+    <div class="cn" id="cn-wb-reframe" style="border-color:var(--border)">Everything hinges on this answer. Price-leavers take Path A. Claim/service-leavers take Path B &mdash; and if you pitch a price-leaver script at someone who left angry, the call is over. Let them talk. Do not defend, do not interrupt.</div>
+  </div>
+
+  <div class="stag">
+    <div class="tll" style="background:var(--purple)"></div>
+    <div class="tln" style="color:var(--purple)">Path A &mdash; they left over price</div>
+    <div class="tlr" style="background:var(--purple)"></div>
+  </div>
+  <div class="lc" id="lc-wb-patha">
+    <div class="lb y">
+      <div class="ls" style="color:var(--purple)">YOU</div>
+      <div class="lt">That makes sense &mdash; rates across Colorado were brutal that year, and honestly you probably made the right call at the time. Here's what's different now: rates have moved again, and the quote you'd get today is built fresh, not off your old file. Quick gut check &mdash; what are you paying now, and has it crept up since you switched?
+        <button class="ct" style="color:var(--ctxt)" onclick="toggleCn('cn-wb-patha')">&#9657; coaching note</button>
+      </div>
+    </div>
+    <div class="cn" id="cn-wb-patha" style="border-color:var(--border)">"You probably made the right call" is the most disarming sentence in this script &mdash; it validates the exit instead of relitigating it. Then "has it crept up" plants the seed: the carrier that won them on price almost always raised them since. Most say yes. That admission does your selling for you.</div>
+  </div>
+  <div class="lc" id="lc-wb-patha2">
+    <div class="lb y">
+      <div class="ls" style="color:var(--purple)">YOU</div>
+      <div class="lt">And is everything about the same as when you were with us &mdash; same cars, same house &mdash; or has anything changed? New vehicle, teen driver, roof work, anything like that?
+        <button class="ct" style="color:var(--ctxt)" onclick="toggleCn('cn-wb-patha2')">&#9657; coaching note</button>
+      </div>
+    </div>
+    <div class="cn" id="cn-wb-patha2" style="border-color:var(--border)">Life changes are re-rate events &mdash; every one is a reason today's number differs from the one that made them leave. It also updates the file so [Agent Name] quotes accurately.</div>
+  </div>
+
+  <div class="stag">
+    <div class="tll" style="background:var(--red)"></div>
+    <div class="tln" style="color:var(--red)">Path B &mdash; they left over a claim or service failure</div>
+    <div class="tlr" style="background:var(--red)"></div>
+  </div>
+  <div class="lc" id="lc-wb-pathb">
+    <div class="lb y">
+      <div class="ls" style="color:var(--red)">YOU</div>
+      <div class="lt">I'm glad you told me that, and I'm not going to argue with your experience &mdash; if that's how it went, leaving was a reasonable response. Can I ask what would have needed to happen differently for you to have stayed?
+        <button class="ct" style="color:var(--ctxt)" onclick="toggleCn('cn-wb-pathb')">&#9657; coaching note</button>
+      </div>
+    </div>
+    <div class="cn" id="cn-wb-pathb" style="border-color:var(--border)">Own it, never defend it. "What would have needed to happen differently" moves them from venting the past to describing a fixable future &mdash; and their answer is exactly what you tell [Agent Name] before the appointment. If they are still hot about it, do NOT push a quote: "Fair enough &mdash; I'll note it, and if you're ever open to another look, we're here." Log it and move on. A respectful exit keeps the door open for next year's call.</div>
+  </div>
+
+  <div class="stag">
+    <div class="tll" style="background:var(--green)"></div>
+    <div class="tln" style="color:var(--green)">The Close &mdash; book the review, don't sell the policy</div>
+    <div class="tlr" style="background:var(--green)"></div>
+  </div>
+  <div class="lc" id="lc-wb-close">
+    <div class="lb y">
+      <div class="ls" style="color:var(--green)">YOU</div>
+      <div class="lt">Here's what I'd suggest &mdash; no commitment on your end. [Agent Name] rebuilds your quote from scratch with today's rates and whatever's changed, then walks you through it side-by-side with what you're paying now, takes about ten minutes. If the number doesn't beat what you've got, [he/she] will tell you to stay put. Would [day] at [time] work, or is [alt day/time] better?
+        <button class="ct" style="color:var(--ctxt)" onclick="toggleCn('cn-wb-close')">&#9657; coaching note</button>
+      </div>
+    </div>
+    <div class="cn" id="cn-wb-close" style="border-color:var(--border)">The CSR's finish line is the APPOINTMENT, not the sale. "[He/she] will tell you to stay put" is the trust-builder &mdash; and it must actually be true. Always offer two specific times; "sometime next week" books nothing. Log the appointment in the pipeline board so the lead lands in the producer's column with the exit reason in the notes.</div>
+  </div>
+
+  <div class="stag">
+    <div class="tll" style="background:var(--blue)"></div>
+    <div class="tln" style="color:var(--blue)">Winback Objections</div>
+    <div class="tlr" style="background:var(--blue)"></div>
+  </div>
+  <div class="lc" id="lc-wb-obj1">
+    <div class="lb th">
+      <div class="ls" style="color:#444">THEM</div>
+      <div class="lt th">"I'm happy where I am."</div>
+    </div>
+  </div>
+  <div class="lc" id="lc-wb-obj1r">
+    <div class="lb y">
+      <div class="ls" style="color:var(--green)">YOU</div>
+      <div class="lt">That's fair &mdash; and if the review confirms you're in the right spot, that's a win, you'll know for sure instead of hoping. Most people haven't actually seen a side-by-side since the day they switched. Ten minutes to know for certain &mdash; worth it?
+        <button class="ct" style="color:var(--ctxt)" onclick="toggleCn('cn-wb-obj1')">&#9657; coaching note</button>
+      </div>
+    </div>
+    <div class="cn" id="cn-wb-obj1" style="border-color:var(--border)">Reframe the review as validation, not a pitch. "Know for sure instead of hoping" works on anyone who has watched their renewal creep up.</div>
+  </div>
+  <div class="lc" id="lc-wb-obj2">
+    <div class="lb th">
+      <div class="ls" style="color:#444">THEM</div>
+      <div class="lt th">"You guys are the ones who raised my rates."</div>
+    </div>
+  </div>
+  <div class="lc" id="lc-wb-obj2r">
+    <div class="lb y">
+      <div class="ls" style="color:var(--green)">YOU</div>
+      <div class="lt">You're right &mdash; we did, and so did every carrier in Colorado that year; you just felt ours first. That's exactly why I'm calling now instead of then. The market's moved, and the only way to know where you actually stand today is a fresh number. If it's not better, you've lost ten minutes and gained proof.
+        <button class="ct" style="color:var(--ctxt)" onclick="toggleCn('cn-wb-obj2')">&#9657; coaching note</button>
+      </div>
+    </div>
+    <div class="cn" id="cn-wb-obj2" style="border-color:var(--border)">Agree first &mdash; "you're right" takes the fight out of it. Never argue the old rate was justified; contextualize it (Colorado hail, statewide increases) and pivot to today.</div>
+  </div>
+  <div class="lc" id="lc-wb-obj3">
+    <div class="lb th">
+      <div class="ls" style="color:#444">THEM</div>
+      <div class="lt th">"Just email me something."</div>
+    </div>
+  </div>
+  <div class="lc" id="lc-wb-obj3r">
+    <div class="lb y">
+      <div class="ls" style="color:var(--green)">YOU</div>
+      <div class="lt">I could, but a generic number without your current coverages next to it won't tell you anything useful. Give me what you're paying now and I'll have [Agent Name] build the real comparison &mdash; then the email actually means something. What's the current premium running?
+        <button class="ct" style="color:var(--ctxt)" onclick="toggleCn('cn-wb-obj3')">&#9657; coaching note</button>
+      </div>
+    </div>
+    <div class="cn" id="cn-wb-obj3" style="border-color:var(--border)">"Email me" is a soft brush-off. Trade the email for the one piece of intel that makes a real quote possible. If they give the number, you're back in the call; if they won't, send the winback text template and schedule the follow-up.</div>
+  </div>
+
+  <div class="stag">
+    <div class="tll" style="background:var(--purple)"></div>
+    <div class="tln" style="color:var(--purple)">Winback Voicemail + Text</div>
+    <div class="tlr" style="background:var(--purple)"></div>
+  </div>
+  <div class="lc" id="lc-wb-vm">
+    <div class="lb y">
+      <div class="ls" style="color:var(--purple)">VM</div>
+      <div class="lt">Hey [Name], it's [Your Name] from [Agent Name]'s Farmers office &mdash; you were with us until [year]. Not a sales pitch &mdash; rates have shifted quite a bit since you left and [Agent Name] asked me to reach out to former clients personally. I'll text you so you have my number. If you're curious what your number looks like today, it's a ten-minute look.
+        <button class="ct" style="color:var(--ctxt)" onclick="toggleCn('cn-wb-vm')">&#9657; coaching note</button>
+      </div>
+    </div>
+    <div class="cn" id="cn-wb-vm" style="border-color:var(--border)">One VM only, then move to text. Same rule as the cold-call VM: under 20 seconds, no pressure, curiosity hook.</div>
+  </div>
+  <div class="lc" id="lc-wb-txt">
+    <div class="lb y">
+      <div class="ls" style="color:var(--purple)">TXT</div>
+      <div class="lt">Hi [Name], [Your Name] from [Agent Name]'s Farmers office &mdash; just left you a voicemail. You were with us until [year] and a lot has changed on rates since. Happy to have [Agent Name] run a fresh side-by-side against what you're paying now, no strings. Interested?</div>
+    </div>
+  </div>
+
+</div>
+
+</div><!-- /main -->
+
+<script>
+// ── NAVIGATION ──────────────────────────────────────────────────────────────
+function showSec(id, btn) {
+  document.querySelectorAll('.sec').forEach(function(s){ s.classList.remove('active'); });
+  document.querySelectorAll('.ni').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── COACHING NOTES ───────────────────────────────────────────────────────────
+function toggleCn(id) {
+  var cn = document.getElementById(id);
+  var btn = cn.previousElementSibling;
+  var lc = cn.parentElement.parentElement;
+  cn.classList.toggle('open');
+  if (cn.classList.contains('open')) {
+    btn.textContent = '▾ coaching note';
+    lc.classList.add('open');
+  } else {
+    btn.textContent = '▸ coaching note';
+    lc.classList.remove('open');
+  }
+}
+
+// ── COPY ─────────────────────────────────────────────────────────────────────
+function copyBlock(btn, id) {
+  var text = document.getElementById(id).textContent.trim();
+  navigator.clipboard.writeText(text).then(function() {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(function() { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+function copyText(btn, text) {
+  navigator.clipboard.writeText(text.trim()).then(function() {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(function() { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ── VM TABS ──────────────────────────────────────────────────────────────────
+function vmTab(id, btn, activeClass) {
+  document.querySelectorAll('.vm-content').forEach(function(c){ c.style.display='none'; });
+  document.querySelectorAll('#s2 .stabtn').forEach(function(b){
+    b.classList.remove('av','ab','at');
+    b.style.color = 'var(--dim)';
+  });
+  document.getElementById(id).style.display='block';
+  if (activeClass) {
+    btn.classList.add(activeClass);
+    btn.style.color = '';
+  } else {
+    btn.style.background='#100A1A';
+    btn.style.borderColor='rgba(167,139,250,.35)';
+    btn.style.color='var(--purple)';
+  }
+}
+
+// ── OBJECTION DATA ───────────────────────────────────────────────────────────
+var OBJ=[
+{ph:'early',t:'"This isn\'t a good time / I\'m busy."',r:'No problem — when is a better time today? I just have two quick questions before I put anything together, takes 3 minutes.',n:'I\'m busy is almost never a real objection — it is a reflex. If they push back again: "Is it just timing, or are you not really looking to make a change right now?"'},
+{ph:'early',t:'"I didn\'t fill out any form / I don\'t know why you\'re calling."',r:'Fair enough — someone at your address requested some information on insurance coverage, might have been a while back. I am not here to pressure you into anything. One quick question: are you currently with one carrier for home and auto, or are they split?',n:'Acknowledge neutrally, remove pressure, then immediately pivot to a specific intake question. Never offer to end the call — that is the prospect\'s job, not yours.'},
+{ph:'early',t:'"I\'ve already talked to a bunch of agents today."',r:'Yeah, that is pretty common with how these lead sites work — you probably got 4 or 5 calls. Most of those were just trying to get you a number as fast as possible. I do it differently — I am not going to quote you anything until I actually understand what you need. That usually takes about 5 minutes. Worth it?',n:'Name the reality out loud — they DID get 5 calls. By acknowledging it you instantly sound self-aware and different. "Worth it?" lets them opt in rather than feeling dragged.'},
+{ph:'early',t:'"Just give me your best price."',r:'I will — and I want to give you a number that actually means something. If I do not know what you need covered, I could give you the cheapest number by cutting things you would genuinely want if something happened. That is not a quote — that is a trap. Two quick questions and I will give you something real.',n:'"That is not a quote — that is a trap" reframes a cheap quote as dangerous to them, not a negotiating tactic. You are acting in their interest by refusing to just throw a number.'},
+{ph:'early',t:'"I\'m not interested. Take me off your list."',r:'Not a problem — I will take care of that. Real quick though — was it that you are just not looking to make a change right now, or have you had too many of these calls today?',n:'Agree immediately — never fight "take me off your list." But the follow-up question distinguishes a dead lead from a fatigued lead. If they say "too many calls today" — you just re-engaged.'},
+{ph:'early',t:'"How did you get my number?"',r:'Fair question — your information came through an insurance comparison site. Someone at your address was looking at coverage options and that is what triggered the call. I know it can feel like you are getting flooded with calls. I will be quick.',n:'Be completely transparent. Evasiveness here kills all credibility immediately. "I will be quick" signals respect for their time and moves you past the objection without lingering.'},
+{ph:'mid',t:'"I won\'t tell you what I\'m currently paying."',r:'Totally fair — you do not have to share that. I ask because it helps me figure out if I am even in the same ballpark before I waste your time. But honestly, what matters more is whether your current coverage is actually protecting you. Can I ask instead — do you know roughly what your dwelling coverage limit is?',n:'This actually works in your favor. Concede the price question immediately and pivot to coverage. You have shown you are not purely price-driven AND moved to the territory where you win.'},
+{ph:'mid',t:'"I need to talk to my current agent first."',r:'Of course — I would actually encourage that. Can I ask, is it because you are hoping they can match a number, or because you want to give them a chance to explain why your rate went up in the first place?',n:'Never argue. Validate it. The WHY tells you everything. If they say "just to be loyal" — ask: "When is the last time they reached out to you proactively?" The silence after that is your answer.'},
+{ph:'mid',t:'"I already have several quotes — I\'m just comparing."',r:'Good — you should have options. Quick question: of the quotes you have gotten, did any of them show you what your actual rebuild cost exposure is, or were they all just giving you a premium number?',n:'Almost certainly none ran a rebuild cost analysis. The answer is going to be "no" — and that no hands you the entire conversation. You are not quote number 4, you are the only agent who actually did the work.'},
+{ph:'mid',t:'"I don\'t want to switch mid-policy / I just renewed."',r:'That is actually not as complicated as it sounds — if the coverage and price make sense, most carriers pro-rate the remaining term and you would get a refund on the unused portion. Usually a one-page form. But honestly, right after renewal is the ideal time to look — you have got 10-11 months. When does yours come up?',n:'Eliminate the objection factually first — pro-rata cancellation and refund is standard, most people do not know this. Then flip the timing: being right after renewal is actually ideal.'},
+{ph:'mid',t:'"I don\'t give out personal information over the phone."',r:'Completely understandable — and you should not have to with someone you just met. I am not going to ask for anything sensitive right now. Everything I need is stuff like your address, the year your home was built, and what vehicles you are driving. Nothing financial. Does that work?',n:'They are worried about SSN, bank info, date of birth. "Nothing financial" removes 90% of the anxiety. List specifically what you do need — it sounds trivially non-threatening.'},
+{ph:'mid',t:'"I\'ve heard bad things about Farmers / had a bad experience."',r:'I appreciate you telling me that — I would rather know than not. Can I ask what happened? Was it a claims issue, a billing problem, or something else?',n:'Never get defensive. Get curious. Claims issues, billing problems, and communication failures have completely different answers. A bad experience with a different agent in a different state is not the same as working with you directly.'},
+{ph:'mid',t:'"I have claims / tickets / a DUI — will that be a problem?"',r:'Thanks for telling me upfront — it actually helps me figure out the right fit faster. Can you give me a quick picture: roughly when did it happen and how many incidents are we talking about? I want to be straight with you about what I can do before we spend time going down the wrong path.',n:'"Thanks for telling me upfront" signals honesty is rewarded. Never bluff or over-promise. Get specifics before you promise anything. Being straight builds more trust than false reassurance.'},
+{ph:'mid',t:'"My credit isn\'t great — will that affect my rate?"',r:'It can be a factor, yeah — I would rather be upfront about that than surprise you later. It does not disqualify you, it just changes the pricing some. What I would rather do is run the actual numbers and show you what it looks like, because most people assume it is worse than it actually is. Worth finding out?',n:'Do not minimize credit impact — that blows up credibility when the quote comes back higher. Acknowledge honestly, clarify it is not disqualifying, then reframe: most people catastrophize their credit situation.'},
+{ph:'post',t:'"I need to think about it."',r:'Totally — what is the main thing you are still working through? Is it the price, something about the coverage, or just not the right timing?',n:'"I need to think about it" is never the real objection — it is a polite dodge. The question forces them to name the actual thing. Whatever they say next, you have something real to work with.'},
+{ph:'post',t:'"I got a cheaper quote from GEICO / Progressive / etc."',r:'Yeah, they are usually cheaper — they are built to be. Can I ask what liability limits they quoted you, and did their number include the same dwelling coverage level I built for you? I want to make sure you are comparing the same thing, not just the premium.',n:'Do not compete on price. Compete on coverage completeness. Direct carriers frequently win on premium by quietly trimming limits. Use specific numbers: "Their quote is cheaper because their dwelling limit is [X] — mine is [Y]. That gap is out of your pocket if something happens."'},
+{ph:'post',t:'"I\'m going to stick with who I have."',r:'That makes sense — loyalty has value. Can I ask, when is the last time someone from [their carrier] actually sat down with you and reviewed your coverage? Not just processed a renewal — actually looked at whether it still fits where you are now?',n:'The answer is almost always "no" or "a few years ago." That pause is your opening: "That is the difference — as a local agent, that is what I would actually do for you regularly. Not just when you call in."'},
+{ph:'post',t:'"How do I know Farmers is good with claims?"',r:'That is the right question to ask — honestly. What is your main concern there — is it response time, whether they will pay out what they should, or something you have heard specifically about Farmers?',n:'Never answer a concern with a pitch — diagnose it first. Response time means talk about local agent advocacy and direct access to you. Payout concerns mean AM Best rating and claims data. Find out what they heard specifically.'},
+{ph:'post',t:'"My spouse needs to be involved."',r:'Completely — this is a joint decision. What is the easiest way to get you both on a call for 20 minutes? I would rather talk to both of you once than go back and forth trying to relay everything.',n:'Never send the quote to one person and hope they sell their spouse. Your contact becomes a messenger explaining something they do not fully understand. Get both people on a single 20-minute call.'},
+{ph:'post',t:'"Can you lower my home premium?" — but doing so would leave them underinsured.',r:'I can get the premium down — but I want to be straight with you before I do, because I would rather you be a little annoyed at me now than blindsided after a claim. The way I built this, your dwelling coverage is at [X] — that is based on what it would actually cost to rebuild your home today. If I lower the premium by dropping that number, the difference comes out of your pocket if something happens. Which is the bigger risk — paying [premium difference] more per month, or being [gap] short when you need it most? I will build whatever you want — I just will not do it without making sure you understand the trade-off first.',n:'ETHICS + SALES: This is one of the most important scripts in the entire system. "I will build whatever you want — I just will not do it without making sure you understand the trade-off" is informed consent, not refusal. This is what gets referrals.'},
+{ph:'post',t:'"Can you match that price / go any lower?"',r:'Let me look at what levers I have. But before I do — what coverage level were they quoting you at? Because if I lower my number by cutting what I built for you, we are back to comparing apples to oranges. I would rather show you exactly where the difference is coming from first.',n:'"Let me look at what levers I have" signals you are willing to work with them without immediately caving. Find out their comparison coverage level first. If the cheaper quote has lower limits, point that out specifically.'},
+{ph:'post',t:'"I want to wait until my current policy expires."',r:'Makes sense — when does it expire? Because most carriers pro-rate the remaining term and refund the unused portion when you cancel. So waiting does not actually save you anything — it just delays better coverage.',n:'Most people genuinely believe they would lose money by switching mid-policy — they do not know about pro-rata refunds. Correcting this factually removes the objection entirely. Get the expiration date.'},
+{ph:'post',t:'"I don\'t make financial decisions over the phone / I need to see it in writing."',r:'Completely fair — and that is the right instinct. I will send everything over in writing right now. What I would ask is 5 minutes on the phone while you are looking at it, so I can walk you through what the numbers actually mean. A quote on paper without context is just a number. Can we do that?',n:'Validate the instinct — it IS smart to see things in writing. Bridge to the walkthrough: "while you are looking at it." You are not asking them to decide on the phone — you are asking them to understand what they are looking at while you are available to explain it.'},
+{ph:'post',t:'"I already went with someone else."',r:'I appreciate you letting me know — I respect that. Can I ask, was it mainly a price thing or something else? I am not trying to change your mind — I just want to understand what actually drove the decision so I can be more helpful to the next person I talk to.',n:'Do not try to unsell them — that burns the relationship permanently and almost never works. Ask why they went elsewhere instead. If they give you a reason — price, trusted someone more, spouse decided — acknowledge it directly: "That makes sense. If your situation ever changes or you want a second opinion at renewal, I am easy to reach." Drop your number one more time. You are planting a seed for the next cycle, not winning today.'},
+{ph:'post',t:'"I already have life insurance through work, I\'m fine."',r:'That is good that you have something — a lot of people do not. The one thing worth knowing is that most employer life policies are usually 1-2x your salary and disappear the moment you leave that job, voluntarily or not. Doesn\'t mean you need to do anything today — just worth knowing what you would actually be left with if that job ever changed. Want me to run a number anyway, just so you have it?',n:'Do not argue that their coverage is insufficient — that sounds like fear-mongering. State the structural fact (tied to employment, often thin) and let them draw the conclusion. "Doesn\'t mean you need to do anything today" removes pressure and keeps the door open.'},
+{ph:'post',t:'"I don\'t need life insurance / not interested."',r:'Totally fair, no problem at all. Can I ask — is that because you feel like you are already covered, or just not something you have thought about yet?',n:'Do not push past a clear no — that is how you lose the home/auto relationship over a 30-second add-on. The follow-up question is low-pressure and just files this away for the future. If "not thought about it," plant the seed: "Totally understand — just wanted to put it on your radar. If that ever changes, happy to run a number, no pressure."'}
+];
+
+// ── OBJECTIONS RENDER ─────────────────────────────────────────────────────────
+function buildObj(filter){
+  var items=filter==='all'?OBJ:OBJ.filter(function(o){return o.ph===filter;});
+  var cols={early:'var(--red)',mid:'var(--yellow)',post:'var(--teal)'};
+  var titles={early:'EARLY CALL — Before you have even started the intake',mid:'MID-CALL — During intake and discovery',post:'POST-QUOTE — After they have seen the number'};
+  var html='';var lastPh='';
+  items.forEach(function(o,i){
+    var c=cols[o.ph];
+    if(o.ph!==lastPh){html+='<div class="opl" style="color:'+c+'"><div style="height:1px;width:16px;background:'+c+'"></div>'+titles[o.ph]+'<div style="flex:1;height:1px;background:'+c+'30"></div></div>';lastPh=o.ph;}
+    var id='ow'+i;
+    html+='<div class="oc" data-ph="'+o.ph+'" style="border-color:'+c+'30"><div style="padding:5px 15px 0;background:#0F0F18"><span style="font-family:var(--mono);font-size:8px;letter-spacing:.15em;color:'+c+'80">'+o.ph.toUpperCase()+' CALL</span></div>';
+    html+='<div class="ot" style="border-color:'+c+'25;color:'+c+'">'+o.t+'</div>';
+    html+='<div class="or">'+o.r+'<button class="owt" style="color:'+c+'" onclick="tOW(\''+id+'\')">&#9660; Why This Works</button></div>';
+    html+='<div class="ow" id="'+id+'" style="border-color:'+c+'25">&#128161; '+o.n+'</div></div>';
+  });
+  return html;
+}
+
+function fObj(phase,btn){
+  document.querySelectorAll('.pb').forEach(function(b){b.style.background='var(--bg3)';b.style.borderColor='var(--border)';b.style.color='var(--dim)';});
+  btn.style.background='#1A1A28';btn.style.borderColor='rgba(0,212,170,.4)';btn.style.color='var(--green)';
+  document.getElementById('obj-list').innerHTML=buildObj(phase);
+}
+
+function tOW(id){
+  var el=document.getElementById(id);
+  var btn=el.previousElementSibling;
+  var open=el.classList.toggle('open');
+  btn.textContent=open?'▲ Hide':'▼ Why This Works';
+}
+
+// ── EMAIL DATA ────────────────────────────────────────────────────────────────
+var EP_DATA=[
+  {id:'ew',label:'Lead with the Win',tags:['cheaper','rapport'],subj:'Your quote — think you will like this one',body:'Hi [First Name],\n\nQuote is attached. I think you are going to be happy with the number.\n\nI built this around what you told me actually mattered — not just the lowest number I could show you on paper. There is a difference, and I will walk you through it when we talk.\n\nWe are on for [TIME]. If anything comes up, just shoot me a text.\n\n[Agent Name]\n[Your Number]'},
+  {id:'ar',label:'Anchor the Relationship',tags:['rapport','ghost'],subj:'Good talking today — your quote is ready',body:'Hi [First Name],\n\nReally enjoyed the conversation today. Quote is attached.\n\nI built it based on everything you shared, so it is not a generic quote — it is specific to your situation. A couple of things I want to highlight when we talk that will not be obvious just from looking at the numbers.\n\nSee you at [TIME]. Text me if anything changes.\n\n[Agent Name]\n[Your Number]'},
+  {id:'as',label:'Address the Shopping Directly',tags:['shopping','cheaper'],subj:'Your Farmers quote — worth comparing',body:'Hi [First Name],\n\nYour quote is attached. I would encourage you to compare it against whatever else lands in your inbox — I am confident in the number.\n\nOne thing I will ask: do not compare totals without looking at what is actually covered. A cheaper quote with worse coverage is not a deal — it is a gap waiting to happen. I will show you exactly what you are getting and what other carriers typically leave out when we talk at [TIME].\n\n[Agent Name]\n[Your Number]'},
+  {id:'hl',label:'Hold the Line — Pre-Empt the Ghost',tags:['ghost','hesitant'],subj:'Your quote is ready — one thing before you look',body:'Hi [First Name],\n\nAttaching your quote now. Before you open it — one thing worth knowing: a couple of the numbers are going to look different from what you have probably seen elsewhere. That is intentional.\n\nI would rather walk you through it than have you draw the wrong conclusion from a number out of context.\n\nWe are set for [TIME] tomorrow. If anything comes up on your end, just shoot me a text.\n\n[Agent Name]\n[Your Number]'},
+  {id:'ex',label:"I'm More Expensive — Frame It First",tags:['expensive','shopping'],subj:'Your quote — a quick heads up before you look',body:"Hi [First Name],\n\nQuote is attached. I want to give you a heads up before you open it — my number is going to be higher than what you have probably seen.\n\nThat is on purpose. I built this to actually cover you, not just to win on price. There is a real difference in what you are getting, and I will walk you through exactly what that means in dollars when we talk at [TIME].\n\nIf you have got questions before then, text me.\n\n[Agent Name]\n[Your Number]"},
+  {id:'rs',label:'Rapport + Shopping Combined',tags:['rapport','shopping','cheaper'],subj:'Good talking today — your quote is attached',body:'Hi [First Name],\n\nGreat conversation today — quote is attached.\n\nI built this specific to what you told me, so when you are comparing it to whatever else comes in, make sure you are looking at what is actually covered, not just the total. I will walk through that side-by-side with you at [TIME].\n\nText me if anything changes.\n\n[Agent Name]\n[Your Number]'},
+  {id:'ne',label:'Clean and Neutral',tags:['generic'],subj:'Your quote is ready — see you tomorrow',body:'Hi [First Name],\n\nYour quote is attached. Take a look whenever you get a chance.\n\nI want to walk you through a couple of specifics on our call before you draw any final conclusions — it will make a lot more sense with context than it does on paper.\n\nWe are on for [TIME]. Talk then.\n\n[Agent Name]\n[Your Number]'},
+  {id:'pw-undecided',phase:'post',label:'Still Undecided After Walkthrough',tags:['post-undecided'],subj:'Good talking today — a couple things I want to make sure you have',body:'Hi [First Name],\n\nReally appreciate the time today. I know you are still working through it — that is completely fine.\n\nA couple of things I want to make sure you have in writing as you think it over:\n\n1. The dwelling coverage I built for you is [X] — that is based on what it would actually cost to rebuild today, not your purchase price. If you see a lower number from another carrier, that is usually why.\n\n2. Your liability limit on this quote is [X]. That is the number that protects everything you own if there is a lawsuit. Worth knowing what you are comparing against.\n\nI am not going to push you — but if a question comes up as you look it over, just text me directly at [Your Number]. I would rather answer it now than have you draw the wrong conclusion from a number out of context.\n\nTalk soon.\n\n[Agent Name]\n[Your Number]'},
+  {id:'pw-price',phase:'post',label:'Price Was the Hesitation',tags:['post-price','post-comparing'],subj:'On the price difference — wanted to send this in writing',body:'Hi [First Name],\n\nGood talking today. I know the number gave you some pause and I want to address that directly rather than just hope you come around.\n\nHere is what I want you to compare before you decide:\n\nMy quote: [Your Premium] — Dwelling coverage: [X] — Liability: [X]\nTheir quote: [Their Premium] — Dwelling coverage: [?] — Liability: [?]\n\nThe only way a lower premium makes sense is if the coverage underneath it is the same. More often than not, the gap in premium is the gap in coverage — and that gap comes out of your pocket after a claim, not theirs.\n\nI am not asking you to pay more for the same thing. I am asking you to make sure you are not paying less for significantly less.\n\nIf you want to send me their quote, I will do a line-by-line comparison and show you exactly where the difference is. That takes 10 minutes and costs you nothing either way.\n\n[Agent Name]\n[Your Number]'},
+  {id:'pw-spouse',phase:'post',label:'Spouse / Partner Needs to Be Involved',tags:['post-spouse'],subj:'For you and [spouse name] to review together',body:'Hi [First Name],\n\nGreat conversation today. I want to make sure [Partner / your spouse] has everything they need to look at this alongside you — so I am sending the key points in writing rather than just the quote document.\n\nHere is what I would highlight for them:\n\nWHAT WE BUILT:\n— Dwelling coverage: [X] (based on current rebuild costs, not purchase price)\n— Liability: [X] (protects your assets if someone sues after an accident or injury)\n— [Any other key coverage or endorsement discussed]\n— Total: [Premium] / [month or year]\n\nWHY THE NUMBER LOOKS THE WAY IT DOES:\n[One sentence explanation — e.g. "The dwelling limit is higher than what you currently have because rebuild costs in your area have increased significantly since your last policy was set."]\n\nI am happy to do a quick 15-minute call with both of you whenever works — that is usually the fastest way to get any questions answered so you can make a decision together.\n\nJust let me know what day works and I will make it happen.\n\n[Agent Name]\n[Your Number]'},
+  {id:'pw-comparing',phase:'post',label:'Still Comparing Carriers',tags:['post-comparing','post-undecided'],subj:'One thing to check before you finalize',body:'Hi [First Name],\n\nGood talking today. I know you are still looking at a few options — I want to leave you with one thing to check before you make a final call.\n\nWhen you are comparing quotes, ask each carrier these three questions:\n\n1. What is the dwelling coverage limit, and is it based on replacement cost or actual cash value?\n2. What is the liability limit on the auto and/or home?\n3. Is there a wind and hail deductible separate from the main deductible?\n\nThose three numbers tell you what you are actually buying. Carriers that win on premium almost always trim one or more of those — and that is where the savings disappear after a claim.\n\nMy quote answers all three clearly. If you want to put the numbers side by side before you decide, send me what you have and I will walk through it with you — no obligation, just a clean comparison.\n\n[Agent Name]\n[Your Number]'},
+  {id:'pw-coverage',phase:'post',label:'Had Coverage Questions After Walkthrough',tags:['post-coverage','post-undecided'],subj:'Answers to what we talked through — in writing',body:'Hi [First Name],\n\nGood talking today. I want to send a quick summary of what we went through so you have it in writing — easier to reference than trying to remember a phone call.\n\n[COVERAGE QUESTION 1]:\n[Plain-language answer — e.g. "Your dwelling limit covers the cost to rebuild from scratch, not the market value of the home. These are often very different numbers, especially in markets where land value makes up a big portion of the sale price."]\n\n[COVERAGE QUESTION 2]:\n[Plain-language answer]\n\n[COVERAGE QUESTION 3 if applicable]:\n[Plain-language answer]\n\nIf anything I wrote raises another question, just reply here or text me at [Your Number]. I would rather you fully understand what you are buying before you decide than have a question sitting in the back of your mind.\n\nTake the time you need — and when you are ready to move forward, I can get everything bound in about 5 minutes on a call.\n\n[Agent Name]\n[Your Number]'},
+  {id:'pw-positive',phase:'post',label:'Call Ended Strong — Light Push to Close',tags:['post-positive','post-undecided'],subj:'Good talking today — here is what to do next',body:'Hi [First Name],\n\nReally enjoyed the conversation today — I think we are in a good spot.\n\nWhen you are ready to move forward, here is all I need from you:\n\n1. A quick 5-minute call — I will collect the payment info and get the policy bound\n2. Your current dec page if you have it handy (helps with the transition, but not required to start)\n\nThat is it. Coverage starts the same day.\n\nIf something comes up between now and then, or a question pops up when you are looking at the quote again, text me directly at [Your Number].\n\nLooking forward to getting this set up for you.\n\n[Agent Name]\n[Your Number]'}
+];
+var epActive=new Set();
+var epPhase='send';
+
+// ── EMAIL PICKER RENDER ───────────────────────────────────────────────────────
+// Sequence emails live inside SEQS as touches with ch:'e'. Lift them into the same
+// shape as EP_DATA so the All Emails view is one library, not two. Derived lazily
+// (SEQS is declared further down) and memoized.
+var SEQ_NAMES={s6:'No Contact',s7:'Post-Quote',s8:'Post-Bind',s9:'Dead Lead',s10:'Renewal',s11:'No-Show'};
+var _seqEmails=null;
+function seqEmails(){
+  if(_seqEmails)return _seqEmails;
+  _seqEmails=[];
+  Object.keys(SEQ_NAMES).forEach(function(k){
+    (SEQS[k]||[]).forEach(function(t){
+      if(t.ch!=='e')return;
+      _seqEmails.push({
+        id:'seq-'+k+'-'+t.num,
+        seq:SEQ_NAMES[k],
+        label:SEQ_NAMES[k]+' · '+t.num,
+        when:t.time,
+        tags:[t.goal],
+        subj:t.subj||'(no subject)',
+        body:t.co
+      });
+    });
+  });
+  return _seqEmails;
+}
+// Every email in the system, in one place — used by All Emails and by epCopy.
+function allEmails(){ return EP_DATA.concat(seqEmails()); }
+
+function epSetPhase(phase,btn){
+  epPhase=phase;
+  document.querySelectorAll('#ep-phase-tabs .pb').forEach(function(b){b.style.background='var(--bg3)';b.style.borderColor='var(--border)';b.style.color='var(--dim)';});
+  btn.style.background='#1A1A28';btn.style.borderColor='rgba(96,165,250,.4)';btn.style.color='var(--blue)';
+  var isAll=phase==='all';
+  // In All mode the situation filter is meaningless — hide it rather than leave it dead.
+  document.getElementById('ep-taglabel').style.display=isAll?'none':'';
+  document.getElementById('ep-tags').style.display=isAll?'none':'flex';
+  document.querySelectorAll('#ep-tags .ep-tag').forEach(function(tag){
+    var v=tag.dataset.v;
+    var isPostTag=v&&v.startsWith('post-');
+    tag.style.display=(phase==='send'?isPostTag:!isPostTag)?'none':'';
+    tag.classList.remove('active');
+  });
+  epActive=new Set();
+  if(isAll){epRenderAll();return;}
+  document.getElementById('ep-results').innerHTML='<div class="ep-nr">Select a situation above to see matching emails</div>';
+}
+
+// ── ALL EMAILS ────────────────────────────────────────────────────────────────
+function epCardHtml(e,meta){
+  return '<div class="ep-card"><div class="ep-ch" onclick="epTog(\''+e.id+'\',this)">'+
+    '<span class="ep-cl">'+e.label+'</span>'+
+    '<div style="display:flex;align-items:center"><span class="ep-arr" id="epa-'+e.id+'">&#9660;</span></div></div>'+
+    '<div class="ep-st">'+(meta?'<span class="ep-ct">'+meta+'</span>':'')+
+      e.tags.map(function(t){return '<span class="ep-ct">'+t+'</span>';}).join('')+'</div>'+
+    '<div class="ep-bd" id="epb-'+e.id+'">'+
+      '<div class="ep-es">Subject: <span>'+e.subj+'</span></div>'+
+      '<div class="ep-et">'+e.body+'</div>'+
+      '<button class="ep-cb" id="epbtn-'+e.id+'" onclick="epCopy(\''+e.id+'\',event)">Copy Email</button>'+
+    '</div></div>';
+}
+function epGroupHtml(title,count,cards){
+  if(!cards)return '';
+  return '<div class="stag" style="margin-top:22px"><div class="tll" style="background:var(--blue)"></div>'+
+    '<div class="tln" style="color:var(--blue)">'+title+' ('+count+')</div>'+
+    '<div class="tlr" style="background:var(--blue)"></div></div>'+cards;
+}
+function epRenderAll(){
+  var send=EP_DATA.filter(function(e){return e.phase!=='post';});
+  var post=EP_DATA.filter(function(e){return e.phase==='post';});
+  var seq=seqEmails();
+  var h='<div class="ep-nr" style="margin-bottom:4px">'+(send.length+post.length+seq.length)+
+        ' emails · every one in the system, nothing filtered. Click any to expand.</div>';
+  h+=epGroupHtml('Quote Delivery',send.length,send.map(function(e){return epCardHtml(e,null);}).join(''));
+  h+=epGroupHtml('After the Walkthrough Call',post.length,post.map(function(e){return epCardHtml(e,null);}).join(''));
+  h+=epGroupHtml('From the Follow-Up Sequences',seq.length,seq.map(function(e){return epCardHtml(e,e.when);}).join(''));
+  document.getElementById('ep-results').innerHTML=h;
+}
+
+function epScore(e){
+  var matchesPhase=epPhase==='post'?e.phase==='post':e.phase!=='post';
+  if(!matchesPhase)return 0;
+  return e.tags.filter(function(t){return epActive.has(t);}).length;
+}
+
+function epRender(){
+  var r=document.getElementById('ep-results');
+  if(epActive.size===0){r.innerHTML='<div class="ep-nr">Select a situation above to see matching emails</div>';return;}
+  var m=EP_DATA.map(function(e){return Object.assign({},e,{score:epScore(e)});}).filter(function(e){return e.score>0;}).sort(function(a,b){return b.score-a.score;});
+  if(m.length===0){r.innerHTML='<div class="ep-nr">No matching emails — try different tags</div>';return;}
+  var top=m[0].score;
+  r.innerHTML=m.map(function(e,i){
+    var best=e.score===top&&i===0;var open=i===0;
+    return '<div class="ep-card'+(best?' best':'')+'"><div class="ep-ch" onclick="epTog(\''+e.id+'\',this)"><span class="ep-cl">'+e.label+'</span><div style="display:flex;align-items:center">'+(best?'<span class="ep-bb">Best Match</span>':'')+'<span class="ep-arr'+(open?' open':'')+'" id="epa-'+e.id+'">&#9660;</span></div></div><div class="ep-st">'+e.tags.map(function(t){return '<span class="ep-ct">'+t+'</span>';}).join('')+'</div><div class="ep-bd'+(open?' open':'')+'" id="epb-'+e.id+'"><div class="ep-es">Subject: <span>'+e.subj+'</span></div><div class="ep-et">'+e.body+'</div><button class="ep-cb" id="epbtn-'+e.id+'" onclick="epCopy(\''+e.id+'\',event)">Copy Email</button></div></div>';
+  }).join('');
+}
+
+function epTog(id){var b=document.getElementById('epb-'+id);var a=document.getElementById('epa-'+id);b.classList.toggle('open');a.classList.toggle('open');}
+
+function epCopy(id,ev){
+  ev.stopPropagation();
+  var e=allEmails().find(function(x){return x.id===id;});
+  if(!e)return;
+  var btn=document.getElementById('epbtn-'+id);
+  var ok=function(){
+    btn.textContent='Copied';btn.classList.add('copied');
+    setTimeout(function(){btn.textContent='Copy Email';btn.classList.remove('copied');},2000);
+  };
+  var text='Subject: '+e.subj+'\n\n'+e.body;
+  // Sequence emails store \n as real newlines already; both paths copy the same string.
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(ok,function(){epCopyFallback(text,ok);});
+  }else{
+    epCopyFallback(text,ok);
+  }
+}
+function epCopyFallback(text,ok){
+  var ta=document.createElement('textarea');
+  ta.value=text;ta.style.position='fixed';ta.style.left='-9999px';
+  document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');ok();}catch(err){}
+  document.body.removeChild(ta);
+}
+
+// ── SEQ TAB SWITCHER ─────────────────────────────────────────────────────────
+function seqTabNew(key, btn, activeClass) {
+  document.querySelectorAll('.seq-content').forEach(function(c){ c.style.display='none'; });
+  document.querySelectorAll('#s5 .stabtn').forEach(function(b){
+    b.classList.remove('av','ab');
+    b.style.color='var(--dim)';
+    b.style.background='';b.style.borderColor='';
+  });
+  document.getElementById('r-'+key).style.display='block';
+  if(activeClass){btn.classList.add(activeClass);btn.style.color='';}
+  else{btn.style.color='var(--text)';}
+}
+
+// ── REPLY HANDLERS ────────────────────────────────────────────────────────────
+var REPLIES = [
+  {trigger:'Pre-screen text — send first',
+   r:'Hello [First Name], this is [Your First Name] with Farmers Insurance — [Agent Name] Agency. Calling in regards to the insurance policy we\'re working on. Is [ADDRESS] correct? Text STOP to opt out.'},
+  {trigger:'"Yes" — address confirmed',
+   r:'Perfect — I have a quick question before I put anything together. Are you currently with one carrier for home and auto, or are they split?'},
+  {trigger:'"No" — wrong address',
+   r:'Got it — thanks for letting me know. Can I ask, did you recently submit a request for a home insurance quote? I want to make sure I have the right file pulled up before we talk.'},
+  {trigger:'"What is this?" / "Who is this?"',
+   r:'Hey — [Your First Name] with Farmers Insurance. You submitted a quote request online and I am just following up. Takes about 10 minutes — is now an okay time?'},
+  {trigger:'"Already have insurance" / "Not interested"',
+   r:'Totally fair — I am not here to switch you if it does not make sense. One quick question before I close this out: when is your current policy up for renewal? I can put together a comparison number so you have something to look at when that comes around.'},
+  {trigger:'"Just text / email me the quote"',
+   r:'I can send it over — I just need 5 minutes on the phone first so the numbers are actually accurate for your home. A quote without the details is just a guess. When works today or tomorrow?'},
+  {trigger:'"What company are you with?"',
+   r:'Farmers Insurance — I am a local agent here in Colorado. Not a call center, not a 1-800 number. You would work directly with me. Is now an okay time for two quick questions?'},
+  {trigger:'No response after 24 hrs',
+   r:'[First Name] — just making sure my last text went through. Is [ADDRESS] still the correct address for the quote? — [Your First Name], Farmers'}
+];
+
+var replyEl = document.getElementById('reply-list');
+if (replyEl) {
+  replyEl.innerHTML = REPLIES.map(function(r, i) {
+    var rid = 'reply-body-' + i;
+    return '<div class="mb">' +
+      '<div class="mm"><span class="mt">' + r.trigger + '</span><button class="cb" onclick="copyBlock(this,\'' + rid + '\')">Copy</button></div>' +
+      '<div class="mc" id="' + rid + '">' + r.r + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// ── SEQUENCE DATA ─────────────────────────────────────────────────────────────
+var curState='CO';
+var SEQS={
+s6:[
+{num:'T1',ch:'t',time:'Day 1 — Auto-fires on lead entry',goal:'First contact',co:'Hey [First Name], this is [Agent Name] with Farmers Insurance — you requested a home insurance quote online. I cover all of Colorado and would love to get you a number. Do you have a few minutes today or tomorrow? — [Your First Name], [Your Number]',note:'Kept intentionally short. No pitch, no features. The only goal is a reply.'},
+{num:'T2',ch:'e',time:'Day 1 — 2-3 hrs after T1',goal:'Second channel hit',subj:'Your home insurance quote — [Agent Name], Farmers',co:'Hi [First Name],\n\nI just sent you a text — wanted to reach out here too in case email is easier.\n\nYou submitted a quote request for your home in [City], and I would love to get you a number. Colorado has some specific coverage considerations — hail damage, rebuild costs along the Front Range, and wildfire proximity depending on your area — and I want to make sure whatever we build actually covers what it needs to.\n\nTakes about 10 minutes on the phone. When works best for you?\n\n[Agent Name]\nFarmers Insurance | [Your Number]',note:'CO angle is coverage gaps — hail, rebuild costs, wildfire. State-specific context creates implied urgency.'},
+{num:'T3',ch:'t',time:'Day 3 — Morning',goal:'Second attempt, different angle',co:'[First Name] — [Agent Name], Farmers. Still have your quote request from a couple days ago. Quick question before I close it out: are you still looking, or did you find something? No pressure either way — just do not want to follow up if it is already handled. — [Your Number]',note:'"Close it out" is a pattern interrupt — it signals you are not desperate, which makes them more likely to respond.'},
+{num:'T4',ch:'v',time:'Day 5 — Midday',goal:'Voice presence, humanize',co:'Hey [First Name], this is [Agent Name] calling from Farmers Insurance. I have reached out a couple times — I am not going to keep bugging you, I just want to make sure you got what you needed. If you are still shopping for home insurance, I would love five minutes to see if I can help. If not, totally understand. Call or text me at [Your Number].',note:'"I am not going to keep bugging you" is a disarming pattern — it lowers resistance. Keep tone relaxed, slightly resigned.'},
+{num:'T5',ch:'e',time:'Day 7 — Value-add',goal:'Expert positioning, keep door open',subj:'One thing most CO homeowners do not check on their policy',co:'Hi [First Name],\n\nI will not keep filling your inbox — but before I close out your request I wanted to leave you with something useful regardless of who you end up with.\n\nOne thing a lot of Colorado homeowners do not realize: standard policies often underinsure on rebuild cost. Lumber and labor along the Front Range has jumped significantly. If your dwelling coverage was set a few years ago and has not been updated, you could be underinsured by 20-40% before you ever file a claim.\n\nWorth asking any carrier you are considering: what is my guaranteed replacement cost, and is it extended or standard?\n\nIf you want to talk through it, I am here. If not — hope this was useful.\n\n[Agent Name]\nFarmers Insurance | [Your Number]',note:'This touch is not a pitch — it is a gift. Leads who ignored you often respond to value-add content because it shifts the dynamic from salesperson to expert.'},
+{num:'T6',ch:'t',time:'Day 10 — BREAKUP',goal:'Final touch — highest callback rate',breakup:true,co:'[First Name] — I have reached out a few times and have not heard back, so I am going to go ahead and close out your quote request. If you are still looking for home insurance down the road, I am always available. — [Agent Name], Farmers, [Your Number]',note:'CRITICAL: This is statistically the highest-callback touch in any follow-up sequence. "Closing out" triggers loss aversion. People who ignored five touches often reply to this one.'}
+],
+s7:[
+{num:'T1',ch:'t',time:'Day 1 — Same day as walkthrough call',goal:'Post-call warm follow-up',co:'Hey [First Name], good talking today. Quote is in your inbox whenever you are ready to look it over. Let me know if any questions come up — happy to jump back on a quick call. — [Your First Name], [Your Number]',note:'Short, warm, no pressure. You already did the work on the call.'},
+{num:'T2',ch:'e',time:'Day 3 — No response yet',goal:'Reframe the decision',subj:'Quick question about your quote',co:'Hi [First Name],\n\nFollowing up on the quote we went through. Quick question — is there anything specific that is giving you pause, or is it just a matter of timing?\n\nI ask because if it is a coverage question or a number that does not make sense, I would rather work through it than have you sitting on something that does not fully fit. And if you are comparing it to another quote, I am happy to walk through what is different line by line — not to argue, just so you are comparing the same things.\n\nWhat is on your mind?\n\n[Agent Name]\nFarmers Insurance | [Your Number]',note:'"What is on your mind?" opens the door to the real objection without forcing it.'},
+{num:'T3',ch:'t',time:'Day 7',goal:'Consequence reminder',co:'[First Name] — [Agent Name], Farmers. Still thinking on the quote? Totally fine if so. One thing worth knowing: hail season in Colorado typically picks up in May-June. If you are uninsured or under-covered going into that window, it can get expensive fast. Happy to lock something in before then if the timing works. — [Your Number]',note:'Consequence without pressure. Uses seasonal CO urgency (hail season). Both real and true.'},
+{num:'T4',ch:'e',time:'Day 10',goal:'Remove friction, offer easy path',subj:'Still on the table if you want it',co:'Hi [First Name],\n\nYour quote is still active. If you want to move forward, we can get everything bound in about 15 minutes on the phone — or if you have questions you want to sort out first, I am available for that too.\n\nIf the timing is not right, just say the word and I will close it out. No hard feelings either way.\n\n[Agent Name]\nFarmers Insurance | [Your Number]',note:'Making binding sound easy (15 minutes) and giving permission to say no. Permission to say no often gets you a yes.'},
+{num:'T5',ch:'t',time:'Day 14 — BREAKUP',goal:'Final touch',breakup:true,co:'[First Name] — going to let your quote expire and close out my end. If you ever want to revisit home insurance, I am easy to reach. Good luck with everything. — [Agent Name], Farmers, [Your Number]',note:'"Letting it expire" is final, non-needy, and often triggers the reply you could not get across four previous touches.'}
+],
+s8:[
+{num:'T1',ch:'t',time:'Day 0 — Immediately after binding',goal:'Welcome + app download + set expectations',co:'Hey [First Name] — you are all set! Policy is active. Sending you the Farmers app link now — your policy docs and ID cards live there, and it is how you will sign anything electronically: https://apps.apple.com/us/app/farmers-insurance-mobile/id373431224. Takes 2 minutes to set up. I will follow up in a couple days with one more thing worth knowing about your coverage. Welcome to Farmers. — [Your First Name], [Your Number]',note:'Warm onboarding. "One more thing worth knowing" creates anticipation for the follow-up.'},
+{num:'T2',ch:'e',time:'Day 3 — Water safety value-add',goal:'Expert touch, relationship builder',subj:'One thing worth doing to protect your home from water damage',co:'Hi [First Name],\n\nWater damage is one of the most common and most expensive home insurance claims — and one of the most preventable.\n\nOne thing worth doing when you get a chance: check whether you know where your main water shutoff valve is and that it actually works. A surprising number of homeowners find out it is seized shut when they need it most.\n\nIf you ever want to add a smart water monitor that detects leaks and alerts you automatically, there are some good options out there. Happy to point you in the right direction if you are ever interested.\n\nAny questions, I am always a text away.\n\n[Agent Name]\nFarmers Insurance | [Your Number]',note:'No device requirement in CO — use this as a value-add relationship touch. Positions you as a proactive advisor, not just a policy processor.'},
+{num:'T3',ch:'t',time:'Day 7 — Check-in',goal:'Relationship touchpoint',co:'Hey [First Name] — just checking in. Got your policy docs okay? Any questions since we talked? I am always a text away. — [Your First Name], [Your Number]',note:'Pure relationship equity. Most agents disappear after binding. This one touch separates you from 90% of producers and is your best referral setup.'},
+{num:'T4',ch:'e',time:'Day 14 — Check-in + bundle reminder',goal:'Relationship touch + soft auto bundle reminder',subj:'Checking in — how is everything with the policy?',co:'Hi [First Name],\n\nJust checking in — how has everything been since we got the policy set up? Any questions come up, anything feel unclear?\n\nAlso wanted to mention — if you ever want to look at adding the auto policy to your Farmers account, the bundle discount is still available whenever the timing is right for you. No pressure — just want to make sure you know the option is there.\n\n[Agent Name]\nFarmers Insurance | [Your Number]',note:'Warm check-in and soft auto bundle reminder. No pressure — just keep the door open on the bundle.'},
+{num:'T5',ch:'t',time:'Day 21 — Referral ask',goal:'Referral — highest ROI touch in the sequence',co:'Hey [First Name] — hope everything has been smooth since we set up your policy. Quick ask: if you know anyone who owns a home and might be shopping for insurance, I would really appreciate the introduction. I treat referrals the same way I treated you — no pressure, just honest help. Thanks either way. — [Your First Name], [Your Number]',note:'Day 21 is the honeymoon window — they still remember the experience positively. "No pressure, just honest help" is a callback to how you positioned yourself on the call.'},
+{num:'T6',ch:'e',time:'Day 28 — Google review ask, with QR code',goal:'Reputation build, highest-leverage low-effort touch',subj:'Quick favor, [First Name]?',co:'Hi [First Name],\n\nNow that you have had a few weeks with the policy, I have a small favor to ask.\n\nOnline reviews are one of the biggest ways other Colorado homeowners find an agent they can trust — and a quick one from you would genuinely help. It only takes about 60 seconds.\n\nYou can either tap the link below or scan the QR code with your phone camera — it will take you straight to the review page, no searching required.\n\n[Google Review Link]\n\n<img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=%5BGoogle%20Review%20Link%5D" alt="QR code to Google review page" style="margin-top:8px;border-radius:6px" width="180" height="180">\n\nReally appreciate it — and if anything ever comes up with the policy, I am always just a text away.\n\n[Agent Name]\nFarmers Insurance | [Your Number]',note:'Day 28 lands a week after the Day 21 referral ask so you are not stacking two asks back to back. Keep the ask small — friction is the only thing that kills review requests. QR CODE: swap [Google Review Link] for your real Google Business Profile review URL (Google Business Profile → Ask for reviews → Get more reviews → copy link) before sending — it is a placeholder until then, and the QR image regenerates automatically from whatever URL you put in its place.'}
+],
+s9:[
+{num:'T1',ch:'t',time:'Day 30 after going dead',goal:'Soft re-entry',co:'Hey [First Name], [Agent Name] from Farmers — we talked about home insurance a while back. Not sure if you ever got squared away, but I am still around if you need a fresh quote or just have questions. No pressure at all. — [Your Number]'},
+{num:'T2',ch:'e',time:'Day 60 after going dead',goal:'Value-add re-engagement',subj:'Has anything changed with your home coverage?',co:'Hi [First Name],\n\nWe connected a couple months ago about home insurance and I was not sure if you ever got things sorted out.\n\nIf you are still with the same carrier, it might be worth a quick review — rates and coverage options in Colorado have shifted, and a lot of homeowners are finding they are paying more for less than they were a year ago.\n\nIf you want a second opinion at no cost, I am happy to take a look. No obligation, just a fresh set of eyes.\n\n[Agent Name]\nFarmers Insurance | [Your Number]'},
+{num:'T3',ch:'t',time:'Day 90 — FINAL',goal:'Last touch, clean exit',breakup:true,co:'[First Name] — last check-in from me. If you ever need home insurance or want to revisit what you have, I am easy to find. Hope everything is going well. — [Agent Name], Farmers, [Your Number]',note:'"Last check-in from me" closes the loop cleanly. You are memorable without being annoying — exactly what you want if they re-enter the market in 6 months.'}
+],
+s10:[
+{num:'T1',ch:'e',time:'90 days before renewal',goal:'Open the review conversation',subj:'Your policy renews in about 90 days — worth a quick look',co:'Hi [First Name],\n\nYour Farmers policy is coming up for renewal in about 90 days. Before that happens automatically, I want to do a quick review with you — takes 10 minutes and makes sure your coverage still reflects what your home is actually worth and what your situation looks like today.\n\nA few things worth checking in Colorado right now: rebuild costs have continued to increase, and if your dwelling coverage has not kept pace, you could be underinsured even on a policy that feels current.\n\nIf you want to schedule a quick call, just reply or text me at [Your Number].\n\n[Agent Name]\nFarmers Insurance | [Your Number]'},
+{num:'T2',ch:'t',time:'60 days before renewal',goal:'Schedule the review call',co:'Hey [First Name] — [Agent Name], Farmers. Your renewal is coming up in about 60 days. I sent an email a while back about a quick review call — still worth doing before it auto-renews. Got 10 minutes this week or next? — [Your Number]'},
+{num:'T3',ch:'e',time:'30 days before renewal',goal:'Final review push, pre-empt shopping',subj:'30 days out — make sure your renewal is right',co:'Hi [First Name],\n\nYour policy renews in 30 days. If we have not connected yet for a quick review, now is the time — this is the last easy window to make changes before it rolls over.\n\nIf everything looks good and you want it to just renew as-is, that is totally fine too — just let me know and I will make sure nothing needs updating on my end.\n\nEither way, a quick text or reply takes 10 seconds. What would you like to do?\n\n[Agent Name]\nFarmers Insurance | [Your Number]',note:'Binary choice (review call vs. confirm auto-renew) removes friction and gets a response either way. A response locks in the relationship.'},
+{num:'T4',ch:'t',time:'7 days before renewal',goal:'Final confirmation',co:'Hey [First Name] — policy renews in one week. Everything looks good on my end. Any last questions before it rolls over? — [Your First Name], [Your Number]',note:'"Everything looks good on my end" signals you are on top of it. The question at the end keeps the door open.'}
+],
+s11:[
+{num:'T1',ch:'t',time:'Immediately — within minutes of the missed time',goal:'Direct, urgent, easy yes',co:'Hey [First Name], this is [Agent Name] with Farmers — I had you down for [Time] but did not see you connect. Everything okay? I still have some time today if you want to jump on now — just call or text me back at [Your Number] and we will get it done.',note:'"Everything okay?" reads as concern, not annoyance — it gets more replies than a scheduling reminder. Send within minutes; the closer to the missed time, the higher the response rate.'},
+{num:'T2',ch:'v',time:'Same day, 1-2 hrs later — if no reply to T1',goal:'Voice presence, reinforce urgency',co:'Hey [First Name], [Agent Name] from Farmers Insurance. We had a call scheduled for [Time] today and I did not want to just let it slide without checking in. I have got a few more slots open this afternoon if you want to grab one — otherwise just call or text me back and we will find a time that actually works. [Your Number].',note:'Calling (not just texting) signals this matters enough for your time, which raises the odds of a same-day callback instead of the appointment quietly dying.'},
+{num:'T3',ch:'e',time:'End of day — if still silent',goal:'Reschedule link, low-friction close-out',subj:'Missed you today — want to grab a new time?',co:'Hi [First Name],\n\nLooks like our call today at [Time] did not connect — no worries, things come up.\n\nI would still like to get you a number on your home insurance. Easiest way to reschedule: just reply to this email or text me at [Your Number] with a couple times that work, and I will lock it in.\n\nIf the timing is not right anymore, that is fine too — just let me know so I am not chasing an appointment you do not need.\n\n[Agent Name]\nFarmers Insurance | [Your Number]',note:'This is the fallback into the normal No Contact sequence tone — by end of day, urgency has done its job. If they still have not responded, treat them as a fresh No Contact lead starting the next day rather than continuing to escalate.'}
+]};
+
+// ── SEQUENCE RENDER ───────────────────────────────────────────────────────────
+function chBadge(ch){
+  if(ch==='t')return '<span class="ch-t">TEXT</span>';
+  if(ch==='e')return '<span class="ch-e">EMAIL</span>';
+  return '<span class="ch-v">VOICEMAIL</span>';
+}
+
+function buildSeq(key){
+  var touches=SEQS[key];
+  return touches.map(function(t,i){
+    var body=t.co;
+    var subj=t.subj||null;
+    var id='tc-'+key+'-'+i;
+    var hasSubj=!!subj;
+    var html='<div class="tc" id="'+id+'"><div class="tch" onclick="tTch(\''+id+'\')"><div class="tn">'+t.num+'</div>'+chBadge(t.ch)+'<div class="ttl">'+t.time.split('—')[0].trim()+(t.breakup?' <span class="bt">BREAKUP</span>':'')+'</div><div class="tgl">'+t.goal+'</div><div class="tcv">&#9660;</div></div><div class="tcb">';
+    html+='<div class="mb"><div class="mm"><span class="mt">'+(hasSubj?'EMAIL':'SMS')+'</span><button class="cb" onclick="cpMsg(this)">COPY</button></div>';
+    if(hasSubj)html+='<div class="msub"><strong>SUBJ</strong>'+subj+'</div>';
+    html+='<div class="mc">'+(body||'')+'</div></div>';
+    if(t.note)html+='<div class="sc"><strong>COACHING NOTE</strong>'+t.note+'</div>';
+    html+='</div></div>';
+    return html;
+  }).join('');
+}
+
+function renderAllSeqs(){
+  ['s6','s7','s8','s9','s10','s11'].forEach(function(k){
+    var el=document.getElementById('r-'+k);
+    if(el)el.innerHTML=buildSeq(k);
+  });
+}
+
+function cpMsg(btn){
+  var mc=btn.closest('.mb').querySelector('.mc');
+  navigator.clipboard.writeText(mc.innerText).then(function(){
+    btn.textContent='COPIED';btn.classList.add('copied');
+    setTimeout(function(){btn.textContent='COPY';btn.classList.remove('copied');},2000);
+  });
+}
+
+function tTch(id){document.getElementById(id).classList.toggle('open');}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function(){
+  document.getElementById('obj-list').innerHTML = buildObj('all');
+  renderAllSeqs();
+  document.querySelectorAll('#ep-tags .ep-tag').forEach(function(tag){
+    tag.addEventListener('click', function(){
+      var v = tag.dataset.v;
+      if(epActive.has(v)){ epActive.delete(v); tag.classList.remove('active'); }
+      else { epActive.add(v); tag.classList.add('active'); }
+      epRender();
+    });
+  });
+});
+</script>
+</body>
+</html>
