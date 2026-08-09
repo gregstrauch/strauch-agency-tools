@@ -371,6 +371,22 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
 .tpl-link:hover{color:#a9d9ff;text-decoration:underline;}
 .tpl-note{font-size:10px;color:#666;}
 
+/* ── REFERENCE LINKS (top strip, every tab) ── */
+.ref-links{display:flex;flex-wrap:wrap;gap:8px;padding:8px 20px;border-bottom:1px solid rgba(255,215,0,.12);background:rgba(0,0,0,.25);}
+.ref-links a{font-size:11px;color:#7fc4ff;text-decoration:none;padding:4px 10px;border:1px solid rgba(127,196,255,.25);border-radius:3px;white-space:nowrap;}
+.ref-links a:hover{color:#a9d9ff;border-color:rgba(127,196,255,.5);background:rgba(127,196,255,.08);}
+
+/* ── PROJECTED GAINS & LOSSES ── */
+.flow-table{width:100%;border-collapse:collapse;font-size:12px;}
+.flow-table th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#808080;padding:6px 8px;border-bottom:1px solid rgba(255,215,0,.15);}
+.flow-table td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.05);color:#d0d0d0;}
+.flow-tag{font-size:10px;font-weight:700;letter-spacing:1px;padding:2px 7px;border-radius:3px;}
+.flow-GAIN{background:rgba(0,210,100,.15);color:#55ff99;border:1px solid rgba(0,210,100,.35);}
+.flow-LOSS{background:rgba(255,70,70,.15);color:#ff8888;border:1px solid rgba(255,70,70,.35);}
+.flow-soon{color:#ffd700;font-weight:700;}
+.flow-act{background:none;border:none;color:#666;cursor:pointer;font-size:13px;padding:0 4px;}
+.flow-act:hover{color:#ffd700;}
+
 /* ── PHONE / TABLET ──
    The tracker grid is inherently wide (people × requirements) so it keeps its
    horizontal scroll; everything else collapses to one column. */
@@ -444,6 +460,12 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
      switchTab() indexes into document.querySelectorAll('.tab-btn'). -->
 <div class="flight-nav" id="flightNav"></div>
 
+<!-- REFERENCE LINKS — outside every tab so they are reachable from all of them. -->
+<div class="ref-links">
+    <a href="https://claude.ai/public/artifacts/8be57fb8-2de3-443c-8fbe-c26c23faa9df" target="_blank" rel="noopener noreferrer">📖 AF Document Reference</a>
+    <a href="https://script.google.com/macros/s/AKfycbyajuvmyFP5bo9ay4iuTYtrhiNROOSF570rqzgEVx5C0mMl0brjg-oHGyMzU1HXtpjR_A/exec" target="_blank" rel="noopener noreferrer">📝 Military Templates</a>
+</div>
+
 <!-- ═══════════════════════════════════ TAB 1: MANNING -->
 <!-- ═══════════════════════════════════ TAB 0: OVERVIEW -->
 <div class="tab-content active" id="tab-overview">
@@ -503,6 +525,18 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
 
     <div class="org" id="hierContainer"></div>
     <div class="duties-summary" id="dutiesSummary"></div>
+
+    <!-- Projected gains and losses. Deliberately its own box and its own Sheet tab:
+         these people are not on the wiring diagram yet (or not for much longer), so
+         putting them on it would misstate current strength. -->
+    <div class="section-label">Projected Gains &amp; Losses</div>
+    <div class="card" style="cursor:default;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap;">
+            <div class="tpl-note" id="flowSummary">—</div>
+            <button class="btn-sm" onclick="openFlowEdit(null)">+ Add Gain / Loss</button>
+        </div>
+        <div id="flowList"></div>
+    </div>
 
     <div class="btn-row" style="justify-content:center;margin-top:20px;">
         <button class="btn" onclick="addTeam()">➕ Add Team</button>
@@ -643,6 +677,29 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
 
     <div class="stats-row" id="attStats"></div>
     <div id="attContent"></div>
+</div>
+</div>
+
+<!-- PROJECTED GAIN / LOSS MODAL -->
+<div class="modal-overlay" id="flowModal">
+<div class="modal-box" style="max-width:460px">
+    <h3 id="flowModalTitle">Add Gain / Loss</h3>
+    <div class="form-row">
+        <div class="form-group"><label>Type</label>
+            <select id="flowType"><option value="GAIN">Gain — inbound</option><option value="LOSS">Loss — outbound</option></select>
+        </div>
+        <div class="form-group"><label>Effective date</label><input id="flowDate" type="date"></div>
+    </div>
+    <div class="form-row">
+        <div class="form-group"><label>Rank</label><input id="flowRank" placeholder="e.g. SrA"></div>
+        <div class="form-group"><label>Name</label><input id="flowName" placeholder="Name, or TBD"></div>
+    </div>
+    <div class="form-group"><label>Note</label><input id="flowNote" placeholder="Reason / gaining unit / source — optional"></div>
+    <div id="flowMsg" style="font-size:12px;color:#ff9999;min-height:16px;"></div>
+    <div class="modal-btns">
+        <button class="btn" onclick="saveFlow()">✓ Save</button>
+        <button class="btn btn-red" onclick="closeFlowEdit()">✕ Cancel</button>
+    </div>
 </div>
 </div>
 
@@ -876,7 +933,7 @@ const flightStaff=()=>FLIGHT_STAFF[String(currentFlight).toUpperCase()]||{xnco:'
 // PAX keeps the bare keys so pre-existing local data survives untouched;
 // every other flight gets its own suffixed namespace.
 const DEFAULT_FLIGHT='PAX', ALL_FLIGHTS='__ALL__';
-const PER_FLIGHT_KEYS=new Set(['afm_v4','afm_reqs','afm_tracker','afm_promos','afm_kpi','afm_attend','afm_tpl']);
+const PER_FLIGHT_KEYS=new Set(['afm_v4','afm_reqs','afm_tracker','afm_promos','afm_kpi','afm_attend','afm_tpl','afm_flow']);
 let currentFlight=localStorage.getItem('afm_flight')||DEFAULT_FLIGHT;
 const isRollup=()=>currentFlight===ALL_FLIGHTS;
 const lsKey=k=>(PER_FLIGHT_KEYS.has(k)&&currentFlight!==DEFAULT_FLIGHT)?`${k}__${currentFlight}`:k;
@@ -893,6 +950,7 @@ let tracker=loadLS('afm_tracker',{});
 let promotions=loadLS('afm_promos',[]);
 let attendance=loadLS('afm_attend',{});   // { 'YYYY-MM-DD': { 'Name': 'PRESENT' } }
 let templates=loadLS('afm_tpl',[]);       // [{name,url}]
+let flow=loadLS('afm_flow',[]);           // [{type:'GAIN'|'LOSS',rank,name,date,note}]
 // Squadron leadership sits above every flight, so it is stored once outside the
 // per-flight namespace — 'afm_squadron' is not in PER_FLIGHT_KEYS, which is also
 // what keeps it editable while the read-only ALL SQUADRON rollup is showing.
@@ -940,6 +998,7 @@ function switchTab(name,btn){
     // Overview reads the Sheet, not local state — fetch once, then it is a re-render.
     if(name==='overview'){ ovData?renderOverview():loadOverview(); }
     if(name==='tracker'){ renderTracker(); renderTemplates(); }
+    if(name==='manning') renderFlow();
     if(name==='attendance') renderAttendance();
     if(name==='kpi'){ populateKPIPeriodSelector(); renderKPI(); }
     if(name==='promotions') renderPromotions();
@@ -1308,9 +1367,10 @@ function reloadFlightState(){
     promotions=loadLS('afm_promos',[]);
     attendance=loadLS('afm_attend',{});
     templates=loadLS('afm_tpl',[]);
+    flow=loadLS('afm_flow',[]);
     kpiData=loadLS('afm_kpi',{periods:[],sections:defaultKPISectionsFor(currentFlight)});
     ensureFlightKPISections();
-    renderManning();renderRequirements();populateKPIPeriodSelector();renderKPI();renderPromotions();renderTracker();renderAttendance();renderTemplates();
+    renderManning();renderRequirements();populateKPIPeriodSelector();renderKPI();renderPromotions();renderTracker();renderAttendance();renderTemplates();renderFlow();
 }
 
 function renderFlightSel(){
@@ -1335,6 +1395,7 @@ function pushAllToSheet(){
             await pushPromotionsToAS();
             await pushAttendanceToAS();
             await pushTemplatesToAS();
+            await pushFlowToAS();
             setSyncStatus('ok',`Pushed ${currentFlight} ${new Date().toLocaleTimeString()}`);
         }catch(e){setSyncStatus('err','Push failed: '+e.message);}
     })();
@@ -1463,13 +1524,14 @@ function syncSheets(){
             // flights — skip KPIs in rollup rather than auto-creating sections.
             // Attendance/Templates tabs are created on first write — until then the
             // backend answers 'tab not found', which must not fail the whole sync.
-            const [trkRows,kpiRows,proRows,manRows,attRows,tplRows]=await Promise.all([
+            const [trkRows,kpiRows,proRows,manRows,attRows,tplRows,flowRows]=await Promise.all([
                 appsGet('Tracker'),
                 roll?Promise.resolve([]):appsGet('KPIs'),
                 appsGet('Promotions'),
                 appsGet('Manning'),
                 appsGet('Attendance').catch(()=>[]),
                 appsGet('Templates').catch(()=>[]),
+                appsGet('Flow').catch(()=>[]),
             ]);
             if(trkRows.length){tracker=parseASTracker(trkRows);}
             if(kpiRows.length){mergeASKPIs(kpiRows);}
@@ -1477,12 +1539,14 @@ function syncSheets(){
             if(manRows.length){const m=parseASManning(manRows);if(m){manning=m;}}
             if(attRows.length){attendance=parseASAttendance(attRows);}
             if(tplRows.length){templates=tplRows.map(r=>({name:r.Name,url:r.URL})).filter(t=>t.name&&/^https?:\/\//i.test(t.url||''));}
+            if(flowRows.length){flow=parseASFlow(flowRows);}
             // Rollup state is namespaced and cross-flight — never cache it as
             // if it were one flight's data.
             if(!roll){
                 saveLS('afm_promos',promotions);saveLS('afm_v4',manning);
                 saveLS('afm_tracker',tracker);saveLS('afm_kpi',kpiData);
                 saveLS('afm_attend',attendance);saveLS('afm_tpl',templates);
+                saveLS('afm_flow',flow);
                 // The Sheet and this device now agree, so anything that differs from
                 // here on is genuinely this user's edit and is the only thing pushed.
                 markManningSynced();
@@ -1491,7 +1555,7 @@ function syncSheets(){
             setSyncStatus('ok',roll
                 ?`ALL SQUADRON · read-only · ${new Date().toLocaleTimeString()}`
                 :`Synced ↕ ${currentFlight} ${new Date().toLocaleTimeString()}`);
-            renderManning();renderTracker();renderKPI();renderPromotions();renderAttendance();renderTemplates();
+            renderManning();renderTracker();renderKPI();renderPromotions();renderAttendance();renderTemplates();renderFlow();
         }catch(e){setSyncStatus('err','Sync failed: '+e.message);}
     })();
 }
@@ -1512,6 +1576,7 @@ function pushTab(tab){
             if(tab==='Promotions')await pushPromotionsToAS();
             if(tab==='Attendance')await pushAttendanceToAS();
             if(tab==='Templates') await pushTemplatesToAS();
+            if(tab==='Flow')      await pushFlowToAS();
             setSyncStatus('ok',`Pushed ${tab} ${new Date().toLocaleTimeString()}`);
         }catch(e){setSyncStatus('err',`Push ${tab} failed: ${e.message}`);}
     })();
@@ -1598,9 +1663,16 @@ async function pushTrackerToAS(){
     const rows=[];
     requirements.forEach(req=>{
         people.forEach(p=>{
+            // Applicability is checked here, not just the stored status. A device
+            // that imported this requirement before the rule round-tripped holds a
+            // bogus 'DUE' for people it never applied to, and pushing that put the
+            // bad cell back in the Sheet for everyone else to re-import.
+            if(!personApplies(p,req))return;
             const st=(tracker[req.title]||{})[p.name]||'DUE';
             if(st==='NA')return;
-            rows.push({Person:p.name,Team:p.team,Rank:p.rank,Requirement:req.title,Category:req.category||'Training',Status:st,Deadline:req.deadline||'This UTA'});
+            rows.push({Person:p.name,Team:p.team,Rank:p.rank,Requirement:req.title,Category:req.category||'Training',Status:st,Deadline:req.deadline||'This UTA',
+                       Applicability:req.applicability||'all',ApplicabilityNote:req.applicabilityNote||'',
+                       Names:(req.names||[]).join('; ')});
         });
     });
     if(rows.length)await appsPost({tab:'Tracker',action:'upsert',rows,keyFields:['Person','Requirement']});
@@ -1675,8 +1747,24 @@ function parseASTracker(rows){
         if(!req||!person)return;
         if(!result[req])result[req]={};
         result[req][person]=status;
-        if(!requirements.some(r=>r.title===req)){
-            requirements.push({id:Date.now()+Math.random(),title:req,category:row.Category||'Training',deadline:row.Deadline||'This UTA',applicability:'all',applicabilityNote:'All Personnel',description:''});
+        // Applicability decides whether a person gets a DUE/DONE/EXEMPT cell at all,
+        // and it used to live only in the parsing device's localStorage. Any other
+        // device rebuilt the requirement as 'all' on sync, so people the rule never
+        // covered showed up DUE. Round-trip it through the Sheet instead.
+        const appl=String(row.Applicability||'').trim();
+        const note=String(row.ApplicabilityNote||'').trim();
+        const names=String(row.Names||'').split(';').map(s=>s.trim()).filter(Boolean);
+        const ex=requirements.find(r=>r.title===req);
+        if(!ex){
+            requirements.push({id:Date.now()+Math.random(),title:req,category:row.Category||'Training',deadline:row.Deadline||'This UTA',
+                applicability:appl||'all',applicabilityNote:note||(appl?appl:'All Personnel'),names,description:''});
+        }else if(appl){
+            // Only when the row actually carries the column. Blank means the row
+            // predates it, not that the rule is "everyone" — overwriting on blank
+            // would re-break exactly what this fixes.
+            ex.applicability=appl;
+            if(note)ex.applicabilityNote=note;
+            if(names.length)ex.names=names;
         }
     });
     saveLS('afm_reqs',requirements);
@@ -2083,9 +2171,9 @@ function exportCSV(){
         s.tsgts.forEach(t=>{const td=t.duties||{},tc=t.certs||{};csv+=`${s.name},TSgt,${t.rank},${t.name},${t.skills},${m.name},${td.TM||''},${td.OBR||''},${td.VI||''},${td.PNM||''},${td.PTL||''},${td.HAZ||''},${td.UTAPS||''},${td.XNCOA||''},${tc.JI?'YES':''},${tc.HAZI?'YES':''},${tc.ATTIC?'YES':''}\n`;t.subordinates.forEach(x=>{const xd=x.duties||{},xc=x.certs||{};csv+=`${s.name},Sub,${x.rank},${x.name},${x.skills},${t.name},${xd.TM||''},${xd.OBR||''},${xd.VI||''},${xd.PNM||''},${xd.PTL||''},${xd.HAZ||''},${xd.UTAPS||''},${xd.XNCOA||''},${xc.JI?'YES':''},${xc.HAZI?'YES':''},${xc.ATTIC?'YES':''}\n`;});});});
     dl('39APS_Manning.csv',csv,'text/csv');
 }
-function exportJSON(){dl('39APS_Backup.json',JSON.stringify({manning,requirements,tracker,kpiData,attendance,templates},null,2),'application/json');}
+function exportJSON(){dl('39APS_Backup.json',JSON.stringify({manning,requirements,tracker,kpiData,attendance,templates,flow},null,2),'application/json');}
 function importJSON(){document.getElementById('importFile').click();}
-function handleImport(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.manning)manning=d.manning;if(d.requirements)requirements=d.requirements;if(d.tracker)tracker=d.tracker;if(d.kpiData)kpiData=d.kpiData;if(d.attendance)attendance=d.attendance;if(d.templates)templates=d.templates;saveManning();saveLS('afm_reqs',requirements);saveLS('afm_tracker',tracker);saveLS('afm_attend',attendance);saveLS('afm_tpl',templates);saveKPI();renderKPI();renderAttendance();renderTemplates();alert('Restored.');}catch{alert('Invalid file.');}};r.readAsText(f);e.target.value='';}
+function handleImport(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.manning)manning=d.manning;if(d.requirements)requirements=d.requirements;if(d.tracker)tracker=d.tracker;if(d.kpiData)kpiData=d.kpiData;if(d.attendance)attendance=d.attendance;if(d.templates)templates=d.templates;if(d.flow)flow=d.flow;saveManning();saveLS('afm_reqs',requirements);saveLS('afm_tracker',tracker);saveLS('afm_attend',attendance);saveLS('afm_tpl',templates);saveLS('afm_flow',flow);saveKPI();renderKPI();renderAttendance();renderTemplates();renderFlow();alert('Restored.');}catch{alert('Invalid file.');}};r.readAsText(f);e.target.value='';}
 function resetDefault(){if(confirm(`Reset ${currentFlight} manning to default? Cannot be undone.`)){manning=defaultManningFor(currentFlight);saveManning();}}
 function dl(name,content,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;a.click();}
 
@@ -2818,13 +2906,24 @@ function cyclePersonStatus(reqKey,personName,btn){
 const NEXT_RANK={A1C:'SrA',SrA:'SSgt',SSgt:'TSgt',TSgt:'MSgt',MSgt:'SMSgt',SMSgt:'CMSgt'};
 const PROMO_REQS={
     'A1C':  ['UMD Vacancy','TIG Requirements Met','Skill Level Current','Fitness Passing','UTA Participation OK','CC Recommendation','No Adverse Action'],
-    'SrA':  ['UMD Vacancy','5-Level Awarded','ALS Complete','EPR Supports Promo','Fitness Passing','UTA Participation OK','CC Recommendation','Board Selection','No Adverse Action'],
-    'SSgt': ['UMD Vacancy','5-Level Min (7 Preferred)','ALS Complete','EPR Supports Promo','Fitness Passing','UTA Participation OK','CC Recommendation','Wing Board Selection','No Adverse Action'],
-    'TSgt': ['UMD Vacancy','7-Level Awarded','NCOA Complete','EPR Supports Promo','Fitness Passing','UTA Participation OK','Wing CC Recommendation','Wing Board Selection','No Adverse Action'],
-    'MSgt': ['7-Level Required','SNCOA Complete','EPR Trend Supports Promo','Fitness Passing','Strong UTA/Activation Record','Deployment Experience','Decoration Competitive','No Adverse Action','AFRC Board Eligible'],
-    'SMSgt':['7-Level (9-Level Desired)','Senior PME Complete','Consistent EPR ≥5','Fitness Passing','Exceptional UTA Record','Significant Leadership','Decoration Competitive','Talent Mgmt Current','No Adverse Action','AFRC Chief Board Eligible'],
+    'SrA':  ['UMD Vacancy','5-Level Awarded','ALS Complete','EPB Supports Promo','Fitness Passing','UTA Participation OK','CC Recommendation','Board Selection','No Adverse Action'],
+    'SSgt': ['UMD Vacancy','5-Level Min (7 Preferred)','ALS Complete','EPB Supports Promo','Fitness Passing','UTA Participation OK','CC Recommendation','Wing Board Selection','No Adverse Action'],
+    'TSgt': ['UMD Vacancy','7-Level Awarded','NCOA Complete','EPB Supports Promo','Fitness Passing','UTA Participation OK','Wing CC Recommendation','Wing Board Selection','No Adverse Action'],
+    'MSgt': ['7-Level Required','SNCOA Complete','EPB Trend Supports Promo','Fitness Passing','Strong UTA/Activation Record','Deployment Experience','No Adverse Action','DT Board Eligible'],
+    'SMSgt':['7-Level (9-Level Desired)','Senior PME Complete','Consistent EPB ≥5','Fitness Passing','Exceptional UTA Record','Significant Leadership','Talent Mgmt Current','No Adverse Action','DT Chief Board Eligible'],
 };
 const promoReqsFor=rank=>PROMO_REQS[String(rank||'').trim()]||[];
+
+// Board-package paperwork. Deliberately NOT part of PROMO_REQS: these only come
+// due once everything else is met, and folding them in would have changed every
+// existing ReqsMetList index. Stored separately in DocsMetList, keyed by the rank
+// the member holds now (same convention as PROMO_REQS — a SSgt sees the SSgt list).
+const PROMO_DOCS={
+    'SSgt': ['Letter of Intent','Career Data Brief','Last 3 EPBs','My Fitness History'],
+    'TSgt': ['Letter of Intent','Career Data Brief','Individual Training Plan','Military Biography','Last 3 EPBs','My Fitness History'],
+    'MSgt': ['Letter of Intent','Career Data Brief','Military Biography','Last 3 EPBs','My Fitness History'],
+};
+const promoDocsFor=rank=>PROMO_DOCS[String(rank||'').trim()]||[];
 let editingPromo=null;
 
 // Which requirement indices are met. Prefer the explicit list; fall back to the
@@ -2838,6 +2937,13 @@ function metIndices(p,total){
     }
     const n=Math.min(parseInt(p.ReqsMet)||0,total);
     return new Set(Array.from({length:n},(_,i)=>i));
+}
+
+// No count to fall back to and no legacy rows to be kind to — DocsMetList is the
+// only record of which documents are in, so a blank means none.
+function docIndices(p,total){
+    return new Set(String(p.DocsMetList||'').split(',').map(n=>parseInt(n,10))
+                     .filter(n=>Number.isInteger(n)&&n>=0&&n<total));
 }
 
 function openPromoEdit(name){
@@ -2856,6 +2962,9 @@ function openPromoEdit(name){
     document.getElementById('promoReqGrid').innerHTML=reqs.length
         ? reqs.map((r,i)=>`<div class="promo-req-row"><input type="checkbox" id="pr_${i}" ${met.has(i)?'checked':''} onchange="updatePromoCount()"><label for="pr_${i}">${r}</label></div>`).join('')
         : `<div style="color:#555;font-size:12px;padding:6px 0;">No requirement checklist defined for rank "${p.Rank||'—'}".</div>`;
+    const docs=promoDocsFor(p.Rank), dmet=docIndices(p,docs.length);
+    document.getElementById('promoDocsGrid').innerHTML=docs.map((d,i)=>
+        `<div class="promo-req-row"><input type="checkbox" id="pd_${i}" ${dmet.has(i)?'checked':''} onchange="updatePromoCount()"><label for="pd_${i}">${d}</label></div>`).join('');
     document.getElementById('promoCycle').value=p.Cycle||'';
     document.getElementById('promoNotes').value=p.Notes||'';
     document.getElementById('promoReason').value=p.NotReadyReason||'';
@@ -2878,6 +2987,15 @@ function updatePromoCount(){
     const met=boxes.filter(b=>b.checked).length;
     document.getElementById('promoReqCount').textContent=
         boxes.length?`${met} of ${boxes.length} met`:'—';
+    // The document list is the last step, not a parallel one — showing it before the
+    // member is otherwise qualified just buries the actual blocker. The checkboxes
+    // stay in the DOM either way so hiding the section never drops what was ticked.
+    const dboxes=[...document.querySelectorAll('#promoDocsGrid input[type=checkbox]')];
+    const ready=boxes.length>0&&met===boxes.length;
+    document.getElementById('promoDocsWrap').style.display=
+        (dboxes.length&&ready)?'block':'none';
+    document.getElementById('promoDocsCount').textContent=
+        `${dboxes.filter(b=>b.checked).length} of ${dboxes.length} in`;
 }
 function closePromoEdit(){editingPromo=null;document.getElementById('promoEditModal').classList.remove('active');}
 
@@ -2894,6 +3012,8 @@ function savePromoEdit(){
     // Which ones, not just how many. Written even when empty so re-saving a person
     // clears a stale list rather than silently falling back to first-N.
     p.ReqsMetList=boxes.map((b,i)=>b.checked?i:-1).filter(i=>i>=0).join(',');
+    p.DocsMetList=[...document.querySelectorAll('#promoDocsGrid input[type=checkbox]')]
+        .map((b,i)=>b.checked?i:-1).filter(i=>i>=0).join(',');
     p.NotReadyReason=rec==='not_ready'?reason:'';
     p.Notes=document.getElementById('promoNotes').value.trim();
     p.Cycle=document.getElementById('promoCycle').value.trim();
@@ -2996,6 +3116,7 @@ async function pushPromotionsToAS(){
                ReqsMet:String(parseInt(ex.ReqsMet)||0),
                TotalReqs:String(reqs.length||parseInt(ex.TotalReqs)||0),
                ReqsMetList:ex.ReqsMetList||'',
+               DocsMetList:ex.DocsMetList||'',
                NotReadyReason:ex.NotReadyReason||'',Notes:ex.Notes||'',
                Cycle:ex.Cycle||'',LastModified:new Date().toString()};
     });
@@ -3056,6 +3177,10 @@ function renderPromotions(){
                     <div class="promo-card-status" style="color:${color}">${label}</div>
                     <div class="promo-req-bar"><div class="promo-req-fill" style="width:${pct}%;background:${color}"></div></div>
                     <div style="font-size:10px;color:#666;margin-top:3px;">${met} of ${total} reqs${p.Cycle?' · '+p.Cycle:''}</div>
+                    ${(()=>{const d=promoDocsFor(p.Rank);
+                        if(!d.length||!total||met<total)return'';
+                        const n=docIndices(p,d.length).size;
+                        return`<div style="font-size:10px;margin-top:3px;color:${n===d.length?'#55ff99':'#ffd700'};">📄 package ${n} of ${d.length}</div>`;})()}
                     ${p.NotReadyReason?`<div class="promo-reason">⚠ ${p.NotReadyReason}</div>`:''}
                     ${p.Notes?`<div style="font-size:10px;color:#606060;margin-top:4px;font-style:italic;">${p.Notes}</div>`:''}
                 </div>`;
@@ -3065,7 +3190,7 @@ function renderPromotions(){
     }).join('');
 }
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeEdit();closeSettings();closeAISettings();closeReqModal();closeKPIModal();closeJSONImport();closeKPISectionModal();closeKPIAddModal();closePromoEdit();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeEdit();closeSettings();closeAISettings();closeReqModal();closeKPIModal();closeJSONImport();closeKPISectionModal();closeKPIAddModal();closePromoEdit();closeFlowEdit();}});
 // ═══════════════════════ OVERVIEW (squadron-wide, all five flights)
 // Reads the Sheet unscoped rather than localStorage: per-flight state is namespaced
 // and only the flight you last opened is cached, so localStorage can't answer
@@ -3196,6 +3321,182 @@ function _selfCheckAttendance(){
         if(seen[ATT_STATES.length]!=='PRESENT')throw new Error('cycle did not wrap');
         return 'OK';
     }finally{attendance=saved;}
+}
+
+// ═══════════════════════ PROJECTED GAINS & LOSSES
+// Own Sheet tab, own box. These people are not on the org chart — an inbound has
+// not arrived and an outbound still counts against strength today, so folding
+// either into the wiring diagram would misreport current manning.
+// The backend creates a missing tab on first write and keyFields are always sent
+// explicitly, so this needed no Apps Script change and no redeploy.
+let editingFlowIdx=null;
+
+// Sheets hands a date cell back as a locale string; normalise to the YYYY-MM-DD
+// that <input type="date"> wrote, same as attendance.
+function flowDay(raw){
+    const s=String(raw||'').trim();
+    if(!s)return '';
+    if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
+    const p=new Date(s);
+    if(isNaN(p))return '';
+    return new Date(p.getTime()-p.getTimezoneOffset()*6e4).toISOString().slice(0,10);
+}
+
+function renderFlow(){
+    const box=document.getElementById('flowList');
+    if(!box)return;
+    const sum=document.getElementById('flowSummary');
+    const rows=[...flow].sort((a,b)=>String(a.date||'9999').localeCompare(String(b.date||'9999')));
+    const gains=rows.filter(r=>r.type==='GAIN').length;
+    const losses=rows.length-gains;
+    const net=gains-losses;
+    sum.textContent=rows.length
+        ? `${gains} projected gain${gains===1?'':'s'} · ${losses} projected loss${losses===1?'':'es'} · net ${net>0?'+':''}${net}`
+        : 'Nothing projected — add inbound and outbound personnel with their effective dates.';
+    if(!rows.length){box.innerHTML='<div style="color:#555;font-size:12px;padding:12px 0;">No projected gains or losses.</div>';return;}
+    const today=attToday();
+    const soon=new Date(Date.now()+60*864e5).toISOString().slice(0,10);
+    box.innerHTML=`<table class="flow-table"><thead><tr>
+        <th>Type</th><th>Rank</th><th>Name</th><th>Effective</th><th>Note</th><th></th></tr></thead><tbody>`+
+        rows.map(r=>{
+            const i=flow.indexOf(r);
+            const near=r.date&&r.date<=soon;
+            const past=r.date&&r.date<today;
+            return `<tr>
+                <td><span class="flow-tag flow-${r.type}">${r.type}</span></td>
+                <td>${r.rank||'—'}</td>
+                <td style="color:#fff">${r.name||'TBD'}</td>
+                <td class="${near&&!past?'flow-soon':''}" style="${past?'color:#666':''}">${r.date||'—'}${past?' (past)':''}</td>
+                <td style="color:#909090">${r.note||''}</td>
+                <td style="white-space:nowrap;text-align:right;">
+                    <button class="flow-act" title="Edit" onclick="openFlowEdit(${i})">✎</button>
+                    <button class="flow-act" title="Remove" onclick="deleteFlow(${i})">✕</button>
+                </td></tr>`;
+        }).join('')+'</tbody></table>';
+}
+
+function openFlowEdit(i){
+    if(isRollup()){setSyncStatus('','ALL SQUADRON is read-only — pick a flight to edit');return;}
+    editingFlowIdx=i;
+    const r=i===null?{type:'GAIN',rank:'',name:'',date:'',note:''}:flow[i];
+    document.getElementById('flowModalTitle').textContent=i===null?'Add Gain / Loss':'Edit Gain / Loss';
+    document.getElementById('flowType').value=r.type||'GAIN';
+    document.getElementById('flowRank').value=r.rank||'';
+    document.getElementById('flowName').value=r.name||'';
+    document.getElementById('flowDate').value=r.date||'';
+    document.getElementById('flowNote').value=r.note||'';
+    document.getElementById('flowMsg').textContent='';
+    document.getElementById('flowModal').classList.add('active');
+}
+function closeFlowEdit(){editingFlowIdx=null;document.getElementById('flowModal').classList.remove('active');}
+
+function saveFlow(){
+    const type=document.getElementById('flowType').value;
+    const name=document.getElementById('flowName').value.trim();
+    const date=document.getElementById('flowDate').value;
+    const msg=document.getElementById('flowMsg');
+    // A projected move without a date is not a projection, it is a rumour.
+    if(!name){msg.textContent='Name is required — use "TBD" if the person is not identified yet.';return;}
+    if(!date){msg.textContent='An effective date is required.';return;}
+    const rec={type,rank:document.getElementById('flowRank').value.trim(),name,date,
+               note:document.getElementById('flowNote').value.trim()};
+    // Type+Name+Date is the upsert key, so changing any of them strands the old row
+    // in the Sheet. Delete the row the user actually edited away from — never a sweep.
+    const old=editingFlowIdx!==null?flow[editingFlowIdx]:null;
+    if(old&&(old.type!==rec.type||old.name!==rec.name||old.date!==rec.date))_flowRetires.push(old);
+    if(editingFlowIdx!==null)flow[editingFlowIdx]=rec;else flow.push(rec);
+    saveLS('afm_flow',flow);
+    closeFlowEdit();
+    renderFlow();
+    schedulePush('Flow');
+}
+
+function deleteFlow(i){
+    const r=flow[i];
+    if(!r||!confirm(`Remove the projected ${r.type.toLowerCase()} for ${r.name}?`))return;
+    flow.splice(i,1);
+    saveLS('afm_flow',flow);
+    renderFlow();
+    // An explicit removal is the one thing that may delete a Sheet row.
+    appsPost({tab:'Flow',action:'delete',rows:[{Type:r.type,Name:r.name,Date:r.date}],
+              keyFields:['Type','Name','Date']}).catch(e=>setSyncStatus('err','Delete failed: '+e.message));
+}
+
+let _flowRetires=[];
+async function pushFlowToAS(){
+    // Every field on every row: the backend builds the header row from
+    // Object.keys(rows[0]) the first time it creates this tab, so a field missing
+    // from the first row is a column that never exists.
+    const rows=flow.map(r=>({Type:r.type||'GAIN',Rank:r.rank||'',Name:r.name||'',
+                             Date:r.date||'',Note:r.note||'',LastModified:new Date().toString()}));
+    if(rows.length)await appsPost({tab:'Flow',action:'upsert',rows,keyFields:['Type','Name','Date']});
+    if(!_flowRetires.length)return;
+    const key=r=>`${r.Type||r.type}|${String(r.Name||r.name).trim().toLowerCase()}|${r.Date||r.date}`;
+    const keep=new Set(rows.map(key));
+    const gone=_flowRetires.filter(r=>!keep.has(key(r)));
+    _flowRetires=[];
+    if(gone.length)await appsPost({tab:'Flow',action:'delete',
+        rows:gone.map(r=>({Type:r.type,Name:r.name,Date:r.date})),keyFields:['Type','Name','Date']});
+}
+
+const parseASFlow=rows=>rows.map(r=>({
+    type:String(r.Type||'GAIN').toUpperCase()==='LOSS'?'LOSS':'GAIN',
+    rank:String(r.Rank||''),name:String(r.Name||''),date:flowDay(r.Date),note:String(r.Note||'')
+})).filter(r=>r.name);
+
+// Self-check — run _selfCheckFlow() in the console after touching the flow box.
+// Snapshots/restores afm_* like its siblings; saveLS has a side effect.
+function _selfCheckFlow(){
+    const savedFlow=clone(flow), savedRetires=clone(_flowRetires);
+    const snapshot=Object.keys(localStorage).filter(k=>k.startsWith('afm_')).map(k=>[k,localStorage.getItem(k)]);
+    try{
+        // The Sheet hands dates back in a different shape than the date input wrote.
+        const p=parseASFlow([
+            {Type:'loss',Rank:'TSgt',Name:'Reynolds',Date:'8/5/2026',Note:'PCS'},
+            {Type:'GAIN',Rank:'SrA', Name:'TBD',     Date:'2026-10-01',Note:''},
+            {Type:'GAIN',Rank:'',    Name:'',        Date:'2026-10-01',Note:'nameless'},
+        ]);
+        if(p.length!==2)throw new Error('a nameless row should be dropped, not kept');
+        if(p[0].type!=='LOSS')throw new Error('type not normalised to upper');
+        if(p[0].date!=='2026-08-05')throw new Error('locale date did not normalise: '+p[0].date);
+        if(flowDay('not a date')!=='')throw new Error('garbage date should be blank, not NaN');
+        // Editing across the upsert key must queue the old row for deletion, or the
+        // Sheet keeps both — the same orphan trap as a Manning rename.
+        flow=[{type:'GAIN',rank:'SrA',name:'Kidd',date:'2026-09-01',note:''}];
+        _flowRetires=[];
+        editingFlowIdx=0;
+        document.getElementById('flowType').value='GAIN';
+        document.getElementById('flowRank').value='SrA';
+        document.getElementById('flowName').value='Kidd';
+        document.getElementById('flowDate').value='2026-11-01';   // key field changed
+        document.getElementById('flowNote').value='';
+        saveFlow();
+        if(_flowRetires.length!==1)throw new Error('date change did not queue the old row');
+        if(flow.length!==1)throw new Error('edit duplicated the row instead of replacing it');
+        // A note-only edit changes nothing in the key and must NOT queue a delete.
+        _flowRetires=[];
+        editingFlowIdx=0;
+        document.getElementById('flowName').value='Kidd';
+        document.getElementById('flowDate').value='2026-11-01';
+        document.getElementById('flowNote').value='inbound from 22 APS';
+        saveFlow();
+        if(_flowRetires.length)throw new Error('a note-only edit queued a needless delete');
+        // A projection with no date is a rumour — refuse it rather than store it.
+        editingFlowIdx=null;
+        document.getElementById('flowName').value='Ghost';
+        document.getElementById('flowDate').value='';
+        const before=flow.length;
+        saveFlow();
+        if(flow.length!==before)throw new Error('saved a projection with no date');
+        return 'OK';
+    }finally{
+        closeFlowEdit();
+        flow=savedFlow; _flowRetires=savedRetires; editingFlowIdx=null;
+        Object.keys(_pushPending).forEach(t=>{clearTimeout(_pushPending[t]);delete _pushPending[t];});
+        Object.keys(localStorage).filter(k=>k.startsWith('afm_')).forEach(k=>localStorage.removeItem(k));
+        snapshot.forEach(([k,v])=>localStorage.setItem(k,v));
+        renderFlow();
+    }
 }
 
 // ═══════════════════════ TRAINING PLAN TEMPLATES
@@ -3491,6 +3792,7 @@ function startApp(){
     renderPromotions();
     renderAttendance();
     renderTemplates();
+    renderFlow();
     loadOverview();   // Overview is the landing tab — populate it without a click.
     // Several people edit this now, so a device that has been sitting open all day
     // must not push its stale copy over everyone else's work. Pull first, always.
@@ -3771,6 +4073,12 @@ async function copyBrief(btn){
     <div class="form-group">
         <label>Promotion Requirements · <span id="promoReqCount" style="color:#ffd700">—</span></label>
         <div id="promoReqGrid" style="max-height:260px;overflow-y:auto;"></div>
+    </div>
+
+    <div class="form-group" id="promoDocsWrap" style="display:none">
+        <label>Board Package Documents · <span id="promoDocsCount" style="color:#ffd700">—</span></label>
+        <div style="font-size:11px;color:#808080;margin:-4px 0 6px;">All other requirements are met — this is what still has to be assembled.</div>
+        <div id="promoDocsGrid" style="max-height:220px;overflow-y:auto;"></div>
     </div>
 
     <div class="form-row">
