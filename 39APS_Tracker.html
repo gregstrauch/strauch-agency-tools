@@ -4614,6 +4614,32 @@ const rptName=p=>`${p.rank||''} ${p.name}`.trim();
 // A blank Name is an unfilled billet row, not a person. isVacant() only catches the
 // literal word VACANT, so an empty Commander row counted as assigned strength.
 const rptIsPerson=n=>{const s=String(n||'').trim();return !!s&&!isVacant(s);};
+// Applicability is read from the Tracker row itself so both views apply the identical
+// rule. NOTE: as of 10 Aug 2026 the PAX rows carry a BLANK Applicability column — the
+// bulletin's named-individual lists live in client state and are not round-tripping to
+// the Sheet — so nothing gets filtered and owing counts include people the bulletin never
+// named. rptAppCoverage() surfaces that instead of letting it pass silently.
+function rptRowApplies(r){
+    const a=String(r.Applicability||'').trim().toLowerCase();
+    if(!a||a==='all')return true;
+    const ln=n=>String(n||'').toLowerCase().split(',')[0].trim()
+                 .replace(/[^a-z\- ]/g,'').split(/\s+/).filter(Boolean).pop()||'';
+    const listed=String(r.Names||'').split(',').map(ln).filter(Boolean);
+    if(!listed.length)return true;   // named item with no names recorded — cannot exclude anyone
+    return listed.includes(ln(r.Person));
+}
+// How many requirement rows carry any applicability data at all.
+function rptAppCoverage(n){
+    let withData=0,total=0;
+    Object.values(n.trk).forEach(rows=>rows.forEach(r=>{
+        const s=String(r.Status||'').toUpperCase();
+        if(s==='NA'||s==='EXEMPT')return;
+        total++;
+        const a=String(r.Applicability||'').trim().toLowerCase();
+        if(a&&a!=='all')withData++;
+    }));
+    return {withData,total};
+}
 function rptNormDate(raw){
     const s=String(raw||'').trim();
     if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
@@ -4661,7 +4687,17 @@ function rptNormalise(c){
     c.pro.forEach(r=>pk.set(`${r.Flight}|${r.Name}`,r));
     pk.forEach(r=>{(pro[r.Flight||DEFAULT_FLIGHT]=pro[r.Flight||DEFAULT_FLIGHT]||[]).push(r);});
     c.kpi.forEach(r=>{(kpi[r.Flight||DEFAULT_FLIGHT]=kpi[r.Flight||DEFAULT_FLIGHT]||[]).push(r);});
-    return {roster,att,trk,pro,kpi,attDupes,flights:[...new Set([...SQUADRON_FLIGHTS,
+    // The Attendance tab lists getAllPersonnel(), which walks the team tree only — a Chief
+    // or Commander row sits outside it and can never be marked, so it reads as "never
+    // marked" forever and quietly holds participation down. Flag them by role.
+    const TREE_ROLES=new Set(['msgt','tsgt','sub']);
+    const neverMarkableByFlight={};
+    Object.entries(roster).forEach(([f,m])=>m.forEach(p=>{
+        if(!TREE_ROLES.has(String(p.role||'').toLowerCase()))
+            (neverMarkableByFlight[f]=neverMarkableByFlight[f]||[]).push(rptName(p));
+    }));
+    return {roster,att,trk,pro,kpi,attDupes,neverMarkableByFlight,neverMarkable:[],
+        flights:[...new Set([...SQUADRON_FLIGHTS,
         ...Object.keys(roster),...Object.keys(trk)])].filter(Boolean)};
 }
 
@@ -4679,8 +4715,12 @@ function rptFlight(n,flight,from,to){
     const unmarked=people.filter(r=>!r.marks.length);
 
     const rows=n.trk[flight]||[];
-    // EXEMPT / NA never count against anyone — same rule the Morning Brief uses.
-    const counted=rows.filter(r=>{const s=String(r.Status||'').toUpperCase();return s!=='NA'&&s!=='EXEMPT';});
+    // EXEMPT / NA never count against anyone — same rule the Morning Brief uses — and a
+    // requirement the bulletin aimed at named individuals must not be counted against
+    // everyone else. The Tracker's own comment warns this "would put every non-applicable
+    // item in Greg's mouth in front of the formation"; the same is true briefing upward.
+    const counted=rows.filter(r=>{const s=String(r.Status||'').toUpperCase();
+        return s!=='NA'&&s!=='EXEMPT'&&rptRowApplies(r);});
     const open=counted.filter(r=>OPEN_STATUS(r.Status));
     const byReq={};
     open.forEach(r=>{
@@ -4755,13 +4795,35 @@ async function renderUtaReport(force){
     rptSeedRange(n);
     const [from,to]=rptRange();
 
-    warn.innerHTML=n.attDupes?`<div class="brief-clear" style="border-left:3px solid #ffaa00;padding-left:10px;margin-bottom:12px;color:#ffcc88">
-        ⚠ ${n.attDupes} redundant attendance row${n.attDupes===1?'':'s'} in the Sheet — every save appends instead of updating, so a
-        person can hold several conflicting marks for one day. The most recent row wins here, which is consistent but
-        <strong>not authoritative</strong>. Worth fixing before these numbers brief upward.</div>`:'';
+    n.neverMarkable=isRollup()
+        ?Object.values(n.neverMarkableByFlight).flat()
+        :(n.neverMarkableByFlight[currentFlight]||[]);
+    const cov=rptAppCoverage(n);
+    const W=t=>`<div class="brief-clear" style="border-left:3px solid #ffaa00;padding-left:10px;margin-bottom:10px;color:#ffcc88">⚠ ${t}</div>`;
+    warn.innerHTML=
+        (n.attDupes?W(`${n.attDupes} redundant attendance row${n.attDupes===1?'':'s'} in the Sheet — every save appends instead of
+            updating, so a person can hold several conflicting marks for one day. The most recent row wins here, which is
+            consistent but <strong>not authoritative</strong>. Worth fixing before these numbers brief upward.`):'')
+        +(cov.total&&!cov.withData?W(`No requirement in the Sheet records who it applies to, so <strong>owing counts include
+            people the bulletin may never have named</strong> — treat named-individual items (travel vouchers, expired CBTs)
+            as an upper bound. The bulletin's named lists are not reaching the Sheet.`):'')
+        +(n.neverMarkable.length?W(`${n.neverMarkable.length} roster member${n.neverMarkable.length===1?'':'s'} cannot be marked
+            on the Attendance tab (${n.neverMarkable.join(', ')}) — leadership rows sit outside the team tree the Attendance
+            tab lists, so they always read as “never marked” and hold participation down. Decide whether they should be
+            markable or excluded from the denominator.`):'');
 
     if(isRollup()) renderRptRollup(n,from,to);
     else renderRptFlight(n,from,to);
+}
+
+// The same caveats the screen shows, for the text that actually reaches the commander —
+// a number briefed without its qualifier is worse than no number.
+function rptCaveats(n){
+    const cov=rptAppCoverage(n),out=[];
+    if(n.attDupes)out.push(`${n.attDupes} redundant attendance rows in the Sheet; most recent mark per person per day used.`);
+    if(cov.total&&!cov.withData)out.push('No requirement records who it applies to, so owing counts include people the bulletin may never have named — treat named-individual items as an upper bound.');
+    if(n.neverMarkable&&n.neverMarkable.length)out.push(`Not markable on the Attendance tab, so counted as unmarked: ${n.neverMarkable.join(', ')}.`);
+    return out;
 }
 
 function renderRptFlight(n,from,to){
@@ -4840,10 +4902,10 @@ function renderRptFlight(n,from,to){
             :empty('No KPI values recorded for this flight.'));
 
     document.getElementById('rptContent').innerHTML=h;
-    document.getElementById('rptPlain').textContent=rptFlightText(d,rptNormalise(rptCache).attDupes);
+    document.getElementById('rptPlain').textContent=rptFlightText(d,rptCaveats(n));
 }
 
-function rptFlightText(d,dupes){
+function rptFlightText(d,caveats){
     const L=[`END-OF-UTA REPORT — ${d.flight} FLIGHT`,
         `UTA: ${d.from}${d.to!==d.from?' to '+d.to:''}`,
         `Prepared: ${new Date().toLocaleString()}`,'',
@@ -4852,7 +4914,8 @@ function rptFlightText(d,dupes){
         `  Training ${d.training.pct==null?'no data':d.training.pct+'% complete'} (${d.training.done} of ${d.training.total}), ${d.training.late} overdue`,
         `  Manning ${d.assigned} of ${d.authorized||'—'} authorized (${rptPct(d.assigned,d.authorized)}%), ${d.vacant} vacant`,
         `  Promotions ${d.promo.not.length} not ready of ${d.promo.ready.length+d.promo.not.length+d.promo.pending.length} tracked`,''];
-    if(dupes)L.push(`NOTE: ${dupes} redundant attendance rows in the Sheet; most recent mark per person per day used.`,'');
+    (caveats||[]).forEach(c=>L.push('NOTE: '+c));
+    if((caveats||[]).length)L.push('');
     L.push('1. PARTICIPATION');
     if(!d.days.length)L.push(`  No attendance marked between ${d.from} and ${d.to}.`);
     else{
@@ -4925,7 +4988,8 @@ function renderRptRollup(n,from,to){
         `  Training ${trainPct==null?'no data':trainPct+'% complete'} (${tDone} of ${tTot}), ${late} overdue`,
         `  Manning ${assigned} of ${authorized||'—'}, ${vacant} vacant`,
         `  Unexcused ${absent} · Promotion not-ready ${notReady}`,''];
-    if(n.attDupes)L.push(`NOTE: ${n.attDupes} redundant attendance rows in the Sheet; most recent mark per person per day used.`,'');
+    rptCaveats(n).forEach(c=>L.push('NOTE: '+c));
+    if(rptCaveats(n).length)L.push('');
     L.push('BY FLIGHT');
     rows.forEach(r=>L.push(`  ${r.flight}: assigned ${r.assigned}/${r.authorized||'—'}, participation ${r.days.length?r.partPct+'%':'no data'}, unexcused ${r.counts.ABSENT}, training ${r.training.pct==null?'—':r.training.pct+'%'}, overdue ${r.training.late}, not ready ${r.promo.not.length}`));
     document.getElementById('rptPlain').textContent=L.join('\n');
@@ -4959,7 +5023,10 @@ function _selfCheckUtaReport(){
             {Flight:'PAX',Person:'A One',Requirement:'CBT',Status:'DONE',Deadline:''},
             {Flight:'PAX',Person:'B Two',Requirement:'CBT',Status:'DUE',Deadline:'EXPIRED'},
             {Flight:'PAX',Person:'B Two',Requirement:'CBT',Status:'DUE',Deadline:'EXPIRED'}, // dup row
-            {Flight:'PAX',Person:'A One',Requirement:'Dental',Status:'EXEMPT',Deadline:''}],
+            {Flight:'PAX',Person:'A One',Requirement:'Dental',Status:'EXEMPT',Deadline:''},
+            // named-individual item: applies to Two only, so One must not be counted
+            {Flight:'PAX',Person:'A One',Requirement:'Voucher',Status:'DUE',Deadline:'',Applicability:'named',Names:'B Two'},
+            {Flight:'PAX',Person:'B Two',Requirement:'Voucher',Status:'DUE',Deadline:'',Applicability:'named',Names:'B Two'}],
         pro:[{Flight:'PAX',Name:'B Two',Recommendation:'not_ready',NotReadyReason:'fitness'}],
         kpi:[{Flight:'PAX',Period:'Old',Owner:'X',['KPI Label']:'K',Value:'1',RAG:'G',LastModified:'2026-01-01'},
              {Flight:'PAX',Period:'New',Owner:'X',['KPI Label']:'K',Value:'2',RAG:'R',LastModified:'2026-09-01'}],
@@ -4974,9 +5041,14 @@ function _selfCheckUtaReport(){
     ck(d.counts.EXCUSED===1&&d.counts.ABSENT===0,'last row must win for a duplicated person-day');
     ck(d.days.length===1,'out-of-range date leaked in');
     ck(d.partPct===50,'participation should be 50%, got '+d.partPct);
-    ck(d.training.total===2,'EXEMPT must not count, total should be 2, got '+d.training.total);
-    ck(d.training.pct===50,'training should be 50%, got '+d.training.pct);
-    ck(d.training.byReq.length===1&&d.training.byReq[0].who.length===1,'duplicate tracker row inflated the owing count');
+    // 2 CBT rows (EXEMPT dental dropped) + 1 applicable Voucher row = 3
+    ck(d.training.total===3,'EXEMPT/non-applicable must not count, total should be 3, got '+d.training.total);
+    const voucher=d.training.byReq.find(r=>r.title==='Voucher');
+    ck(voucher&&voucher.who.length===1,'a named-individual item must only count the named member');
+    ck(!(voucher||{who:[]}).who.includes('A One'),'unnamed member was counted against a named-individual item');
+    ck(d.training.byReq.find(r=>r.title==='CBT').who.length===1,'duplicate tracker row inflated the owing count');
+    ck(n.neverMarkableByFlight['PAX']===undefined||!n.neverMarkableByFlight['PAX'].length
+       ||n.neverMarkableByFlight['PAX'].join().includes('Commander')===false,'markability flag misread a team role');
     ck(d.promo.not.length===1,'not-ready not picked up');
     ck(d.period==='New'&&d.kpis[0].rag==='R','newest KPI period should win, got '+d.period);
     const empty=rptFlight(n,'ATOC/LOAD PLANNING','2026-09-12','2026-09-12');
