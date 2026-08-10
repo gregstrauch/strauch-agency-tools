@@ -1311,8 +1311,8 @@ function saveEdit(){
 function closeEdit(){document.getElementById('editModal').classList.remove('active');editTarget=null;}
 
 // ═══════════════════════ APPS SCRIPT SYNC
-// v13, deployed 10 Aug 2026 — per-user flight scoping. v12 archived the same day.
-const DEFAULT_SCRIPT_URL='https://script.google.com/macros/s/AKfycbzGDRBIzWwHXzHg7uNXaw3TCuFmL1q_wl6Ny5JXAtatLHSbZJjW2yutOit_X9RF1yezQg/exec';
+// v14, deployed 10 Aug 2026 — stops the attendance duplicate-append. v13 archived same day.
+const DEFAULT_SCRIPT_URL='https://script.google.com/macros/s/AKfycbw93HH03FDYY7CwanVo2E1IwoprtPcGfauNJUWWRWuhsQGX5DHhX9NsQv1MxEf276eF7A/exec';
 // Who is signed in on THIS device. The credential used to be hardcoded to
 // 'strauch', so every edit from anyone was attributed to Greg. It now comes from
 // the login screen and rides on every read and write — the backend rejects both
@@ -1348,7 +1348,8 @@ let _pushPending={};
 // Deployments that have been archived. A browser that once saved one of these in
 // Settings would keep calling a dead URL and just show sync errors, so drop it and
 // fall through to the current DEFAULT_SCRIPT_URL.
-const DEAD_SCRIPT_IDS=['AKfycbztvwwj1Rz-adpC-LUoAW7qs4yX4sNRs-8onFNknoohUJ5mTLyUP_j-0jcdmvl2a36hIQ'];
+const DEAD_SCRIPT_IDS=['AKfycbztvwwj1Rz-adpC-LUoAW7qs4yX4sNRs-8onFNknoohUJ5mTLyUP_j-0jcdmvl2a36hIQ',
+                       'AKfycbzGDRBIzWwHXzHg7uNXaw3TCuFmL1q_wl6Ny5JXAtatLHSbZJjW2yutOit_X9RF1yezQg'];
 function loadScriptUrl(){
     const saved=localStorage.getItem('afm_scripturl');
     if(saved&&DEAD_SCRIPT_IDS.some(id=>saved.includes(id))){
@@ -1709,9 +1710,15 @@ async function pushTrackerToAS(){
             // that imported this requirement before the rule round-tripped holds a
             // bogus 'DUE' for people it never applied to, and pushing that put the
             // bad cell back in the Sheet for everyone else to re-import.
-            if(!personApplies(p,req))return;
-            const st=(tracker[req.title]||{})[p.name]||'DUE';
-            if(st==='NA')return;
+            //
+            // Non-applicable people are pushed as NA rather than skipped. Skipping
+            // left the Sheet holding stale DUE rows written before applicability
+            // existed — 339 rows with a blank Applicability column that nothing ever
+            // revisited, so the End-of-UTA Report counted requirements against people
+            // the bulletin never named. NA is excluded everywhere, so this corrects
+            // them by update instead of deleting live rows.
+            const applies=personApplies(p,req);
+            const st=applies?((tracker[req.title]||{})[p.name]||'DUE'):'NA';
             rows.push({Person:p.name,Team:p.team,Rank:p.rank,Requirement:req.title,Category:req.category||'Training',Status:st,Deadline:req.deadline||'This UTA',
                        Applicability:req.applicability||'all',ApplicabilityNote:req.applicabilityNote||'',
                        Names:(req.names||[]).join('; ')});
