@@ -450,6 +450,7 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
     <button class="tab-btn" onclick="switchTab('kpi',this)">📊 KPIs</button>
     <button class="tab-btn" onclick="switchTab('promotions',this)">🎯 Promotions</button>
     <button class="tab-btn" onclick="switchTab('brief',this)">📣 Morning Brief</button>
+    <button class="tab-btn" onclick="switchTab('utarpt',this)">🎖 End-of-UTA Report</button>
 </div>
 
 <!-- FLIGHT NAV — squadron scope. Separate class from .tab-btn on purpose:
@@ -1000,6 +1001,7 @@ function switchTab(name,btn){
     if(name==='kpi'){ populateKPIPeriodSelector(); renderKPI(); }
     if(name==='promotions') renderPromotions();
     if(name==='brief') renderBrief();
+    if(name==='utarpt') renderUtaReport();
 }
 
 // ═══════════════════════ MANNING RENDER
@@ -1404,6 +1406,7 @@ function reloadFlightState(){
     kpiData=loadLS('afm_kpi',{periods:[],sections:defaultKPISectionsFor(currentFlight)});
     ensureFlightKPISections();
     renderManning();renderRequirements();populateKPIPeriodSelector();renderKPI();renderPromotions();renderTracker();renderAttendance();renderTemplates();renderFlow();
+    if(document.getElementById('tab-utarpt')?.classList.contains('active'))renderUtaReport();
 }
 
 function renderFlightSel(){
@@ -3815,12 +3818,17 @@ async function doLogin(){
     err.textContent='Checking…';
     // Verified against the backend, not against a copy of the PIN in this file —
     // a PIN sitting in public page source would protect nothing.
+    // Declared out here on purpose: the granted flight list is read AFTER the try block,
+    // and a `const j` inside it is block-scoped, so reaching for j.flights below threw
+    // ReferenceError and nobody could sign in at all.
+    let granted;
     try{
         const r=await fetch(loadScriptUrl()+`?tab=Manning&all=true&user=${encodeURIComponent(user)}&pin=${encodeURIComponent(pin)}`);
         const j=await r.json();
         if(!j.success){err.textContent=j.error||'Wrong PIN.';return;}
+        granted=j.flights;
     }catch(e){err.textContent='Could not reach the Sheet: '+e.message;return;}
-    localStorage.setItem('afm_login',JSON.stringify({user,pin,flights:j.flights}));
+    localStorage.setItem('afm_login',JSON.stringify({user,pin,flights:granted}));
     document.getElementById('loginGate').classList.remove('active');
     startApp();
 }
@@ -4554,6 +4562,429 @@ function utaSelfCheck(){
     return pass;
 }
 utaSelfCheck();
+</script>
+
+<!-- ═══════════════════════════════════ TAB 9: END-OF-UTA REPORT
+     Flight Chief -> Squadron Commander, after the UTA. The Morning Brief is the other
+     direction (chief -> formation, before it), so this is a separate tab rather than a
+     mode on that one — renderBrief is load-bearing and owns its DOM.
+
+     ONE data path for both the single-flight report and the squadron rollup: everything
+     comes from the Sheet through appsGetAll and is normalised once. The first cut read
+     in-memory state for a flight and the Sheet for the rollup, and the two disagreed in
+     front of me — 15 assigned vs 17, 0 unexcused vs 2 — because they deduplicated the
+     same rows differently. Two numbers for one UTA is how a chief gets caught out mid
+     brief, so there is deliberately no second path here. -->
+<div class="tab-content" id="tab-utarpt">
+<div class="container">
+    <div style="padding-top:6px"></div>
+    <div class="page-header">
+        <div><div class="page-title">End-of-UTA Report</div>
+             <div class="page-sub" id="rptSub"></div></div>
+        <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+            <div><label style="font-size:10px;color:#9fb0c0;display:block">UTA start</label>
+                 <input type="date" id="rptFrom" onchange="renderUtaReport()" style="width:auto"></div>
+            <div><label style="font-size:10px;color:#9fb0c0;display:block">UTA end</label>
+                 <input type="date" id="rptTo" onchange="renderUtaReport()" style="width:auto"></div>
+            <button class="btn-sm" onclick="renderUtaReport(true)">⟳ Rebuild from Sheet</button>
+            <button class="btn-sm" onclick="copyUtaReport(this)">📋 Copy for email</button>
+        </div>
+    </div>
+    <div id="rptWarn"></div>
+    <div class="stats-row" id="rptStats"></div>
+    <div id="rptContent"></div>
+    <details style="margin-top:22px" id="rptPlainWrap">
+        <summary style="cursor:pointer;color:#ffd700;font-size:11px;letter-spacing:1px;text-transform:uppercase">Plain text — triple-click to select</summary>
+        <pre id="rptPlain" style="user-select:all;white-space:pre-wrap;background:rgba(255,255,255,.04);border:1px solid rgba(255,215,0,.22);border-radius:4px;padding:14px;margin-top:10px;font-size:12px;line-height:1.6;"></pre>
+    </details>
+</div>
+</div>
+
+<script>
+/* ═════════ END-OF-UTA REPORT
+   Reports POSTURE AS OF the UTA, never "what changed during it": every Tracker row
+   carries a LastModified, but it is stamped by the sync rather than by the status
+   change (52 rows once shared a single bulk-push timestamp), so a "closed this UTA"
+   figure derived from it would overstate the flight's work. A real delta needs a
+   snapshot taken at close-out and compared next time. */
+const RPT_ATT_STATES=['PRESENT','ABSENT','EXCUSED','RST','TDY','LEAVE'];
+const RAG_WORD={G:'GREEN',A:'AMBER',R:'RED',N:''};
+const rptPct=(n,d)=>d?Math.round(n/d*100):0;
+const rptName=p=>`${p.rank||''} ${p.name}`.trim();
+// A blank Name is an unfilled billet row, not a person. isVacant() only catches the
+// literal word VACANT, so an empty Commander row counted as assigned strength.
+const rptIsPerson=n=>{const s=String(n||'').trim();return !!s&&!isVacant(s);};
+function rptNormDate(raw){
+    const s=String(raw||'').trim();
+    if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
+    const p=new Date(s);
+    return isNaN(p)?'':new Date(p.getTime()-p.getTimezoneOffset()*6e4).toISOString().slice(0,10);
+}
+
+let rptCache=null;   // {man,trk,pro,kpi,att,at}
+
+async function rptLoad(){
+    const [man,trk,pro,kpi,att]=await Promise.all([
+        appsGetAll('Manning'),appsGetAll('Tracker'),appsGetAll('Promotions'),
+        appsGetAll('KPIs').catch(()=>[]),appsGetAll('Attendance').catch(()=>[])]);
+    rptCache={man,trk,pro,kpi,att,at:new Date()};
+    return rptCache;
+}
+
+/* Normalise once. Attendance is the delicate one: the Attendance push keys on
+   ['Date','Person'] with Date as 'YYYY-MM-DD', but Sheets stores a real date cell that
+   reads back as 'Mon Aug 10 2026 …', so the key never matches and EVERY save appends a
+   new row. 292 rows currently cover 35 real person-days. Last row wins here, matching
+   parseASAttendance and every other tab — and the redundant count is surfaced, because
+   "last wins" across a dozen conflicting rows is arbitrary, not authoritative. */
+function rptNormalise(c){
+    const roster={},att={},trk={},pro={},kpi={};
+    let attDupes=0;
+    c.man.forEach(r=>{
+        if(!rptIsPerson(r.Name))return;
+        const f=r.Flight||DEFAULT_FLIGHT;
+        (roster[f]=roster[f]||new Map()).set(r.Name,{name:r.Name,rank:r.Rank||'',team:r.Team||'',role:r.Role||''});
+    });
+    const seen=new Set();
+    c.att.forEach(r=>{
+        const d=rptNormDate(r.Date); if(!d||!r.Person)return;
+        const f=r.Flight||DEFAULT_FLIGHT, k=f+'|'+d+'|'+r.Person;
+        if(seen.has(k))attDupes++; else seen.add(k);
+        (((att[f]=att[f]||{})[d]=att[f][d]||{}))[r.Person]=String(r.Status||'').toUpperCase();
+    });
+    // Duplicate Tracker rows would inflate every percentage — collapse the way the
+    // Overview does before counting anything.
+    const tk=new Map();
+    c.trk.forEach(r=>tk.set(`${r.Flight}|${r.Person}|${r.Requirement}`,r));
+    tk.forEach(r=>{(trk[r.Flight||DEFAULT_FLIGHT]=trk[r.Flight||DEFAULT_FLIGHT]||[]).push(r);});
+    const pk=new Map();
+    c.pro.forEach(r=>pk.set(`${r.Flight}|${r.Name}`,r));
+    pk.forEach(r=>{(pro[r.Flight||DEFAULT_FLIGHT]=pro[r.Flight||DEFAULT_FLIGHT]||[]).push(r);});
+    c.kpi.forEach(r=>{(kpi[r.Flight||DEFAULT_FLIGHT]=kpi[r.Flight||DEFAULT_FLIGHT]||[]).push(r);});
+    return {roster,att,trk,pro,kpi,attDupes,flights:[...new Set([...SQUADRON_FLIGHTS,
+        ...Object.keys(roster),...Object.keys(trk)])].filter(Boolean)};
+}
+
+/* One flight -> one summary. Both views are built from this, so they cannot disagree. */
+function rptFlight(n,flight,from,to){
+    const roster=[...(n.roster[flight]||new Map()).values()];
+    const days=Object.keys(n.att[flight]||{}).filter(d=>d>=from&&d<=to).sort();
+    const people=roster.map(p=>{
+        const marks=days.map(d=>(n.att[flight][d]||{})[p.name]||'').filter(Boolean);
+        return {p,marks,present:marks.includes('PRESENT'),
+                worst:['ABSENT','EXCUSED','RST','TDY','LEAVE'].find(s=>marks.includes(s))||''};
+    });
+    const counts={};
+    RPT_ATT_STATES.forEach(s=>counts[s]=people.filter(r=>r.marks.includes(s)).length);
+    const unmarked=people.filter(r=>!r.marks.length);
+
+    const rows=n.trk[flight]||[];
+    // EXEMPT / NA never count against anyone — same rule the Morning Brief uses.
+    const counted=rows.filter(r=>{const s=String(r.Status||'').toUpperCase();return s!=='NA'&&s!=='EXEMPT';});
+    const open=counted.filter(r=>OPEN_STATUS(r.Status));
+    const byReq={};
+    open.forEach(r=>{
+        const k=r.Requirement||'(unnamed)';
+        const e=byReq[k]=byReq[k]||{title:k,deadline:r.Deadline||'',urgency:urgencyOf(r.Deadline),who:new Set()};
+        e.who.add(r.Person);
+    });
+    const promo={ready:[],not:[],pending:[]};
+    (n.pro[flight]||[]).forEach(p=>{
+        const r=String(p.Recommendation||'').toLowerCase();
+        if(r==='not_ready')promo.not.push(p);
+        else if(r&&r!=='pending')promo.ready.push(p);
+        else promo.pending.push(p);
+    });
+    // Newest period that actually carries values, so the report is not blank just
+    // because an empty period was created later.
+    const kr=n.kpi[flight]||[];
+    let period=null;
+    if(kr.length){
+        const byP={};
+        kr.forEach(r=>{const t=new Date(r.LastModified||0).getTime()||0;
+            byP[r.Period]=Math.max(byP[r.Period]||0,t);});
+        period=Object.keys(byP).sort((a,b)=>byP[a]-byP[b]).pop();
+    }
+    return {flight,from,to,days,people,counts,unmarked,
+        assigned:roster.length,present:people.filter(r=>r.present).length,
+        partPct:rptPct(people.filter(r=>r.present).length,roster.length),
+        authorized:authFor(flight)||0,
+        vacant:0,  // filled in by the caller, which can see the raw rows
+        training:{total:counted.length,done:counted.length-open.length,
+            pct:counted.length?Math.round((counted.length-open.length)/counted.length*100):null,
+            late:open.filter(r=>urgencyOf(r.Deadline)===2).length,
+            hot:open.filter(r=>urgencyOf(r.Deadline)===1).length,
+            byReq:Object.values(byReq).map(e=>({...e,who:[...e.who]}))
+                  .sort((a,b)=>b.urgency-a.urgency||b.who.length-a.who.length)},
+        promo,period,
+        kpis:period?kr.filter(r=>r.Period===period).map(r=>({owner:r.Owner,label:r['KPI Label'],
+             value:r.Value,target:r.Target,rag:r.RAG})):[]};
+}
+
+function rptRange(){
+    const f=document.getElementById('rptFrom'),t=document.getElementById('rptTo');
+    let a=f?f.value:'',b=t?t.value:'';
+    if(a&&b&&a>b){const s=a;a=b;b=s;}
+    return[a,b];
+}
+// The UTA is a range, not a day: default to the last two dates that actually have
+// attendance for the flights this login can see, so it matches the drill just held.
+function rptSeedRange(n){
+    const f=document.getElementById('rptFrom'),t=document.getElementById('rptTo');
+    if(f&&f.value&&t&&t.value)return;
+    const all=new Set();
+    Object.values(n.att).forEach(byDate=>Object.keys(byDate).forEach(d=>all.add(d)));
+    const dates=[...all].sort();
+    const lo=dates.length?dates[Math.max(0,dates.length-2)]:attToday();
+    const hi=dates.length?dates[dates.length-1]:attToday();
+    if(f&&!f.value)f.value=lo;
+    if(t&&!t.value)t.value=hi;
+}
+
+async function renderUtaReport(force){
+    const sub=document.getElementById('rptSub'),warn=document.getElementById('rptWarn');
+    const stats=document.getElementById('rptStats'),content=document.getElementById('rptContent');
+    if(!sub)return;
+    if(force||!rptCache){
+        sub.textContent='Reading the Sheet…';
+        content.innerHTML='<div class="tracker-empty">Pulling this UTA\'s data…</div>';
+        try{ await rptLoad(); }
+        catch(e){ content.innerHTML='<div class="tracker-empty">Load failed: '+e.message+'</div>'; sub.textContent=''; return; }
+    }
+    const n=rptNormalise(rptCache);
+    rptSeedRange(n);
+    const [from,to]=rptRange();
+
+    warn.innerHTML=n.attDupes?`<div class="brief-clear" style="border-left:3px solid #ffaa00;padding-left:10px;margin-bottom:12px;color:#ffcc88">
+        ⚠ ${n.attDupes} redundant attendance row${n.attDupes===1?'':'s'} in the Sheet — every save appends instead of updating, so a
+        person can hold several conflicting marks for one day. The most recent row wins here, which is consistent but
+        <strong>not authoritative</strong>. Worth fixing before these numbers brief upward.</div>`:'';
+
+    if(isRollup()) renderRptRollup(n,from,to);
+    else renderRptFlight(n,from,to);
+}
+
+function renderRptFlight(n,from,to){
+    const d=rptFlight(n,currentFlight,from,to);
+    d.vacant=rptCache.man.filter(r=>(r.Flight||DEFAULT_FLIGHT)===currentFlight&&isVacant(r.Name)).length;
+    const soon=new Date(Date.now()+60*864e5).toISOString().slice(0,10);
+    const flowSoon=(flow||[]).filter(r=>!r.date||r.date<=soon);
+    d.gains=flowSoon.filter(r=>r.type==='GAIN'); d.losses=flowSoon.filter(r=>r.type==='LOSS');
+
+    document.getElementById('rptSub').textContent=
+        `${d.flight} · UTA ${from}${to!==from?' → '+to:''} · from the Sheet ${rptCache.at.toLocaleTimeString()}`;
+    document.getElementById('rptStats').innerHTML=`
+        <div class="stat-card"><div class="stat-label">Participation</div><div class="stat-value" style="color:${d.partPct>=90?'#55ff99':d.partPct>=75?'#ffd700':'#ff6666'}">${d.days.length?d.partPct+'%':'—'}</div><div class="stat-sub">${d.present} of ${d.assigned} assigned</div></div>
+        <div class="stat-card"><div class="stat-label">Training Complete</div><div class="stat-value" style="color:${d.training.pct>=90?'#55ff99':d.training.pct>=50?'#ffd700':'#ff6666'}">${d.training.pct==null?'—':d.training.pct+'%'}</div><div class="stat-sub">${d.training.done} of ${d.training.total} tasks</div></div>
+        <div class="stat-card"><div class="stat-label">Overdue</div><div class="stat-value" style="color:${d.training.late?'#ff4444':'#55ff99'}">${d.training.late}</div><div class="stat-sub">${d.training.hot} due this UTA</div></div>
+        <div class="stat-card"><div class="stat-label">Manning</div><div class="stat-value">${d.assigned}/${d.authorized||'—'}</div><div class="stat-sub">${rptPct(d.assigned,d.authorized)}% of UMD · ${d.vacant} vacant</div></div>
+        <div class="stat-card"><div class="stat-label">Unexcused</div><div class="stat-value" style="color:${d.counts.ABSENT?'#ff4444':'#55ff99'}">${d.counts.ABSENT}</div><div class="stat-sub">${d.counts.EXCUSED} excused · ${d.counts.RST} RST</div></div>
+        <div class="stat-card"><div class="stat-label">Promotions</div><div class="stat-value">${d.promo.not.length}</div><div class="stat-sub">not ready of ${d.promo.ready.length+d.promo.not.length+d.promo.pending.length}</div></div>`;
+
+    const sec=(t,inner)=>`<div class="brief-team"><div class="brief-team-head"><span>${t}</span></div>${inner}</div>`;
+    const empty=t=>`<div class="brief-clear">${t}</div>`;
+    let h='';
+
+    if(!d.days.length){
+        h+=sec('1. Participation',empty(`No attendance marked between ${from} and ${to}. Mark it on the Attendance tab, then rebuild.`));
+    }else{
+        const absent=d.people.filter(r=>r.marks.includes('ABSENT'));
+        const other=d.people.filter(r=>!r.marks.includes('ABSENT')&&r.worst);
+        h+=sec(`1. Participation — ${d.partPct}% (${d.days.length} day${d.days.length===1?'':'s'} marked)`,
+            // These rows can sum past the roster: present Saturday and excused Sunday counts
+            // in both. Say so, or it gets challenged mid-brief.
+            `<div class="brief-clear" style="margin-bottom:6px">Members with at least one such day — someone present one day and excused the other appears in both rows, so these can total more than ${d.assigned} assigned.</div>`
+            +`<table class="flow-table" style="max-width:340px"><tbody>`
+            +RPT_ATT_STATES.map(s=>`<tr><td>${s}</td><td style="text-align:right">${d.counts[s]}</td></tr>`).join('')
+            +`<tr><td>Not marked</td><td style="text-align:right">${d.unmarked.length}</td></tr></tbody></table>`
+            +(absent.length?`<div class="brief-person"><div class="brief-name" style="color:#ff8888">Unexcused (${absent.length})</div><div class="brief-clear">${absent.map(r=>rptName(r.p)).join(' · ')}</div></div>`:'')
+            +(other.length?`<div class="brief-person"><div class="brief-name">Excused / RST / TDY / Leave (${other.length})</div><div class="brief-clear">${other.map(r=>rptName(r.p)+' — '+r.worst).join(' · ')}</div></div>`:'')
+            +(d.unmarked.length?`<div class="brief-person"><div class="brief-name" style="color:#ffaa66">Never marked (${d.unmarked.length}) — counted neither way</div><div class="brief-clear">${d.unmarked.map(r=>rptName(r.p)).join(' · ')}</div></div>`:''));
+    }
+
+    h+=sec(`2. Training — ${d.training.pct==null?'no data':d.training.pct+'% complete'}`,
+        d.training.total
+            ?(d.training.byReq.length
+                ?`<table class="flow-table"><thead><tr><th>Requirement</th><th>Owing</th><th>Deadline</th></tr></thead><tbody>`
+                 +d.training.byReq.slice(0,12).map(r=>`<tr><td${r.urgency===2?' style="color:#ff8888"':r.urgency===1?' style="color:#ffd700"':''}>${r.title}</td><td>${r.who.length}</td><td>${r.deadline||'—'}</td></tr>`).join('')
+                 +`</tbody></table>`
+                 +(d.training.byReq.length>12?empty(`+ ${d.training.byReq.length-12} more requirement(s) outstanding — full detail on the Training Tracker tab.`):'')
+                :empty('✅ Nothing outstanding.'))
+            :empty('No training rows in the Sheet for this flight.'));
+
+    h+=sec('3. Manning',
+        `<table class="flow-table" style="max-width:420px"><tbody>
+         <tr><td>Assigned</td><td style="text-align:right">${d.assigned}</td></tr>
+         <tr><td>Authorized (UMD)</td><td style="text-align:right">${d.authorized||'—'}</td></tr>
+         <tr><td>Fill rate</td><td style="text-align:right">${rptPct(d.assigned,d.authorized)}%</td></tr>
+         <tr><td>Vacant billets on chart</td><td style="text-align:right">${d.vacant}</td></tr></tbody></table>`
+        +(d.gains.length||d.losses.length
+            ?`<div class="brief-person"><div class="brief-name">Projected next 60 days</div><div class="brief-clear">`
+             +d.gains.map(r=>`+ ${r.rank||''} ${r.name} (${r.date||'TBD'})`).join('<br>')
+             +(d.gains.length&&d.losses.length?'<br>':'')
+             +d.losses.map(r=>`− ${r.rank||''} ${r.name} (${r.date||'TBD'})`).join('<br>')+`</div></div>`
+            :empty('No projected gains or losses.')));
+
+    h+=sec('4. Promotion readiness',
+        (d.promo.ready.length+d.promo.not.length+d.promo.pending.length)
+            ?empty(`${d.promo.ready.length} recommended · ${d.promo.not.length} not ready · ${d.promo.pending.length} pending`)
+             +(d.promo.not.length?`<table class="flow-table"><thead><tr><th>Member</th><th>Next</th><th>Reason not ready</th></tr></thead><tbody>`
+               +d.promo.not.map(p=>`<tr><td>${p.Rank||''} ${p.Name||''}</td><td>${p.NextRank||'—'}</td><td>${p.NotReadyReason||'<em style="color:#ff8888">no reason recorded</em>'}</td></tr>`).join('')+`</tbody></table>`:'')
+            :empty('Nothing tracked for this cycle.'));
+
+    h+=sec(`5. KPIs${d.period?' — '+d.period:''}`,
+        d.kpis.length
+            ?`<table class="flow-table"><thead><tr><th>Owner</th><th>KPI</th><th>Value</th><th>Target</th><th>RAG</th></tr></thead><tbody>`
+             +d.kpis.map(k=>`<tr><td>${k.owner}</td><td>${k.label}</td><td>${k.value}</td><td>${k.target||'—'}</td>
+               <td style="color:${k.rag==='R'?'#ff6666':k.rag==='A'?'#ffd700':k.rag==='G'?'#55ff99':'#888'}">${RAG_WORD[k.rag]||'—'}</td></tr>`).join('')+`</tbody></table>`
+            :empty('No KPI values recorded for this flight.'));
+
+    document.getElementById('rptContent').innerHTML=h;
+    document.getElementById('rptPlain').textContent=rptFlightText(d,rptNormalise(rptCache).attDupes);
+}
+
+function rptFlightText(d,dupes){
+    const L=[`END-OF-UTA REPORT — ${d.flight} FLIGHT`,
+        `UTA: ${d.from}${d.to!==d.from?' to '+d.to:''}`,
+        `Prepared: ${new Date().toLocaleString()}`,'',
+        'BOTTOM LINE',
+        `  Participation ${d.days.length?d.partPct+'%':'no attendance marked'} (${d.present} of ${d.assigned} assigned)`,
+        `  Training ${d.training.pct==null?'no data':d.training.pct+'% complete'} (${d.training.done} of ${d.training.total}), ${d.training.late} overdue`,
+        `  Manning ${d.assigned} of ${d.authorized||'—'} authorized (${rptPct(d.assigned,d.authorized)}%), ${d.vacant} vacant`,
+        `  Promotions ${d.promo.not.length} not ready of ${d.promo.ready.length+d.promo.not.length+d.promo.pending.length} tracked`,''];
+    if(dupes)L.push(`NOTE: ${dupes} redundant attendance rows in the Sheet; most recent mark per person per day used.`,'');
+    L.push('1. PARTICIPATION');
+    if(!d.days.length)L.push(`  No attendance marked between ${d.from} and ${d.to}.`);
+    else{
+        L.push(`  (${d.days.length} day${d.days.length===1?'':'s'} marked; counts are members with at least one such day,`,
+               '   so someone present one day and excused the other appears in both.)');
+        RPT_ATT_STATES.forEach(s=>L.push(`  ${s.padEnd(9)} ${d.counts[s]}`));
+        if(d.unmarked.length)L.push(`  NOT MARKED ${d.unmarked.length} (counted neither way)`);
+        const ab=d.people.filter(r=>r.marks.includes('ABSENT'));
+        if(ab.length)L.push('  Unexcused: '+ab.map(r=>rptName(r.p)).join(', '));
+        const ot=d.people.filter(r=>!r.marks.includes('ABSENT')&&r.worst);
+        if(ot.length)L.push('  Excused/RST/TDY/Leave: '+ot.map(r=>rptName(r.p)+' ('+r.worst+')').join(', '));
+    }
+    L.push('','2. TRAINING');
+    if(!d.training.total)L.push('  No training rows for this flight.');
+    else if(!d.training.byReq.length)L.push('  Nothing outstanding.');
+    else d.training.byReq.forEach(r=>L.push(`  ${r.title} — ${r.who.length} owing${r.deadline?' ('+r.deadline+')':''}${r.urgency===2?' *LATE*':r.urgency===1?' *DUE THIS UTA*':''}`));
+    L.push('','3. MANNING',
+        `  Assigned ${d.assigned} / Authorized ${d.authorized||'—'} (${rptPct(d.assigned,d.authorized)}%)`,
+        `  Vacant billets: ${d.vacant}`);
+    (d.gains||[]).forEach(r=>L.push(`  GAIN + ${r.rank||''} ${r.name} (${r.date||'TBD'})`));
+    (d.losses||[]).forEach(r=>L.push(`  LOSS - ${r.rank||''} ${r.name} (${r.date||'TBD'})`));
+    L.push('','4. PROMOTION READINESS',
+        `  ${d.promo.ready.length} recommended, ${d.promo.not.length} not ready, ${d.promo.pending.length} pending`);
+    d.promo.not.forEach(p=>L.push(`  NOT READY: ${p.Rank||''} ${p.Name||''} -> ${p.NextRank||'?'} — ${p.NotReadyReason||'no reason recorded'}`));
+    L.push('',`5. KPIs${d.period?' — '+d.period:''}`);
+    if(!d.kpis.length)L.push('  No KPI values recorded.');
+    else d.kpis.forEach(k=>L.push(`  [${RAG_WORD[k.rag]||'--'}] ${k.owner} — ${k.label}: ${k.value}${k.target?' (target '+k.target+')':''}`));
+    return L.join('\n');
+}
+
+function renderRptRollup(n,from,to){
+    const rows=n.flights.map(f=>{
+        const d=rptFlight(n,f,from,to);
+        d.vacant=rptCache.man.filter(r=>(r.Flight||DEFAULT_FLIGHT)===f&&isVacant(r.Name)).length;
+        return d;
+    });
+    const sum=k=>rows.reduce((a,r)=>a+(typeof k==='function'?k(r):r[k]||0),0);
+    const assigned=sum('assigned'),present=sum('present'),authorized=sum('authorized');
+    const late=sum(r=>r.training.late),absent=sum(r=>r.counts.ABSENT);
+    const tTot=sum(r=>r.training.total),tDone=sum(r=>r.training.done);
+    const notReady=sum(r=>r.promo.not.length),vacant=sum('vacant');
+    const trainPct=tTot?Math.round(tDone/tTot*100):null;
+
+    document.getElementById('rptSub').textContent=
+        `ALL SQUADRON · UTA ${from}${to!==from?' → '+to:''} · ${rows.filter(r=>r.assigned).length} of ${rows.length} flights with a roster · from the Sheet ${rptCache.at.toLocaleTimeString()}`;
+    document.getElementById('rptStats').innerHTML=`
+        <div class="stat-card"><div class="stat-label">Participation</div><div class="stat-value" style="color:${rptPct(present,assigned)>=90?'#55ff99':'#ffd700'}">${rptPct(present,assigned)}%</div><div class="stat-sub">${present} of ${assigned} assigned</div></div>
+        <div class="stat-card"><div class="stat-label">Training Complete</div><div class="stat-value" style="color:${trainPct>=90?'#55ff99':trainPct>=50?'#ffd700':'#ff6666'}">${trainPct==null?'—':trainPct+'%'}</div><div class="stat-sub">${tDone} of ${tTot} tasks</div></div>
+        <div class="stat-card"><div class="stat-label">Overdue</div><div class="stat-value" style="color:${late?'#ff4444':'#55ff99'}">${late}</div><div class="stat-sub">expired tasks</div></div>
+        <div class="stat-card"><div class="stat-label">Unexcused</div><div class="stat-value" style="color:${absent?'#ff4444':'#55ff99'}">${absent}</div><div class="stat-sub">across squadron</div></div>
+        <div class="stat-card"><div class="stat-label">Manning</div><div class="stat-value">${assigned}/${authorized||'—'}</div><div class="stat-sub">${vacant} vacant billets</div></div>
+        <div class="stat-card"><div class="stat-label">Not Ready</div><div class="stat-value">${notReady}</div><div class="stat-sub">promotion readiness</div></div>`;
+
+    document.getElementById('rptContent').innerHTML=
+        `<div class="brief-team"><div class="brief-team-head"><span>By flight</span></div>
+         <table class="flow-table"><thead><tr><th>Flight</th><th>Assigned</th><th>UMD</th><th>Particip.</th><th>Unexc.</th><th>Training</th><th>Overdue</th><th>Not ready</th></tr></thead><tbody>
+         ${rows.map(r=>`<tr><td>${r.flight}</td><td>${r.assigned||'—'}</td><td>${r.authorized||'—'}</td>
+            <td${r.days.length?'':' style="color:#666"'}>${r.days.length?r.partPct+'%':'no data'}</td>
+            <td${r.counts.ABSENT?' style="color:#ff8888"':''}>${r.counts.ABSENT}</td>
+            <td>${r.training.pct==null?'—':r.training.pct+'%'}</td>
+            <td${r.training.late?' style="color:#ff8888"':''}>${r.training.late}</td>
+            <td>${r.promo.not.length}</td></tr>`).join('')}
+         </tbody></table>
+         <div class="brief-clear">“no data” means no attendance was marked for these dates — an empty roster reports blank rather than 0%, because the difference matters when briefing.</div></div>`;
+
+    const L=['END-OF-UTA REPORT — 39 APS (ALL FLIGHTS)',
+        `UTA: ${from}${to!==from?' to '+to:''}`,`Prepared: ${new Date().toLocaleString()}`,'',
+        'SQUADRON BOTTOM LINE',
+        `  Participation ${rptPct(present,assigned)}% (${present} of ${assigned} assigned)`,
+        `  Training ${trainPct==null?'no data':trainPct+'% complete'} (${tDone} of ${tTot}), ${late} overdue`,
+        `  Manning ${assigned} of ${authorized||'—'}, ${vacant} vacant`,
+        `  Unexcused ${absent} · Promotion not-ready ${notReady}`,''];
+    if(n.attDupes)L.push(`NOTE: ${n.attDupes} redundant attendance rows in the Sheet; most recent mark per person per day used.`,'');
+    L.push('BY FLIGHT');
+    rows.forEach(r=>L.push(`  ${r.flight}: assigned ${r.assigned}/${r.authorized||'—'}, participation ${r.days.length?r.partPct+'%':'no data'}, unexcused ${r.counts.ABSENT}, training ${r.training.pct==null?'—':r.training.pct+'%'}, overdue ${r.training.late}, not ready ${r.promo.not.length}`));
+    document.getElementById('rptPlain').textContent=L.join('\n');
+}
+
+async function copyUtaReport(btn){
+    const txt=document.getElementById('rptPlain').textContent;
+    if(!txt){setSyncStatus('','Nothing to copy — build the report first');return;}
+    const label=btn.textContent;
+    try{ await navigator.clipboard.writeText(txt); btn.textContent='✓ Copied'; }
+    catch(e){ btn.textContent='Copy failed — use the text block'; document.getElementById('rptPlainWrap').open=true; }
+    setTimeout(()=>{btn.textContent=label;},2000);
+}
+
+/* One runnable check on the parts that are easy to get wrong, run against synthetic
+   rows so it never depends on what is in the live Sheet. */
+function _selfCheckUtaReport(){
+    const c={man:[
+            {Flight:'PAX',Name:'A One',Rank:'SrA',Team:'T1'},
+            {Flight:'PAX',Name:'B Two',Rank:'SSgt',Team:'T1'},
+            {Flight:'PAX',Name:'VACANT — MSgt Billet',Rank:'MSgt',Team:'T1'},
+            {Flight:'PAX',Name:'   ',Role:'Commander'},              // blank billet row
+            {Flight:'RAMP',Name:'C Three',Rank:'SrA',Team:'T1'}],
+        att:[
+            {Flight:'PAX',Date:'2026-09-12',Person:'A One',Status:'PRESENT'},
+            // same person-day twice: the append bug. Last row must win.
+            {Flight:'PAX',Date:'Sat Sep 12 2026 00:00:00 GMT-0600 (MDT)',Person:'B Two',Status:'ABSENT'},
+            {Flight:'PAX',Date:'2026-09-12',Person:'B Two',Status:'EXCUSED'},
+            {Flight:'PAX',Date:'2026-10-01',Person:'A One',Status:'ABSENT'}],
+        trk:[
+            {Flight:'PAX',Person:'A One',Requirement:'CBT',Status:'DONE',Deadline:''},
+            {Flight:'PAX',Person:'B Two',Requirement:'CBT',Status:'DUE',Deadline:'EXPIRED'},
+            {Flight:'PAX',Person:'B Two',Requirement:'CBT',Status:'DUE',Deadline:'EXPIRED'}, // dup row
+            {Flight:'PAX',Person:'A One',Requirement:'Dental',Status:'EXEMPT',Deadline:''}],
+        pro:[{Flight:'PAX',Name:'B Two',Recommendation:'not_ready',NotReadyReason:'fitness'}],
+        kpi:[{Flight:'PAX',Period:'Old',Owner:'X',['KPI Label']:'K',Value:'1',RAG:'G',LastModified:'2026-01-01'},
+             {Flight:'PAX',Period:'New',Owner:'X',['KPI Label']:'K',Value:'2',RAG:'R',LastModified:'2026-09-01'}],
+        at:new Date(0)};
+    const n=rptNormalise(c);
+    const fails=[];
+    const ck=(cond,msg)=>{if(!cond)fails.push(msg);};
+    ck(n.roster['PAX'].size===2,'blank/VACANT billet rows must not count as people, got '+n.roster['PAX'].size);
+    ck(n.attDupes===1,'duplicate person-day not detected, got '+n.attDupes);
+    const d=rptFlight(n,'PAX','2026-09-12','2026-09-12');
+    ck(d.assigned===2,'assigned should be 2, got '+d.assigned);
+    ck(d.counts.EXCUSED===1&&d.counts.ABSENT===0,'last row must win for a duplicated person-day');
+    ck(d.days.length===1,'out-of-range date leaked in');
+    ck(d.partPct===50,'participation should be 50%, got '+d.partPct);
+    ck(d.training.total===2,'EXEMPT must not count, total should be 2, got '+d.training.total);
+    ck(d.training.pct===50,'training should be 50%, got '+d.training.pct);
+    ck(d.training.byReq.length===1&&d.training.byReq[0].who.length===1,'duplicate tracker row inflated the owing count');
+    ck(d.promo.not.length===1,'not-ready not picked up');
+    ck(d.period==='New'&&d.kpis[0].rag==='R','newest KPI period should win, got '+d.period);
+    const empty=rptFlight(n,'ATOC/LOAD PLANNING','2026-09-12','2026-09-12');
+    ck(empty.assigned===0&&empty.training.pct===null,'an empty flight must report null training, not 0%');
+    if(fails.length)console.error('[UTA report] self-check FAILED:',fails);
+    return fails.length?'FAILED':'OK';
+}
+console.log('[UTA report] self-check '+_selfCheckUtaReport());
 </script>
 
 </body>
