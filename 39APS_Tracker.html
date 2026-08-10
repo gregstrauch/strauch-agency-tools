@@ -428,14 +428,10 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
     <div style="padding:6px 0 14px;font-size:12px;color:#a0a0a0;">Passenger Service Flight · sign in to load the roster</div>
     <div class="form-group">
       <label>Your name</label>
-      <select id="loginUser">
-        <option value="">— select —</option>
-        <option value="strauch">SMSgt Strauch</option>
-        <option value="anthony">MSgt Anthony</option>
-        <option value="gray">MSgt Gray</option>
-        <option value="mahan">MSgt Mahan</option>
-        <option value="olson">MSgt Olson</option>
-      </select>
+      <!-- Options are generated from FLIGHT_USERS so the sign-in list cannot drift
+           from the authorised list. Hardcoding them here once left a removed user
+           still showing in the dropdown. -->
+      <select id="loginUser"><option value="">— select —</option></select>
     </div>
     <div class="form-group"><label>PIN</label><input id="loginPin" type="password" inputmode="numeric" placeholder="••••"></div>
     <div id="loginErr" style="font-size:12px;color:#ff6b6b;min-height:18px;"></div>
@@ -1319,6 +1315,30 @@ const DEFAULT_SCRIPT_URL='https://script.google.com/macros/s/AKfycbztvwwj1Rz-adp
 // the login screen and rides on every read and write — the backend rejects both
 // without it, which is what keeps a public page URL from being a public roster.
 const SIGNED_IN=()=>{try{return JSON.parse(localStorage.getItem('afm_login')||'null');}catch{return null;}};
+// Which flights this login may see. 'ALL' = squadron-wide; undefined = not learned
+// yet (a session that signed in before scoping existed), in which case show
+// everything — the backend is the real gate and answers empty for anything else.
+const allowedFlightsLocal=()=>(SIGNED_IN()||{}).flights;
+// Every read response carries the server's answer, so the nav can never drift from
+// USER_FLIGHTS in the Apps Script.
+function rememberFlights(j){
+    if(!j||j.flights===undefined)return;
+    const s=SIGNED_IN();
+    if(!s)return;
+    if(JSON.stringify(s.flights)===JSON.stringify(j.flights))return;
+    s.flights=j.flights;
+    localStorage.setItem('afm_login',JSON.stringify(s));
+    renderFlightSel();
+}
+// A browser cached on a flight it may no longer read would sit there showing an
+// empty roster. Move it to the first flight it is allowed instead.
+function enforceAllowedFlight(){
+    const af=allowedFlightsLocal();
+    if(!af||af==='ALL')return;
+    const ok=knownFlights.filter(f=>af.some(a=>String(a).toUpperCase()===f.toUpperCase()));
+    if(!ok.length)return;
+    if(!ok.some(f=>f===currentFlight))setFlight(ok[0]);
+}
 const authParams=()=>{const s=SIGNED_IN()||{};return`&user=${encodeURIComponent(s.user||'')}&pin=${encodeURIComponent(s.pin||'')}`;};
 let _pushPending={};
 
@@ -1377,10 +1397,15 @@ function reloadFlightState(){
 function renderFlightSel(){
     const nav=document.getElementById('flightNav');
     if(!nav)return;
+    // Scoped users see only their own flight(s), and neither the squadron rollup
+    // nor '+ Add'. Cosmetic only — USER_FLIGHTS in the Apps Script is the real gate.
+    const af=allowedFlightsLocal();
+    const wide=(af===undefined||af==='ALL');
+    const vis=wide?knownFlights:knownFlights.filter(f=>af.some(a=>String(a).toUpperCase()===f.toUpperCase()));
     nav.innerHTML='<span class="flight-nav-label">Flight</span>'
-        +knownFlights.map(f=>`<button class="flight-btn${f===currentFlight?' active':''}" onclick="setFlight('${esc(f)}')">${f}</button>`).join('')
-        +`<button class="flight-btn all${isRollup()?' active':''}" onclick="setFlight('${ALL_FLIGHTS}')">▦ All Squadron</button>`
-        +`<button class="flight-btn add" onclick="setFlight('__ADD__')">+ Add</button>`;
+        +vis.map(f=>`<button class="flight-btn${f===currentFlight?' active':''}" onclick="setFlight('${esc(f)}')">${f}</button>`).join('')
+        +(wide?`<button class="flight-btn all${isRollup()?' active':''}" onclick="setFlight('${ALL_FLIGHTS}')">▦ All Squadron</button>`
+              +`<button class="flight-btn add" onclick="setFlight('__ADD__')">+ Add</button>`:'');
 }
 
 // Explicit full push — the only way to seed an empty Manning tab, since the
@@ -1471,6 +1496,7 @@ async function appsGet(tab){
     if(!r.ok)throw new Error('HTTP '+r.status);
     const j=await r.json();
     if(!j.success)throw new Error(j.error||'Read failed');
+    rememberFlights(j);
     return scopeRows(j.data||[],tab);
 }
 
@@ -3565,6 +3591,7 @@ async function appsGetAll(tab){
     if(!r.ok)throw new Error('HTTP '+r.status);
     const j=await r.json();
     if(!j.success)throw new Error(j.error||'Read failed');
+    rememberFlights(j);
     // Blank Flight means a legacy row, which everything else reads as PAX.
     return (j.data||[]).map(x=>({...x,Flight:String(x.Flight||'').trim()||DEFAULT_FLIGHT}));
 }
@@ -3756,7 +3783,17 @@ function jumpToFlight(f){
 // This page is served from a public URL, so the roster is protected by the PIN
 // and nothing else. The credential is never baked into the file — it is typed
 // here, checked against the backend, and kept only in this device's storage.
-const FLIGHT_USERS=['strauch','anthony','gray','mahan','olson'];
+const FLIGHT_USERS=['strauch','anthony','gray','mahan'];   // olson removed 10 Aug 2026
+// Rank shown for readability only; the value sent to the backend is the last name,
+// which is what AUTHORIZED_WRITERS checks.
+const USER_LABELS={strauch:'SMSgt Strauch',anthony:'MSgt Anthony',gray:'MSgt Gray',mahan:'MSgt Mahan'};
+function renderLoginUsers(){
+    const sel=document.getElementById('loginUser');
+    if(!sel)return;
+    sel.innerHTML='<option value="">— select —</option>'
+        +FLIGHT_USERS.map(u=>`<option value="${u}">${USER_LABELS[u]||u}</option>`).join('');
+}
+renderLoginUsers();
 
 async function doLogin(){
     const user=document.getElementById('loginUser').value;
@@ -3771,7 +3808,7 @@ async function doLogin(){
         const j=await r.json();
         if(!j.success){err.textContent=j.error||'Wrong PIN.';return;}
     }catch(e){err.textContent='Could not reach the Sheet: '+e.message;return;}
-    localStorage.setItem('afm_login',JSON.stringify({user,pin}));
+    localStorage.setItem('afm_login',JSON.stringify({user,pin,flights:j.flights}));
     document.getElementById('loginGate').classList.remove('active');
     startApp();
 }
@@ -3785,6 +3822,7 @@ function startApp(){
     const who=(SIGNED_IN()||{}).user||'';
     document.getElementById('whoami').textContent=who?who.toUpperCase():'';
     renderFlightSel();
+    enforceAllowedFlight();
     setSyncStatus('',`Ready — ${isRollup()?'ALL SQUADRON':currentFlight} · syncing…`);
     document.getElementById('lastSaved').textContent=new Date().toLocaleString();
     renderManning();
