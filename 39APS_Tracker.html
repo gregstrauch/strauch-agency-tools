@@ -3254,13 +3254,33 @@ const attDate=()=>document.getElementById('attDate')?.value||attToday();
 
 function saveAttendance(){saveLS('afm_attend',attendance);schedulePush('Attendance');}
 
+// The Flight Chief and Commander live on manning.chief / manning.commander, outside the
+// msgtLeads tree that getAllPersonnel() walks. The Attendance tab listed only the tree, so
+// the Chief could not be marked at all — he read as "never marked" forever and quietly held
+// participation down (PAX showed 13 of 16 because of it).
+//
+// Deliberately NOT folded into getAllPersonnel(): that same list feeds the Training Tracker,
+// Promotions and the Morning Brief, so adding leadership there would invent training rows and
+// promotion records nobody asked for. Attendance is the only view that wants them.
+function attendanceRoster(){
+    const list=getAllPersonnel();
+    const seen=new Set(list.map(p=>p.name));
+    [[flightChief(),'Flight Chief'],[flightCommander(),'Flight Commander']].forEach(([p,role])=>{
+        if(!p||!p.name||isVacant(p.name)||p.name===NO_CHIEF.name)return;
+        if(seen.has(p.name))return;          // already in the tree, don't list them twice
+        seen.add(p.name);
+        list.push({...p,team:role});
+    });
+    return list;
+}
+
 function renderAttendance(){
     const box=document.getElementById('attContent');
     if(!box)return;
     const dEl=document.getElementById('attDate');
     if(dEl&&!dEl.value)dEl.value=attToday();
     const day=attendance[attDate()]||{};
-    const people=getAllPersonnel();
+    const people=attendanceRoster();
     if(!people.length){box.innerHTML='<div class="tracker-empty">No roster loaded for this flight.</div>';document.getElementById('attStats').innerHTML='';return;}
 
     const teams=[...new Set(people.map(p=>p.team))];
@@ -3288,6 +3308,24 @@ function renderAttendance(){
         <div class="stat-card"><div class="stat-label">Excused / RST</div><div class="stat-value">${cnt('EXCUSED')+cnt('RST')}</div><div class="stat-sub">${cnt('TDY')} TDY · ${cnt('LEAVE')} leave</div></div>`;
 }
 
+// One runnable check: leadership must appear exactly once, vacant/unassigned must not appear,
+// and the tab's roster must never be smaller than the team tree it is built from.
+function _selfCheckAttendanceRoster(){
+    const tree=getAllPersonnel(), full=attendanceRoster();
+    const names=full.map(p=>p.name);
+    const dupes=names.filter((n,i)=>names.indexOf(n)!==i);
+    const chief=flightChief();
+    const fails=[];
+    if(full.length<tree.length)fails.push('roster smaller than the team tree');
+    if(dupes.length)fails.push('duplicate entries: '+dupes.join(', '));
+    if(names.includes(NO_CHIEF.name))fails.push('"not assigned" placeholder listed as a person');
+    if(names.some(n=>isVacant(n)))fails.push('a VACANT billet is listed as a person');
+    if(chief&&chief.name&&chief.name!==NO_CHIEF.name&&!names.includes(chief.name))
+        fails.push('flight chief still not markable: '+chief.name);
+    if(fails.length){console.error('[attendance roster] self-check FAILED:',fails);return 'FAILED';}
+    return 'OK';
+}
+
 function cycleAttendance(name,btn){
     const d=attDate();
     const day=attendance[d]=attendance[d]||{};
@@ -3307,7 +3345,7 @@ function markAllAttendance(status){
         delete attendance[d];
     }else{
         const day=attendance[d]=attendance[d]||{};
-        getAllPersonnel().forEach(p=>day[p.name]=status);
+        attendanceRoster().forEach(p=>day[p.name]=status);
     }
     saveAttendance();renderAttendance();
 }
@@ -3315,7 +3353,7 @@ function markAllAttendance(status){
 async function pushAttendanceToAS(){
     const d=attDate();
     const day=attendance[d]||{};
-    const rows=getAllPersonnel()
+    const rows=attendanceRoster()
         .filter(p=>day[p.name])
         .map(p=>({Date:d,Person:p.name,Team:p.team,Rank:p.rank||'',Status:day[p.name]}));
     if(rows.length)await appsPost({tab:'Attendance',action:'upsert',rows,keyFields:['Date','Person']});
@@ -4694,14 +4732,15 @@ function rptNormalise(c){
     c.pro.forEach(r=>pk.set(`${r.Flight}|${r.Name}`,r));
     pk.forEach(r=>{(pro[r.Flight||DEFAULT_FLIGHT]=pro[r.Flight||DEFAULT_FLIGHT]||[]).push(r);});
     c.kpi.forEach(r=>{(kpi[r.Flight||DEFAULT_FLIGHT]=kpi[r.Flight||DEFAULT_FLIGHT]||[]).push(r);});
-    // The Attendance tab lists getAllPersonnel(), which walks the team tree only — a Chief
-    // or Commander row sits outside it and can never be marked, so it reads as "never
-    // marked" forever and quietly holds participation down. Flag them by role.
-    const TREE_ROLES=new Set(['msgt','tsgt','sub']);
+    // Every roster role the Attendance tab can now mark. Leadership used to be excluded —
+    // Chief/Commander sit outside the msgtLeads tree the tab listed, so they read as "never
+    // marked" forever and held participation down; attendanceRoster() fixed that, so they
+    // belong here. Anything genuinely unmarkable still gets surfaced rather than assumed.
+    const MARKABLE_ROLES=new Set(['msgt','tsgt','sub','chief','commander','']);
     const neverMarkableByFlight={};
     Object.entries(roster).forEach(([f,m])=>m.forEach(p=>{
-        if(!TREE_ROLES.has(String(p.role||'').toLowerCase()))
-            (neverMarkableByFlight[f]=neverMarkableByFlight[f]||[]).push(rptName(p));
+        if(!MARKABLE_ROLES.has(String(p.role||'').toLowerCase()))
+            (neverMarkableByFlight[f]=neverMarkableByFlight[f]||[]).push(rptName(p)+' ('+(p.role||'no role')+')');
     }));
     return {roster,att,trk,pro,kpi,attDupes,neverMarkableByFlight,neverMarkable:[],
         flights:[...new Set([...SQUADRON_FLIGHTS,
@@ -4814,10 +4853,9 @@ async function renderUtaReport(force){
         +(cov.total&&!cov.withData?W(`No requirement in the Sheet records who it applies to, so <strong>owing counts include
             people the bulletin may never have named</strong> — treat named-individual items (travel vouchers, expired CBTs)
             as an upper bound. The bulletin's named lists are not reaching the Sheet.`):'')
-        +(n.neverMarkable.length?W(`${n.neverMarkable.length} roster member${n.neverMarkable.length===1?'':'s'} cannot be marked
-            on the Attendance tab (${n.neverMarkable.join(', ')}) — leadership rows sit outside the team tree the Attendance
-            tab lists, so they always read as “never marked” and hold participation down. Decide whether they should be
-            markable or excluded from the denominator.`):'');
+        +(n.neverMarkable.length?W(`${n.neverMarkable.length} roster member${n.neverMarkable.length===1?'':'s'} hold a role the
+            Attendance tab does not list (${n.neverMarkable.join(', ')}), so they can never be marked and will always read as
+            “never marked”. Add the role to attendanceRoster() or correct it on the Manning tab.`):'');
 
     if(isRollup()) renderRptRollup(n,from,to);
     else renderRptFlight(n,from,to);
@@ -4829,7 +4867,7 @@ function rptCaveats(n){
     const cov=rptAppCoverage(n),out=[];
     if(n.attDupes)out.push(`${n.attDupes} redundant attendance rows in the Sheet; most recent mark per person per day used.`);
     if(cov.total&&!cov.withData)out.push('No requirement records who it applies to, so owing counts include people the bulletin may never have named — treat named-individual items as an upper bound.');
-    if(n.neverMarkable&&n.neverMarkable.length)out.push(`Not markable on the Attendance tab, so counted as unmarked: ${n.neverMarkable.join(', ')}.`);
+    if(n.neverMarkable&&n.neverMarkable.length)out.push(`Hold a role the Attendance tab cannot mark, so counted as unmarked: ${n.neverMarkable.join(', ')}.`);
     return out;
 }
 
