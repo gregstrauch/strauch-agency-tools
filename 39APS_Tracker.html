@@ -540,7 +540,7 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
         <button class="btn" onclick="exportCSV()">📥 Export CSV</button>
         <button class="btn" onclick="exportJSON()">💾 Backup</button>
         <button class="btn" onclick="importJSON()">📂 Restore</button>
-        <button class="btn btn-red" onclick="resetDefault()">🔄 Reset</button>
+        <button class="btn btn-red" onclick="resetDefault()">🔄 Reload from Sheet</button>
     </div>
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)">
     <div class="footer">Click any name to edit &nbsp;|&nbsp; Changes auto-save</div>
@@ -750,19 +750,6 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
 </div>
 </div>
 
-<!-- AI SETTINGS MODAL -->
-<div class="modal-overlay" id="aiSettingsModal">
-<div class="modal-box">
-    <h3>AI Settings — Bulletin Extraction</h3>
-    <div class="ai-note">Your Anthropic API key is used to read UTA bulletins and extract requirements. Get one at <strong>console.anthropic.com</strong>. Stored locally on your device only.</div>
-    <div class="form-group"><label>Anthropic API Key</label><input id="aiKeyInput" type="password" placeholder="sk-ant-…"></div>
-    <div class="modal-btns">
-        <button class="btn" onclick="saveAIKey()">✓ Save</button>
-        <button class="btn btn-red" onclick="closeAISettings()">✕ Cancel</button>
-    </div>
-</div>
-</div>
-
 <!-- MANUAL REQ MODAL -->
 <div class="modal-overlay" id="reqModal">
 <div class="modal-box">
@@ -809,67 +796,7 @@ const dutyList=()=>DUTIES.filter(d=>!hiddenDuties().has(d.id));
 const certList=()=>CERTS.filter(c=>!hiddenDuties().has(c.id));
 
 // ═══════════════════════ DEFAULT MANNING DATA
-const DEFAULT_MANNING={
-    msgtLeads:[
-        {id:'team1',name:'Team 1',
-         msgt:{rank:'MSgt',name:'Kieran Gray',skills:'(7)',duties:{TM:'P'},certs:{}},
-         actingLead:null,
-         tsgts:[{rank:'TSgt',name:'Osvaldo Ibarra-Zavala',skills:'(7)',duties:{},certs:{},
-            subordinates:[
-                {rank:'SSgt',name:'Shane Boone',skills:'(5)',duties:{},certs:{}},
-                {rank:'SrA',name:'Corbett Lowe',skills:'(5)',duties:{},certs:{}},
-                {rank:'SrA',name:'Too',skills:'(5)',duties:{},certs:{}},
-                {rank:'SrA',name:'Johnnyray Reynolds',skills:'(5)',duties:{},certs:{}},
-                {rank:'SrA',name:'Carlos Martinez-Reyes',skills:'(5)',duties:{},certs:{}}
-            ]}]
-        },
-        {id:'team2',name:'Team 2',
-         msgt:{rank:'MSgt',name:'Rick Mahan',skills:'(7)',duties:{OBR:'P'},certs:{}},
-         actingLead:null,
-         tsgts:[{rank:'TSgt',name:'Shawn Carlos',skills:'(7)',duties:{},certs:{},
-            subordinates:[
-                {rank:'SSgt',name:'Lulzim Bejtja',skills:'(5)',duties:{},certs:{}},
-                {rank:'SrA',name:'Nayares',skills:'(5)',duties:{},certs:{}}
-            ]}]
-        },
-        {id:'team3',name:'Team 3',
-         msgt:{rank:'',name:'VACANT — MSgt Billet',skills:'',duties:{},certs:{}},
-         actingLead:'Olson',
-         tsgts:[{rank:'TSgt',name:'Jeremiah Olson',skills:'(7)',duties:{},certs:{},
-            subordinates:[
-                {rank:'SSgt',name:'LeMoine',skills:'(5)',duties:{},certs:{}},
-                {rank:'SrA',name:'Tasia Smith',skills:'(5)',duties:{},certs:{}},
-                {rank:'SrA',name:'Brenda Moody',skills:'(5)',duties:{},certs:{}},
-                {rank:'SrA',name:'Victor Kibet',skills:'(3)',duties:{},certs:{}}
-            ]}]
-        },
-        {id:'xnco',name:'Flight XNCO',
-         msgt:{rank:'MSgt',name:'Jennifer Anthony',skills:'(7)',duties:{UTAPS:'P'},certs:{}},
-         actingLead:null,
-         tsgts:[]
-        },
-        {id:'vanzee',name:'MSgt Staff',
-         msgt:{rank:'MSgt',name:'Nicholas VanZee',skills:'',duties:{},certs:{}},
-         actingLead:null,
-         tsgts:[]
-        },
-        // Holding pen for members Greg has not assigned to a team yet. The TSgt slot
-        // is a labelled placeholder, not a person — isVacant() keeps it out of the
-        // billet counts and out of Tracker/Promotions pushes. Drag these onto a real
-        // team and delete the pen when it empties.
-        {id:'unassigned',name:'Unassigned',
-         msgt:{rank:'',name:'VACANT — no supervisor assigned',skills:'',duties:{},certs:{}},
-         actingLead:null,
-         tsgts:[{rank:'',name:'VACANT — drag these to a team',skills:'',duties:{},certs:{},
-            subordinates:[
-                {rank:'SSgt',name:'Ivery',skills:'',duties:{},certs:{}},
-                {rank:'SSgt',name:'Jean Cook',skills:'',duties:{},certs:{}},
-                {rank:'SSgt',name:'Johanna Tello',skills:'',duties:{},certs:{}},
-                {rank:'A1C',name:'Ethan Ibalio',skills:'',duties:{},certs:{}}
-            ]}]
-        }
-    ]
-};
+
 
 // ═══════════════════════ AIR FREIGHT MANNING (roster from Greg, 3 Aug 2026)
 // Supersedes the 25-person roster seeded into the Sheet in Jun 2026 — that list is
@@ -879,31 +806,7 @@ const DEFAULT_MANNING={
 // THE ONE THING NOT FROM GREG: he gave a flat list with no team assignments, so all
 // ten SSgt/SrA sit under TSgt McCormack to start. Drag them onto the right TSgt in
 // the Manning tab — nothing else here is invented. Skills are blank, not guessed.
-const AIR_FREIGHT_MANNING={
-    msgtLeads:[
-        {id:'afteam1',name:'Air Freight',
-         msgt:{rank:'',name:'VACANT — MSgt Billet',skills:'',duties:{},certs:{}},
-         actingLead:'McCormack',
-         tsgts:[
-            {rank:'TSgt',name:'Aly McCormack',skills:'',duties:{},certs:{},
-             subordinates:[
-                {rank:'SSgt',name:'Alexander Freeman',skills:'',duties:{},certs:{}},
-                {rank:'SSgt',name:'Sonam Sherpa',skills:'',duties:{},certs:{}},
-                {rank:'SSgt',name:'Kali Cruz',skills:'',duties:{},certs:{}},
-                {rank:'SSgt',name:'Jace Wood',skills:'',duties:{},certs:{}},
-                {rank:'SrA',name:'Airene Palmes',skills:'',duties:{},certs:{}},
-                {rank:'SrA',name:'Rajon Budhathoki',skills:'',duties:{},certs:{}},
-                {rank:'SrA',name:'Michelle Castrence',skills:'',duties:{},certs:{}},
-                {rank:'SrA',name:'Heath Betty',skills:'',duties:{},certs:{}},
-                {rank:'SrA',name:'Nayan Palma',skills:'',duties:{},certs:{}},
-                {rank:'SrA',name:'Nick Medina',skills:'',duties:{},certs:{}}
-             ]},
-            {rank:'TSgt',name:'Steven Trainor',skills:'',duties:{},certs:{},subordinates:[]},
-            {rank:'TSgt',name:'Terrance Rauh',skills:'',duties:{},certs:{},subordinates:[]},
-            {rank:'TSgt',name:'Wesley Clanton',skills:'',duties:{},certs:{},subordinates:[]}
-         ]}
-    ]
-};
+
 
 // Flight chief is per-flight — it used to be hardcoded to Strauch in the markup,
 // which was wrong the moment a second flight existed.
@@ -940,8 +843,12 @@ const lsKey=k=>(PER_FLIGHT_KEYS.has(k)&&currentFlight!==DEFAULT_FLIGHT)?`${k}__$
 const isVacant=n=>String(n||'').toUpperCase().includes('VACANT');
 const emptyManning=()=>({msgtLeads:[]});
 // Seed a flight's manning from its known roster; unknown flights start empty.
-const FLIGHT_MANNING={'PAX':()=>clone(DEFAULT_MANNING),'AIR FREIGHT':()=>clone(AIR_FREIGHT_MANNING)};
-const defaultManningFor=f=>(FLIGHT_MANNING[String(f).toUpperCase()]||emptyManning)();
+// The Sheet is the only roster source. Two hardcoded seed rosters used to live above (86
+// lines) and had drifted — 10 names in the page were no longer on the live roster.
+// parseASManning() rebuilds chief, commander and every team losslessly from Sheet rows, so a
+// fresh browser just syncs. The old '🔄 Reset' also pushed that stale seed back OVER the Sheet,
+// and because the push sweeps rows the parse doesn't return, a drifted seed deleted real people.
+const defaultManningFor=()=>emptyManning();
 let manning=loadLS('afm_v4',defaultManningFor(currentFlight));
 let requirements=loadLS('afm_reqs',[]);
 let tracker=loadLS('afm_tracker',{});
@@ -1836,10 +1743,6 @@ function mergeASKPIs(rows){
 }
 
 // ═══════════════════════ AI BULLETIN EXTRACTION
-function loadAIKey(){return localStorage.getItem('afm_aikey')||'';}
-function openAISettings(){document.getElementById('aiKeyInput').value=loadAIKey();document.getElementById('aiSettingsModal').classList.add('active');}
-function closeAISettings(){document.getElementById('aiSettingsModal').classList.remove('active');}
-function saveAIKey(){localStorage.setItem('afm_aikey',document.getElementById('aiKeyInput').value.trim());closeAISettings();}
 
 // ═══════════════════════ SMART TEXT PARSER (no API needed)
 function smartParse(){
@@ -2223,7 +2126,16 @@ function exportCSV(){
 function exportJSON(){dl('39APS_Backup.json',JSON.stringify({manning,requirements,tracker,kpiData,attendance,templates,flow},null,2),'application/json');}
 function importJSON(){document.getElementById('importFile').click();}
 function handleImport(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.manning)manning=d.manning;if(d.requirements)requirements=d.requirements;if(d.tracker)tracker=d.tracker;if(d.kpiData)kpiData=d.kpiData;if(d.attendance)attendance=d.attendance;if(d.templates)templates=d.templates;if(d.flow)flow=d.flow;saveManning();saveLS('afm_reqs',requirements);saveLS('afm_tracker',tracker);saveLS('afm_attend',attendance);saveLS('afm_tpl',templates);saveLS('afm_flow',flow);saveKPI();renderKPI();renderAttendance();renderTemplates();renderFlow();alert('Restored.');}catch{alert('Invalid file.');}};r.readAsText(f);e.target.value='';}
-function resetDefault(){if(confirm(`Reset ${currentFlight} manning to default? Cannot be undone.`)){manning=defaultManningFor(currentFlight);saveManning();}}
+// Was "reset to the hardcoded default", which pushed a stale seed over the Sheet; with the
+// seeds gone it would push an EMPTY roster, and the sweeping push reads that as "delete
+// everyone". It now discards only THIS DEVICE's copy and re-pulls the Sheet. Never writes.
+function resetDefault(){
+    if(!confirm(`Discard this device's copy of ${currentFlight} manning and reload it from the Sheet?`))return;
+    localStorage.removeItem(lsKey('afm_v4'));
+    manning=emptyManning();
+    renderManning();
+    syncSheets();
+}
 function dl(name,content,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;a.click();}
 
 
@@ -3239,7 +3151,7 @@ function renderPromotions(){
     }).join('');
 }
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeEdit();closeSettings();closeAISettings();closeReqModal();closeKPIModal();closeJSONImport();closeKPISectionModal();closeKPIAddModal();closePromoEdit();closeFlowEdit();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeEdit();closeSettings();closeReqModal();closeKPIModal();closeJSONImport();closeKPISectionModal();closeKPIAddModal();closePromoEdit();closeFlowEdit();}});
 // ═══════════════════════ OVERVIEW (squadron-wide, all five flights)
 // Reads the Sheet unscoped rather than localStorage: per-flight state is namespaced
 // and only the flight you last opened is cached, so localStorage can't answer
