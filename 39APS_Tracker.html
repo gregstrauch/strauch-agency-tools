@@ -4491,6 +4491,64 @@ function utaTplLoad(){
     })).then(b=>b?b.arrayBuffer().then(a=>new Uint8Array(a)):null);
 }
 
+/* Sharing the blank template with the whole flight.
+   Greg picks the file once; it is chunked into a squadron-wide `UTATemplate` tab in the same
+   Sheet as the roster, behind the same PIN, and every other tracker then pulls it down on its
+   own. Nobody else ever picks a file.
+
+   Why the Sheet and not the repo: this page is PUBLIC and the form is FOUO / Privacy Act, so it
+   must not ship in the HTML. The Sheet already holds the roster behind the PIN, so the template
+   sits at the same protection level as the data it will be filled in with.
+
+   No Apps Script change was needed for any of this — the generic upsert auto-creates a missing
+   tab, and doGet only applies flight scoping to tabs that HAVE a Flight column. Which is why
+   these two calls talk to the endpoint directly instead of going through appsPost(): appsPost
+   stamps Flight on every row, and a Flight-stamped template would be invisible to a flight that
+   is not Greg's. The template is squadron-wide on purpose. */
+const UTA_TPL_TAB='UTATemplate', UTA_CHUNK=40000;   // Sheets caps a cell at 50k chars
+
+function utaB64(bytes){
+    let s='';
+    for(let i=0;i<bytes.length;i+=8192)s+=String.fromCharCode.apply(null,bytes.subarray(i,i+8192));
+    return btoa(s);
+}
+function utaUnB64(b64){
+    const bin=atob(b64), out=new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++)out[i]=bin.charCodeAt(i);
+    return out;
+}
+
+async function utaTplPublish(bytes){
+    const b64=utaB64(bytes), rows=[];
+    for(let i=0;i*UTA_CHUNK<b64.length;i++)
+        rows.push({Idx:String(i).padStart(3,'0'),Chunk:b64.substr(i*UTA_CHUNK,UTA_CHUNK)});
+    const s=SIGNED_IN()||{};
+    const r=await fetch(loadScriptUrl(),{method:'POST',headers:{'Content-Type':'text/plain'},
+        body:JSON.stringify({tab:UTA_TPL_TAB,action:'upsert',keyFields:['Idx'],rows,
+                             user:s.user,pin:s.pin})});
+    const j=await r.json();
+    if(!j.success)throw new Error(j.error||'publish failed');
+    return rows.length;
+}
+
+async function utaTplFetchShared(){
+    const s=SIGNED_IN()||{};
+    const r=await fetch(loadScriptUrl()+'?tab='+UTA_TPL_TAB+'&all=true'
+        +'&user='+encodeURIComponent(s.user||'')+'&pin='+encodeURIComponent(s.pin||''));
+    if(!r.ok)return null;
+    const j=await r.json();
+    if(!j.success||!j.data||!j.data.length)return null;
+    // Sort NUMERICALLY. Idx is written zero-padded ('000'…'014') but Sheets stores it as a
+    // number and hands back '0'…'14', so a string sort puts '10' before '2' and drops the short
+    // tail chunk into the middle — the base64 comes out full-length, legal, and in the wrong
+    // order, which decodes to garbage and fails as "cannot parse PDF". Same class as the
+    // "(7)" -> -7 coercion already documented in this file.
+    const b64=j.data.slice().sort((a,b)=>Number(a.Idx)-Number(b.Idx))
+                    .map(x=>x.Chunk||'').join('');
+    if(!b64)return null;
+    return utaUnB64(b64);
+}
+
 async function utaLoadTemplate(input){
     const f=input.files&&input.files[0];
     if(!f)return;
@@ -4498,7 +4556,13 @@ async function utaLoadTemplate(input){
     const size=Math.round(utaTemplateBytes.length/1024);
     try{
         await utaTplSave(utaTemplateBytes);
-        utaSetTplStatus('✓ '+f.name+' ('+size+' KB) saved on this device — you will not need to pick it again.',true);
+        utaSetTplStatus('✓ '+f.name+' ('+size+' KB) saved on this device. Sharing it with the flight…',true);
+        try{
+            const n=await utaTplPublish(utaTemplateBytes);
+            utaSetTplStatus('✓ '+f.name+' ('+size+' KB) saved and shared with the flight in '+n+' parts — nobody else has to pick it now.',true);
+        }catch(e2){
+            utaSetTplStatus('✓ '+f.name+' ('+size+' KB) saved on this device, but sharing it with the flight failed ('+e2.message+') — the others will still have to pick it.',false);
+        }
     }catch(e){
         utaSetTplStatus('✓ '+f.name+' ('+size+' KB) loaded for this session, but could not be saved on this device ('+e.message+') — you will have to pick it again next time.',false);
     }
@@ -4518,12 +4582,25 @@ async function utaRestoreTemplate(){
     }catch(e){ try{localStorage.removeItem('afm_uta_tpl');}catch(_){} }
 
     try{
-        const bytes=await utaTplLoad();
-        if(!bytes){utaSetTplStatus('Pick the blank worksheet PDF once — it is then saved on this device.',false);return;}
-        utaTemplateBytes=bytes;
-        utaSetTplStatus('✓ Using the blank template saved on this device ('+Math.round(bytes.length/1024)+' KB) — nothing to pick.',true);
+        let bytes=await utaTplLoad();
+        if(bytes){
+            utaTemplateBytes=bytes;
+            utaSetTplStatus('✓ Using the blank template saved on this device ('+Math.round(bytes.length/1024)+' KB) — nothing to pick.',true);
+            return;
+        }
+        // Nothing local — pull the copy Greg shared, so a new person or a new browser
+        // never has to go find the form.
+        utaSetTplStatus('Looking for the shared blank template…',true);
+        bytes=await utaTplFetchShared();
+        if(bytes){
+            utaTemplateBytes=bytes;
+            try{ await utaTplSave(bytes); }catch(_){}      // cache so the next open is instant
+            utaSetTplStatus('✓ Blank template pulled from the Sheet ('+Math.round(bytes.length/1024)+' KB) and saved on this device — nothing to pick.',true);
+            return;
+        }
+        utaSetTplStatus('No shared template yet — pick the blank worksheet PDF once and it will be shared with the whole flight.',false);
     }catch(e){
-        utaSetTplStatus('Pick the blank worksheet PDF (this device could not open its saved copy: '+e.message+').',false);
+        utaSetTplStatus('Pick the blank worksheet PDF (could not load a saved copy: '+e.message+').',false);
     }
 }
 
