@@ -4462,32 +4462,69 @@ function utaSetTplStatus(msg,ok){
     const el=document.getElementById('utaTplStatus');
     if(el){el.textContent=msg;el.style.color=ok?'#77dd99':'#ffaa66';}
 }
-function utaLoadTemplate(input){
+/* The blank template is kept in IndexedDB, not localStorage. localStorage is a ~5MB
+   STRING store shared with every afm_* key, and the base64 of a 432KB PDF is ~576KB of it —
+   big enough to fail silently on a full profile (which is why the template kept needing to be
+   re-picked) and big enough to crowd out manning/attendance saves. IndexedDB holds the bytes
+   as a Blob: no base64 round-trip, 25% smaller, and sized for binary. */
+const UTA_DB='afm_uta',UTA_STORE='tpl',UTA_KEY='blank';
+function utaOpenDb(){
+    return new Promise((res,rej)=>{
+        const rq=indexedDB.open(UTA_DB,1);
+        rq.onupgradeneeded=()=>rq.result.createObjectStore(UTA_STORE);
+        rq.onsuccess=()=>res(rq.result);
+        rq.onerror=()=>rej(rq.error||new Error('IndexedDB unavailable'));
+    });
+}
+function utaTplSave(bytes){
+    return utaOpenDb().then(db=>new Promise((res,rej)=>{
+        const tx=db.transaction(UTA_STORE,'readwrite');
+        tx.objectStore(UTA_STORE).put(new Blob([bytes],{type:'application/pdf'}),UTA_KEY);
+        tx.oncomplete=()=>res(true); tx.onerror=()=>rej(tx.error);
+    }));
+}
+function utaTplLoad(){
+    return utaOpenDb().then(db=>new Promise((res,rej)=>{
+        const tx=db.transaction(UTA_STORE,'readonly');
+        const rq=tx.objectStore(UTA_STORE).get(UTA_KEY);
+        rq.onsuccess=()=>res(rq.result||null); rq.onerror=()=>rej(rq.error);
+    })).then(b=>b?b.arrayBuffer().then(a=>new Uint8Array(a)):null);
+}
+
+async function utaLoadTemplate(input){
     const f=input.files&&input.files[0];
     if(!f)return;
-    const rd=new FileReader();
-    rd.onload=()=>{
-        utaTemplateBytes=new Uint8Array(rd.result);
-        let note='';
-        try{
-            let s='';const b=utaTemplateBytes;
-            for(let i=0;i<b.length;i+=8192)s+=String.fromCharCode.apply(null,b.subarray(i,i+8192));
-            localStorage.setItem('afm_uta_tpl',btoa(s));
-            note=' Cached on this device — you will not have to pick it again.';
-        }catch(e){note=' (too big to cache — pick it again next session)';}
-        utaSetTplStatus('✓ '+f.name+' loaded, '+Math.round(f.size/1024)+' KB.'+note,true);
-    };
-    rd.readAsArrayBuffer(f);
+    utaTemplateBytes=new Uint8Array(await f.arrayBuffer());
+    const size=Math.round(utaTemplateBytes.length/1024);
+    try{
+        await utaTplSave(utaTemplateBytes);
+        utaSetTplStatus('✓ '+f.name+' ('+size+' KB) saved on this device — you will not need to pick it again.',true);
+    }catch(e){
+        utaSetTplStatus('✓ '+f.name+' ('+size+' KB) loaded for this session, but could not be saved on this device ('+e.message+') — you will have to pick it again next time.',false);
+    }
 }
-function utaRestoreTemplate(){
+
+async function utaRestoreTemplate(){
+    // One-time move of anything the old localStorage version cached, then drop it so the
+    // ~576KB of base64 stops competing with the roster data for the same quota.
     try{
         const b64=localStorage.getItem('afm_uta_tpl');
-        if(!b64)return utaSetTplStatus('Pick the blank worksheet PDF once — it stays on this device.',false);
-        const bin=atob(b64),arr=new Uint8Array(bin.length);
-        for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);
-        utaTemplateBytes=arr;
-        utaSetTplStatus('✓ Blank template restored from this device ('+Math.round(arr.length/1024)+' KB).',true);
-    }catch(e){utaSetTplStatus('Pick the blank worksheet PDF.',false);}
+        if(b64){
+            const bin=atob(b64),arr=new Uint8Array(bin.length);
+            for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);
+            await utaTplSave(arr);
+            localStorage.removeItem('afm_uta_tpl');
+        }
+    }catch(e){ try{localStorage.removeItem('afm_uta_tpl');}catch(_){} }
+
+    try{
+        const bytes=await utaTplLoad();
+        if(!bytes){utaSetTplStatus('Pick the blank worksheet PDF once — it is then saved on this device.',false);return;}
+        utaTemplateBytes=bytes;
+        utaSetTplStatus('✓ Using the blank template saved on this device ('+Math.round(bytes.length/1024)+' KB) — nothing to pick.',true);
+    }catch(e){
+        utaSetTplStatus('Pick the blank worksheet PDF (this device could not open its saved copy: '+e.message+').',false);
+    }
 }
 
 function utaDayRows(container,prefix){
@@ -4520,9 +4557,9 @@ function utaBuildForm(){
 
 /* Opened from the Attendance tab. Prefills who and when from the roster row — the whole
    point of doing this here instead of retyping it on a laptop. */
-function openUtaWorksheet(name,status){
+async function openUtaWorksheet(name,status){
     if(!document.getElementById('utaRank').options.length)utaBuildForm();
-    utaRestoreTemplate();
+    const restoring=utaRestoreTemplate();
     const p=(getAllPersonnel()||[]).find(x=>x.name===name)||{};
     document.getElementById('utaName').value=name||'';
     document.getElementById('utaRank').value=UTA_RANKS.indexOf(p.rank)>-1?p.rank:'';
@@ -4535,6 +4572,7 @@ function openUtaWorksheet(name,status){
     if(s&&s.user&&!document.getElementById('utaCompletedBy').value)
         document.getElementById('utaCompletedBy').value=s.user;
     document.getElementById('utaModal').classList.add('active');
+    await restoring;
 }
 
 function utaCollect(){
