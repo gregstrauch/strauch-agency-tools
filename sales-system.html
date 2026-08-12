@@ -5,36 +5,49 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TSA Sales System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+/* Light theme on the official Farmers palette, matching the Strauch design
+   system (~/strauch-design-system). The accent variable NAMES are historical —
+   they are kept because ~230 rules reference them — so read the role, not the
+   name:
+     --green  = brand        Farmers Red      #E01933  nav, kickers, primary
+     --blue   = accent       Farmers Blue     #003087  email/secondary actions
+     --purple = life         Farmers Magenta  #D40163  life-insurance content
+     --orange = voicemail    Mid Magenta      #E34692
+     --red    = warning      Farmers Dark Red #B30032  breakups, cautions
+     --teal   = success      derived green    #0E7A46  copied/confirmed
+     --yellow = caution      derived amber    #A96500  script warnings
+   Neutrals and the two derived accents are NOT official Farmers colors — the
+   brand sheet defines only black and white for neutrals. */
 :root{
-  --bg:#0B0C10;--bg2:#111319;--bg3:#161923;--border:#242835;--border2:#2E3342;
-  --green:#00E0B8;--yellow:#FFB84D;--purple:#B39DFF;--red:#FF6B6B;--orange:#FF9F5B;--blue:#5EA8FF;--teal:#3DDCA8;
-  --text:#EDEEF2;--muted:#9096A8;--dim:#5A6076;
-  --cbg:#0A1815;--ctxt:#5FE0BE;
-  --mono:"DM Mono",monospace;--sans:"Inter",-apple-system,sans-serif;
+  --bg:#F4F6FA;--bg2:#FFFFFF;--bg3:#F7F9FC;--border:#D8DEE9;--border2:#B9C2D2;
+  --green:#E01933;--yellow:#A96500;--purple:#D40163;--red:#B30032;--orange:#E34692;--blue:#003087;--teal:#0E7A46;
+  --text:#12161F;--muted:#465061;--dim:#5F6A7D;
+  --cbg:#DAE7FF;--ctxt:#003087;
+  --mono:"DM Mono",monospace;--sans:"DM Sans",-apple-system,sans-serif;
   --radius:12px;--radius-sm:8px;
-  --shadow:0 2px 10px rgba(0,0,0,.25);--shadow-lg:0 8px 30px rgba(0,0,0,.35);
+  --shadow:0 1px 3px rgba(18,22,31,.08);--shadow-lg:0 8px 24px rgba(18,22,31,.12);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased;}
 
 /* ── NAV — TOP PILL BAR ───────────────────────────── */
-#sn{position:fixed;top:0;left:0;width:100%;background:rgba(11,12,16,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;z-index:100;overflow-x:auto;overflow-y:hidden;white-space:nowrap;padding:10px 20px;height:64px;gap:6px;}
+#sn{position:fixed;top:0;left:0;width:100%;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;z-index:100;overflow-x:auto;overflow-y:hidden;white-space:nowrap;padding:10px 20px;height:64px;gap:6px;}
 #sn::-webkit-scrollbar{height:4px;}
 .nl{display:flex;flex-direction:column;justify-content:center;padding-right:18px;margin-right:10px;border-right:1px solid var(--border);height:40px;flex-shrink:0;}
 .ns{font-family:var(--mono);font-size:8px;letter-spacing:.18em;color:var(--dim);text-transform:uppercase;display:block;}
 .nt{font-size:13px;font-weight:700;color:var(--text);line-height:1.2;white-space:nowrap;letter-spacing:-.01em;}
 .nt span{color:var(--green);}
-.ng{font-family:var(--mono);font-size:8px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase;padding:0 6px 0 10px;flex-shrink:0;display:inline-flex;align-items:center;height:40px;opacity:.6;}
+.ng{font-family:var(--mono);font-size:8px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;padding:0 6px 0 10px;flex-shrink:0;display:inline-flex;align-items:center;height:40px;}
 .ni{display:inline-flex;align-items:center;padding:0 16px;height:40px;font-family:var(--sans);font-weight:600;font-size:12.5px;letter-spacing:-.01em;color:var(--muted);border:1px solid transparent;border-radius:999px;background:transparent;transition:all .15s ease;cursor:pointer;white-space:nowrap;flex-shrink:0;}
 .ni:hover{color:var(--text);background:var(--bg3);border-color:var(--border2);}
-.ni.active{color:#04211B;background:var(--green);border-color:var(--green);box-shadow:0 2px 12px rgba(0,224,184,.35);font-weight:700;}
+.ni.active{color:#FFFFFF;background:var(--green);border-color:var(--green);box-shadow:0 2px 12px rgba(224,25,51,.35);font-weight:700;}
 #main{margin-left:0;margin-top:64px;min-height:100vh;}
 
 /* ── SECTION HEADERS ──────────────────────────────── */
 .ph{padding:14px 26px 12px;border-bottom:1px solid var(--border);}
-.ps{font-family:var(--mono);font-size:8.5px;letter-spacing:.16em;color:var(--green);text-transform:uppercase;margin-bottom:3px;font-weight:500;}
+.ps{font-family:var(--mono);font-size:8.5px;letter-spacing:.16em;color:var(--red);text-transform:uppercase;margin-bottom:3px;font-weight:500;}
 .pt{font-size:18px;font-weight:800;letter-spacing:-.02em;color:var(--text);margin-bottom:2px;}
 .pm{font-size:11.5px;color:var(--muted);}
 .sec{display:none;padding:14px 26px 32px;max-width:900px;}.sec.active{display:block;}
@@ -47,15 +60,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 /* ── DIALOGUE CARDS ────────────────────────────────── */
 .lc{border-radius:var(--radius-sm);overflow:hidden;margin-bottom:6px;box-shadow:var(--shadow);}
 .lb{display:flex;gap:10px;padding:9px 13px;border:1px solid var(--border);}
-.lb.y{background:linear-gradient(135deg,#0E2622,#0A1815);border-color:rgba(0,224,184,.2);}
+.lb.y{background:linear-gradient(135deg,#DAE7FF,#F0F5FF);border-color:rgba(224,25,51,.2);}
 .lb.th{background:var(--bg2);border-color:var(--border);}
 .lb.fa{background:var(--bg3);border-color:var(--border);}
 .ls{font-family:var(--mono);font-size:9px;letter-spacing:.08em;font-weight:700;min-width:38px;padding-top:1px;flex-shrink:0;}
 .lt{flex:1;font-size:13px;line-height:1.5;color:var(--text);}
 .lt.th{color:var(--muted);font-style:italic;}
-.lt.fa{color:#B0B4C2;font-size:12px;}
+.lt.fa{color:#465061;font-size:12px;}
 .ct{margin-top:6px;background:none;border:none;cursor:pointer;font-family:var(--sans);font-size:10.5px;font-weight:600;letter-spacing:0;padding:0;display:block;}
-.cn{display:none;padding:9px 13px 10px 60px;background:var(--cbg);border:1px solid rgba(0,224,184,.15);border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);font-size:11.5px;color:var(--ctxt);line-height:1.5;}.cn.open{display:block;}
+.cn{display:none;padding:9px 13px 10px 60px;background:var(--cbg);border:1px solid rgba(224,25,51,.15);border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);font-size:11.5px;color:var(--ctxt);line-height:1.5;}.cn.open{display:block;}
 .lc.open .lb{border-radius:var(--radius-sm) var(--radius-sm) 0 0;}
 
 /* ── MESSAGE / EMAIL / VM BLOCKS ──────────────────── */
@@ -63,40 +76,40 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 .mm{display:flex;align-items:center;justify-content:space-between;padding:6px 12px;border-bottom:1px solid var(--border);background:var(--bg);}
 .mt{font-family:var(--mono);font-size:9.5px;color:var(--dim);letter-spacing:.02em;}
 .cb{font-family:var(--sans);font-weight:600;font-size:10px;padding:4px 11px;background:var(--bg3);border:1px solid var(--border2);color:var(--muted);border-radius:999px;cursor:pointer;transition:all .15s;}
-.cb:hover{border-color:var(--green);color:var(--green);background:rgba(0,224,184,.08);}
-.cb.copied{border-color:var(--teal);color:var(--teal);background:rgba(61,220,168,.12);}
+.cb:hover{border-color:var(--green);color:var(--green);background:rgba(224,25,51,.08);}
+.cb.copied{border-color:var(--teal);color:var(--teal);background:rgba(14,122,70,.12);}
 .msub{padding:7px 12px;border-bottom:1px solid var(--border);font-size:11px;}.msub strong{font-family:var(--mono);font-size:8.5px;color:var(--dim);margin-right:6px;}
 .mc{padding:10px 12px;font-size:12px;line-height:1.55;white-space:pre-wrap;color:var(--text);font-family:var(--mono);}
-.sc{margin-top:8px;padding:9px 12px;border:1px solid rgba(255,184,77,.22);background:rgba(255,184,77,.06);border-radius:var(--radius-sm);font-size:11px;color:#E0BD82;line-height:1.5;}
+.sc{margin-top:8px;padding:9px 12px;border:1px solid rgba(169,101,0,.22);background:rgba(169,101,0,.06);border-radius:var(--radius-sm);font-size:11px;color:#7A4A00;line-height:1.5;}
 .sc strong{font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;color:var(--yellow);display:block;margin-bottom:3px;}
 
 /* ── PILL TAB SWITCHER ─────────────────────────────── */
 .stab{display:flex;background:var(--bg2);border:1px solid var(--border);border-radius:999px;padding:4px;gap:4px;margin-bottom:22px;flex-wrap:wrap;}
 .stabtn{flex:1;min-width:110px;font-family:var(--sans);font-weight:600;font-size:12px;padding:9px 6px;border:1px solid transparent;border-radius:999px;cursor:pointer;background:transparent;color:var(--muted);transition:all .15s;text-align:center;}
 .stabtn:hover{color:var(--text);}
-.stabtn.av{background:var(--green);color:#04211B;box-shadow:0 2px 10px rgba(0,224,184,.3);}
-.stabtn.ab{background:var(--blue);color:#0A1830;box-shadow:0 2px 10px rgba(94,168,255,.3);}
+.stabtn.av{background:var(--green);color:#FFFFFF;box-shadow:0 2px 10px rgba(224,25,51,.3);}
+.stabtn.ab{background:var(--blue);color:#FFFFFF;box-shadow:0 2px 10px rgba(0,48,135,.3);}
 
 /* ── FILTER / TAG PILLS ────────────────────────────── */
 .pb{padding:9px 16px;border-radius:999px;cursor:pointer;border:1px solid var(--border2);background:var(--bg2);color:var(--muted);transition:all .15s;font-family:var(--sans);font-weight:600;font-size:12px;}
 .pb:hover{border-color:var(--blue);color:var(--text);background:var(--bg3);}
 .ep-tag{padding:8px 15px;border-radius:999px;cursor:pointer;border:1px solid var(--border2);background:var(--bg2);color:var(--muted);transition:all .15s;user-select:none;font-family:var(--sans);font-weight:600;font-size:12px;}
 .ep-tag:hover{border-color:var(--blue);color:var(--text);}
-.ep-tag.active{background:var(--blue);border-color:var(--blue);color:#0A1830;box-shadow:0 2px 10px rgba(94,168,255,.3);}
+.ep-tag.active{background:var(--blue);border-color:var(--blue);color:#FFFFFF;box-shadow:0 2px 10px rgba(0,48,135,.3);}
 
 /* ── EMAIL PICKER CARDS ────────────────────────────── */
 .ep-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .2s;margin-bottom:14px;box-shadow:var(--shadow);}
-.ep-card.best{border-color:rgba(94,168,255,.5);box-shadow:0 4px 20px rgba(94,168,255,.15);}
+.ep-card.best{border-color:rgba(0,48,135,.5);box-shadow:0 4px 20px rgba(0,48,135,.15);}
 .ep-ch{display:flex;align-items:center;justify-content:space-between;padding:15px 17px;cursor:pointer;border-bottom:1px solid var(--border);background:var(--bg3);}
 .ep-cl{font-size:14.5px;font-weight:600;color:var(--text);}
-.ep-bb{font-family:var(--sans);font-weight:700;font-size:10px;text-transform:uppercase;background:var(--blue);color:#0A1830;padding:4px 10px;border-radius:999px;margin-right:10px;letter-spacing:.03em;}
+.ep-bb{font-family:var(--sans);font-weight:700;font-size:10px;text-transform:uppercase;background:var(--blue);color:#FFFFFF;padding:4px 10px;border-radius:999px;margin-right:10px;letter-spacing:.03em;}
 .ep-arr{font-size:11px;color:var(--dim);transition:transform .2s;}.ep-arr.open{transform:rotate(180deg);}
 .ep-st{display:flex;gap:6px;flex-wrap:wrap;padding:10px 17px;border-bottom:1px solid var(--border);}
 .ep-ct{font-family:var(--mono);font-size:10px;text-transform:uppercase;color:var(--muted);background:var(--bg);padding:4px 9px;border-radius:999px;border:1px solid var(--border);}
 .ep-bd{padding:17px;display:none;}.ep-bd.open{display:block;}
-.ep-es{font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-bottom:8px;}.ep-es span{color:#C4C9D8;}
-.ep-et{font-size:13.5px;line-height:1.8;color:#C4C9D8;white-space:pre-wrap;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;font-family:var(--mono);}
-.ep-cb{margin-top:12px;padding:9px 18px;background:var(--blue);color:#0A1830;border:none;border-radius:999px;font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:.02em;text-transform:uppercase;cursor:pointer;transition:all .15s;}
+.ep-es{font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-bottom:8px;}.ep-es span{color:#465061;}
+.ep-et{font-size:13.5px;line-height:1.8;color:#465061;white-space:pre-wrap;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;font-family:var(--mono);}
+.ep-cb{margin-top:12px;padding:9px 18px;background:var(--blue);color:#FFFFFF;border:none;border-radius:999px;font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:.02em;text-transform:uppercase;cursor:pointer;transition:all .15s;}
 .ep-cb:hover{filter:brightness(1.1);}
 .ep-cb.copied{background:var(--teal);}
 .ep-nr{padding:40px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;}
@@ -106,36 +119,36 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 .tc:hover{border-color:var(--border2);}
 .tch{display:flex;align-items:center;gap:12px;padding:14px 18px;cursor:pointer;background:var(--bg2);user-select:none;}
 .tn{font-family:var(--mono);font-size:10.5px;color:var(--dim);width:26px;flex-shrink:0;}
-.ch-t{background:rgba(61,220,168,.12);color:var(--teal);border:1px solid rgba(61,220,168,.25);font-family:var(--sans);font-weight:700;font-size:10px;padding:4px 10px;border-radius:999px;}
-.ch-e{background:rgba(94,168,255,.12);color:var(--blue);border:1px solid rgba(94,168,255,.25);font-family:var(--sans);font-weight:700;font-size:10px;padding:4px 10px;border-radius:999px;}
-.ch-v{background:rgba(255,159,91,.12);color:var(--orange);border:1px solid rgba(255,159,91,.25);font-family:var(--sans);font-weight:700;font-size:10px;padding:4px 10px;border-radius:999px;}
-.ch-c{background:rgba(179,157,255,.12);color:var(--purple);border:1px solid rgba(179,157,255,.25);font-family:var(--sans);font-weight:700;font-size:10px;padding:4px 10px;border-radius:999px;}
+.ch-t{background:rgba(14,122,70,.12);color:var(--teal);border:1px solid rgba(14,122,70,.25);font-family:var(--sans);font-weight:700;font-size:10px;padding:4px 10px;border-radius:999px;}
+.ch-e{background:rgba(0,48,135,.12);color:var(--blue);border:1px solid rgba(0,48,135,.25);font-family:var(--sans);font-weight:700;font-size:10px;padding:4px 10px;border-radius:999px;}
+.ch-v{background:rgba(227,70,146,.12);color:var(--orange);border:1px solid rgba(227,70,146,.25);font-family:var(--sans);font-weight:700;font-size:10px;padding:4px 10px;border-radius:999px;}
+.ch-c{background:rgba(212,1,99,.12);color:var(--purple);border:1px solid rgba(212,1,99,.25);font-family:var(--sans);font-weight:700;font-size:10px;padding:4px 10px;border-radius:999px;}
 .ttl{font-size:13px;color:var(--text);font-weight:600;}.tgl{font-size:12.5px;color:var(--muted);margin-left:auto;}
 .tcv{color:var(--dim);font-size:11px;margin-left:6px;transition:transform .2s;}
 .tc.open .tcv{transform:rotate(180deg);}
 .tcb{display:none;padding:0 18px 18px;background:var(--bg);}.tc.open .tcb{display:block;}
-.bt{font-family:var(--sans);font-weight:700;font-size:9.5px;background:rgba(255,107,107,.15);color:var(--red);padding:3px 9px;border-radius:999px;margin-left:8px;letter-spacing:.02em;}
-.lbadge{font-family:var(--sans);font-weight:700;font-size:9.5px;background:rgba(179,157,255,.15);color:var(--purple);padding:3px 9px;border-radius:999px;margin-left:8px;letter-spacing:.02em;}
+.bt{font-family:var(--sans);font-weight:700;font-size:9.5px;background:rgba(179,0,50,.15);color:var(--red);padding:3px 9px;border-radius:999px;margin-left:8px;letter-spacing:.02em;}
+.lbadge{font-family:var(--sans);font-weight:700;font-size:9.5px;background:rgba(212,1,99,.15);color:var(--purple);padding:3px 9px;border-radius:999px;margin-left:8px;letter-spacing:.02em;}
 
 /* ── OBJECTION CARDS ───────────────────────────────── */
 .opl{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;margin:26px 0 14px;color:var(--muted);}
 .oc{border-radius:var(--radius);overflow:hidden;margin-bottom:12px;border:1px solid var(--border);box-shadow:var(--shadow);}
 .ot{padding:13px 17px;background:var(--bg2);border-bottom:1px solid var(--border);font-size:14.5px;font-weight:600;color:var(--text);}
-.or{padding:16px 17px;background:linear-gradient(135deg,#0E2622,#0A1815);font-size:13.5px;line-height:1.8;color:#B8EFDC;}
+.or{padding:16px 17px;background:linear-gradient(135deg,#DAE7FF,#F0F5FF);font-size:13.5px;line-height:1.8;color:#12161F;}
 .owt{margin-top:10px;background:none;border:none;cursor:pointer;font-family:var(--sans);font-weight:600;font-size:11.5px;padding:0;display:block;color:var(--ctxt);}
-.ow{display:none;padding:13px 17px 15px;background:var(--cbg);border-top:1px solid rgba(0,224,184,.15);font-size:12.5px;color:var(--ctxt);line-height:1.7;}.ow.open{display:block;}
+.ow{display:none;padding:13px 17px 15px;background:var(--cbg);border-top:1px solid rgba(224,25,51,.15);font-size:12.5px;color:var(--ctxt);line-height:1.7;}.ow.open{display:block;}
 
 /* ── INFO GRID / CALLOUT CARDS ─────────────────────── */
 .ig{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
 .ic{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px 17px;}
 .icl{font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px;}
-.ict{font-size:13px;color:#B0B4C2;line-height:1.65;}
-.fb{background:rgba(255,184,77,.06);border:1px solid rgba(255,184,77,.22);border-radius:var(--radius);padding:16px 18px;}
+.ict{font-size:13px;color:#465061;line-height:1.65;}
+.fb{background:rgba(169,101,0,.06);border:1px solid rgba(169,101,0,.22);border-radius:var(--radius);padding:16px 18px;}
 .fbl{font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px;}
-.fbs{font-size:13px;color:#E0BD82;line-height:1.65;}
-.lifebox{background:linear-gradient(135deg,#181230,#120E22);border:1px solid rgba(179,157,255,.28);border-radius:var(--radius);padding:18px 20px;margin-bottom:18px;}
+.fbs{font-size:13px;color:#7A4A00;line-height:1.65;}
+.lifebox{background:linear-gradient(135deg,#FEC6E9,#FFF0F8);border:1px solid rgba(212,1,99,.28);border-radius:var(--radius);padding:18px 20px;margin-bottom:18px;}
 .lifebox .lbl{font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--purple);margin-bottom:8px;}
-.lifebox p{font-size:13.5px;color:#C9BFEE;line-height:1.75;}
+.lifebox p{font-size:13.5px;color:#7A0138;line-height:1.75;}
 
 /* ── RESPONSIVE — TABLET ───────────────────────────── */
 @media (max-width:900px){
@@ -227,7 +240,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
   <div style="padding:20px 44px 0">
   <div class="lifebox" style="margin-top:8px">
     <div class="lbl">&#9670; The Standard: A Life Quote With Every Package</div>
-    <p>Every quote that leaves this agency includes a term life number. Not asked about — <strong style="color:#E4DBFF">included</strong>. You plant it during intake, run it during the quote build, and present it on the walkthrough using the same Problem Awareness &rarr; Consequence &rarr; Solution Pivot sequence as home/auto.</p>
+    <p>Every quote that leaves this agency includes a term life number. Not asked about — <strong style="color:#7A0138">included</strong>. You plant it during intake, run it during the quote build, and present it on the walkthrough using the same Problem Awareness &rarr; Consequence &rarr; Solution Pivot sequence as home/auto.</p>
   </div>
   </div>
 
@@ -678,19 +691,19 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
     <div class="stag f"><div class="tll" style="background:var(--purple)"></div><span class="tln" style="color:var(--purple)">The Method: Skeptical &rarr; Curious &rarr; Committed</span><div class="tlr" style="background:var(--purple)"></div></div>
     <p class="sn">Every objection below is built on consultative questioning mechanics — the goal is never to rebut. It is to ask questions that let the prospect talk themselves out of the objection. A statement you make can be argued with. A conclusion they reach on their own cannot.</p>
     <div class="ig" style="margin-top:0;margin-bottom:20px">
-      <div class="ic" style="border-color:rgba(179,157,255,.3)"><div class="icl" style="color:var(--purple)">Tonality First</div><p class="ict">How you say it beats what you say. Calm, curious, slightly-unsure tone — never eager or defensive. Slow down. Sound like you are helping them think, not closing them.</p></div>
-      <div class="ic" style="border-color:rgba(255,184,77,.3)"><div class="icl" style="color:var(--yellow)">Ask, Don't Tell</div><p class="ict">Never counter an objection with a statement. Counter it with a question that exposes the gap in their own thinking. When they answer, THEY surface the problem.</p></div>
-      <div class="ic" style="border-color:rgba(61,220,168,.3)"><div class="icl" style="color:var(--teal)">Let Silence Work</div><p class="ict">After a real question, stop talking. The pause is where they do the internal math that moves them. Ask, then wait.</p></div>
+      <div class="ic" style="border-color:rgba(212,1,99,.3)"><div class="icl" style="color:var(--purple)">Tonality First</div><p class="ict">How you say it beats what you say. Calm, curious, slightly-unsure tone — never eager or defensive. Slow down. Sound like you are helping them think, not closing them.</p></div>
+      <div class="ic" style="border-color:rgba(169,101,0,.3)"><div class="icl" style="color:var(--yellow)">Ask, Don't Tell</div><p class="ict">Never counter an objection with a statement. Counter it with a question that exposes the gap in their own thinking. When they answer, THEY surface the problem.</p></div>
+      <div class="ic" style="border-color:rgba(14,122,70,.3)"><div class="icl" style="color:var(--teal)">Let Silence Work</div><p class="ict">After a real question, stop talking. The pause is where they do the internal math that moves them. Ask, then wait.</p></div>
     </div>
     <div class="stag"><div class="tll" style="background:var(--purple)"></div><span class="tln" style="color:var(--purple)">The 3 Question Types That Move Every Objection</span><div class="tlr" style="background:var(--purple)"></div></div>
     <div style="display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:20px">
-      <div style="padding:13px 16px;background:var(--bg2);border:1px solid rgba(94,168,255,.25);border-radius:var(--radius-sm);font-size:13px;color:#C4D4E8"><strong style="font-family:var(--sans);font-weight:700;font-size:10px;letter-spacing:.08em;color:var(--blue);display:block;margin-bottom:4px">1. CLARIFYING QUESTION</strong>Neutralizes the reflex and finds the REAL objection. You cannot solve an objection you have not identified.</div>
-      <div style="padding:13px 16px;background:var(--bg2);border:1px solid rgba(255,184,77,.25);border-radius:var(--radius-sm);font-size:13px;color:#E4D4B8"><strong style="font-family:var(--sans);font-weight:700;font-size:10px;letter-spacing:.08em;color:var(--yellow);display:block;margin-bottom:4px">2. CONSEQUENCE QUESTION</strong>Makes them feel the cost of the gap in their own words. Logic makes people think; consequence makes them move.</div>
-      <div style="padding:13px 16px;background:var(--bg2);border:1px solid rgba(61,220,168,.25);border-radius:var(--radius-sm);font-size:13px;color:#C0E8D4"><strong style="font-family:var(--sans);font-weight:700;font-size:10px;letter-spacing:.08em;color:var(--teal);display:block;margin-bottom:4px">3. COMMITMENT QUESTION</strong>Lets them state the next step themselves. A yes they say out loud sticks.</div>
+      <div style="padding:13px 16px;background:var(--bg2);border:1px solid rgba(0,48,135,.25);border-radius:var(--radius-sm);font-size:13px;color:#465061"><strong style="font-family:var(--sans);font-weight:700;font-size:10px;letter-spacing:.08em;color:var(--blue);display:block;margin-bottom:4px">1. CLARIFYING QUESTION</strong>Neutralizes the reflex and finds the REAL objection. You cannot solve an objection you have not identified.</div>
+      <div style="padding:13px 16px;background:var(--bg2);border:1px solid rgba(169,101,0,.25);border-radius:var(--radius-sm);font-size:13px;color:#7A4A00"><strong style="font-family:var(--sans);font-weight:700;font-size:10px;letter-spacing:.08em;color:var(--yellow);display:block;margin-bottom:4px">2. CONSEQUENCE QUESTION</strong>Makes them feel the cost of the gap in their own words. Logic makes people think; consequence makes them move.</div>
+      <div style="padding:13px 16px;background:var(--bg2);border:1px solid rgba(14,122,70,.25);border-radius:var(--radius-sm);font-size:13px;color:#465061"><strong style="font-family:var(--sans);font-weight:700;font-size:10px;letter-spacing:.08em;color:var(--teal);display:block;margin-bottom:4px">3. COMMITMENT QUESTION</strong>Lets them state the next step themselves. A yes they say out loud sticks.</div>
     </div>
     <div class="fb" style="margin-bottom:20px"><div class="fbl" style="color:var(--yellow)">The Pre-Commitment Check</div><p class="fbs">Before asking for the next step, surface remaining resistance: "Is there anything still sitting in the back of your mind before we move forward?" Never assume silence is agreement.</p></div>
     <div style="display:flex;gap:8px;margin-bottom:26px;flex-wrap:wrap">
-      <button class="pb" id="pf-all" style="background:var(--green);border-color:var(--green);color:#04211B" onclick="fObj('all',this)">All 30</button>
+      <button class="pb" id="pf-all" style="background:var(--green);border-color:var(--green);color:#FFFFFF" onclick="fObj('all',this)">All 30</button>
       <button class="pb" onclick="fObj('early',this)">&#128308; Early Call (6)</button>
       <button class="pb" onclick="fObj('mid',this)">&#128993; Mid-Call (8)</button>
       <button class="pb" onclick="fObj('post',this)">&#128994; Post-Quote (16)</button>
@@ -719,7 +732,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
     </div>
     <div style="font-family:var(--sans);font-weight:700;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin-bottom:8px">When are you sending this?</div>
     <div style="display:flex;gap:8px;margin-bottom:16px" id="ep-phase-tabs">
-      <button class="pb" id="ept-send" style="background:var(--blue);border-color:var(--blue);color:#0A1830" onclick="epSetPhase('send',this)">Sending the Quote</button>
+      <button class="pb" id="ept-send" style="background:var(--blue);border-color:var(--blue);color:#FFFFFF" onclick="epSetPhase('send',this)">Sending the Quote</button>
       <button class="pb" id="ept-post" onclick="epSetPhase('post',this)">After the Walkthrough Call</button>
       <button class="pb" id="ept-all" onclick="epSetPhase('all',this)">All Emails</button>
     </div>
@@ -1019,12 +1032,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 
     <div class="lifebox" style="margin-bottom:16px">
       <div class="lbl">&#9670; The Core Idea</div>
-      <p>Everything in Sections 01–05 assumes one prospect. There isn't one. The same true statement lands completely differently depending on who is on the line. This section is about <strong style="color:#E4DBFF">how you frame a true thing</strong> — never about manufacturing a false one. Read the person in the first two minutes, then run the same scripts with adjusted language.</p>
+      <p>Everything in Sections 01–05 assumes one prospect. There isn't one. The same true statement lands completely differently depending on who is on the line. This section is about <strong style="color:#7A0138">how you frame a true thing</strong> — never about manufacturing a false one. Read the person in the first two minutes, then run the same scripts with adjusted language.</p>
     </div>
 
-    <div class="fb" style="margin-bottom:20px;border-color:rgba(255,107,107,.3);background:rgba(255,107,107,.06)">
+    <div class="fb" style="margin-bottom:20px;border-color:rgba(179,0,50,.3);background:rgba(179,0,50,.06)">
       <div class="fbl" style="color:var(--red)">The Hard Line — Read This First</div>
-      <p class="fbs" style="color:#F0A8A8">Every need below has a matching fear. You will be tempted to press the fear — imply they'd look foolish, careless, or like a bad parent if they don't buy. <strong>Do not.</strong> Three reasons: it is manipulation; a fear-closed client cancels at renewal and you lose the lifetime value; and it destroys the "if they're better, take it" posture that generates every referral you get. Use needs to decide <em>how you say a true thing</em>. Never to invent a threat.</p>
+      <p class="fbs" style="color:#B30032">Every need below has a matching fear. You will be tempted to press the fear — imply they'd look foolish, careless, or like a bad parent if they don't buy. <strong>Do not.</strong> Three reasons: it is manipulation; a fear-closed client cancels at renewal and you lose the lifetime value; and it destroys the "if they're better, take it" posture that generates every referral you get. Use needs to decide <em>how you say a true thing</em>. Never to invent a threat.</p>
     </div>
 
     <div class="stag f">
@@ -1096,12 +1109,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
     <p class="sn">How they decide, separate from what they need. Most people run two adjacent styles.</p>
 
     <div class="ig" style="margin-bottom:14px">
-      <div class="ic" style="border-color:rgba(94,168,255,.3)"><div class="icl" style="color:var(--blue)">Necessity</div><p class="ict"><strong>Tell:</strong> "What do I actually need?" Practical, no frills, but not necessarily cheap-driven.<br><br><strong>Frame:</strong> "This is the number that actually works — nothing padded in here."</p></div>
-      <div class="ic" style="border-color:rgba(94,168,255,.3)"><div class="icl" style="color:var(--blue)">Investment</div><p class="ict"><strong>Tell:</strong> Asks about long term, does math out loud, compares.<br><br><strong>Frame:</strong> Cost-per-month vs. exposure. <strong>Your dwelling-gap math lands hardest here.</strong></p></div>
-      <div class="ic" style="border-color:rgba(94,168,255,.3)"><div class="icl" style="color:var(--blue)">Conformity</div><p class="ict"><strong>Tell:</strong> "Is that typical?" "What do most people do?"<br><br><strong>Frame:</strong> "Most homeowners in [area] carry..." Your scripts already do this well.</p></div>
-      <div class="ic" style="border-color:rgba(94,168,255,.3)"><div class="icl" style="color:var(--blue)">Social Image</div><p class="ict"><strong>Tell:</strong> Frames things around family, responsibility, being the one who handles it.<br><br><strong>Frame:</strong> Protecting the household. Being the person who got it right.</p></div>
-      <div class="ic" style="border-color:rgba(94,168,255,.3)"><div class="icl" style="color:var(--blue)">Novelty</div><p class="ict"><strong>Tell:</strong> Interested in the app, the tech, how it works now vs. before.<br><br><strong>Frame:</strong> Modern service model, app, proactive annual reviews.</p></div>
-      <div class="ic" style="border-color:rgba(255,107,107,.35)"><div class="icl" style="color:var(--red)">Deviance &#9888;</div><p class="ict"><strong>Tell:</strong> Rejects the standard answer. "I don't do things the normal way."<br><br><strong>Frame:</strong> The smarter non-obvious choice. <strong>Never "most people."</strong></p></div>
+      <div class="ic" style="border-color:rgba(0,48,135,.3)"><div class="icl" style="color:var(--blue)">Necessity</div><p class="ict"><strong>Tell:</strong> "What do I actually need?" Practical, no frills, but not necessarily cheap-driven.<br><br><strong>Frame:</strong> "This is the number that actually works — nothing padded in here."</p></div>
+      <div class="ic" style="border-color:rgba(0,48,135,.3)"><div class="icl" style="color:var(--blue)">Investment</div><p class="ict"><strong>Tell:</strong> Asks about long term, does math out loud, compares.<br><br><strong>Frame:</strong> Cost-per-month vs. exposure. <strong>Your dwelling-gap math lands hardest here.</strong></p></div>
+      <div class="ic" style="border-color:rgba(0,48,135,.3)"><div class="icl" style="color:var(--blue)">Conformity</div><p class="ict"><strong>Tell:</strong> "Is that typical?" "What do most people do?"<br><br><strong>Frame:</strong> "Most homeowners in [area] carry..." Your scripts already do this well.</p></div>
+      <div class="ic" style="border-color:rgba(0,48,135,.3)"><div class="icl" style="color:var(--blue)">Social Image</div><p class="ict"><strong>Tell:</strong> Frames things around family, responsibility, being the one who handles it.<br><br><strong>Frame:</strong> Protecting the household. Being the person who got it right.</p></div>
+      <div class="ic" style="border-color:rgba(0,48,135,.3)"><div class="icl" style="color:var(--blue)">Novelty</div><p class="ict"><strong>Tell:</strong> Interested in the app, the tech, how it works now vs. before.<br><br><strong>Frame:</strong> Modern service model, app, proactive annual reviews.</p></div>
+      <div class="ic" style="border-color:rgba(179,0,50,.35)"><div class="icl" style="color:var(--red)">Deviance &#9888;</div><p class="ict"><strong>Tell:</strong> Rejects the standard answer. "I don't do things the normal way."<br><br><strong>Frame:</strong> The smarter non-obvious choice. <strong>Never "most people."</strong></p></div>
     </div>
 
     <div class="fb" style="margin-bottom:20px">
@@ -1149,10 +1162,10 @@ YOU: "Tired of dealing with them?"</div>
     <p class="sn">Body language material is useless to you — you sell on the phone. These four transfer. None of them mean lying. They mean <strong>a topic just got uncomfortable</strong>, which is where the real objection lives.</p>
 
     <div class="ig" style="grid-template-columns:1fr 1fr;margin-bottom:14px">
-      <div class="ic" style="border-color:rgba(255,159,91,.3)"><div class="icl" style="color:var(--orange)">Hesitation</div><p class="ict">A pause before answering a simple question. They're deciding what to tell you, not remembering.</p></div>
-      <div class="ic" style="border-color:rgba(255,159,91,.3)"><div class="icl" style="color:var(--orange)">Pitch &amp; Speed Rise</div><p class="ict">Voice climbs, words speed up. Reliable stress signal mid-sentence.</p></div>
-      <div class="ic" style="border-color:rgba(255,159,91,.3)"><div class="icl" style="color:var(--orange)">Question Reversal</div><p class="ict">They repeat your question back before answering it. Buying time.</p></div>
-      <div class="ic" style="border-color:rgba(255,159,91,.3)"><div class="icl" style="color:var(--orange)">Hedge Caveats</div><p class="ict">"As far as I know," "I think," "probably." Attached to things people normally know for certain.</p></div>
+      <div class="ic" style="border-color:rgba(227,70,146,.3)"><div class="icl" style="color:var(--orange)">Hesitation</div><p class="ict">A pause before answering a simple question. They're deciding what to tell you, not remembering.</p></div>
+      <div class="ic" style="border-color:rgba(227,70,146,.3)"><div class="icl" style="color:var(--orange)">Pitch &amp; Speed Rise</div><p class="ict">Voice climbs, words speed up. Reliable stress signal mid-sentence.</p></div>
+      <div class="ic" style="border-color:rgba(227,70,146,.3)"><div class="icl" style="color:var(--orange)">Question Reversal</div><p class="ict">They repeat your question back before answering it. Buying time.</p></div>
+      <div class="ic" style="border-color:rgba(227,70,146,.3)"><div class="icl" style="color:var(--orange)">Hedge Caveats</div><p class="ict">"As far as I know," "I think," "probably." Attached to things people normally know for certain.</p></div>
     </div>
 
     <div class="sc" style="margin-bottom:20px"><strong>WHERE THIS ACTUALLY MATTERS — THREE MOMENTS</strong>
@@ -1304,10 +1317,10 @@ YOU: "Tired of dealing with them?"</div>
       <div class="tlr" style="background:var(--purple)"></div>
     </div>
     <div class="ig" style="grid-template-columns:1fr 1fr;margin-bottom:20px">
-      <div class="ic" style="border-color:rgba(179,157,255,.3)"><div class="icl" style="color:var(--purple)">Day 30 Post-Bind</div><p class="ict">The call you promised — see Sequences → Post-Bind, Touch 6.</p></div>
-      <div class="ic" style="border-color:rgba(179,157,255,.3)"><div class="icl" style="color:var(--purple)">Day 32 Post-Bind</div><p class="ict">Backup email if the Day 30 call goes to voicemail. Touch 7.</p></div>
-      <div class="ic" style="border-color:rgba(179,157,255,.3)"><div class="icl" style="color:var(--purple)">Every Renewal Review</div><p class="ict">Re-run the gap question. See Sequences → Renewal, Touch 3.</p></div>
-      <div class="ic" style="border-color:rgba(179,157,255,.3)"><div class="icl" style="color:var(--purple)">Deferred 3+ Years</div><p class="ict">Do not stop asking. The fourth ask often lands.</p></div>
+      <div class="ic" style="border-color:rgba(212,1,99,.3)"><div class="icl" style="color:var(--purple)">Day 30 Post-Bind</div><p class="ict">The call you promised — see Sequences → Post-Bind, Touch 6.</p></div>
+      <div class="ic" style="border-color:rgba(212,1,99,.3)"><div class="icl" style="color:var(--purple)">Day 32 Post-Bind</div><p class="ict">Backup email if the Day 30 call goes to voicemail. Touch 7.</p></div>
+      <div class="ic" style="border-color:rgba(212,1,99,.3)"><div class="icl" style="color:var(--purple)">Every Renewal Review</div><p class="ict">Re-run the gap question. See Sequences → Renewal, Touch 3.</p></div>
+      <div class="ic" style="border-color:rgba(212,1,99,.3)"><div class="icl" style="color:var(--purple)">Deferred 3+ Years</div><p class="ict">Do not stop asking. The fourth ask often lands.</p></div>
     </div>
 
     <div class="fb">
@@ -1368,7 +1381,7 @@ function vmTab(id, btn, activeClass) {
   if (activeClass) {
     btn.classList.add(activeClass);
   } else {
-    btn.style.background='rgba(179,157,255,.18)';
+    btn.style.background='rgba(212,1,99,.18)';
     btn.style.color='var(--purple)';
   }
 }
@@ -1425,7 +1438,7 @@ function buildObj(filter){
 
 function fObj(phase,btn){
   document.querySelectorAll('#s3 .pb').forEach(function(b){b.style.background='var(--bg2)';b.style.borderColor='var(--border2)';b.style.color='var(--muted)';});
-  btn.style.background='var(--green)';btn.style.borderColor='var(--green)';btn.style.color='#04211B';
+  btn.style.background='var(--green)';btn.style.borderColor='var(--green)';btn.style.color='#FFFFFF';
   document.getElementById('obj-list').innerHTML=buildObj(phase);
 }
 
@@ -1455,7 +1468,7 @@ var epPhase="send";
 function epSetPhase(phase,btn){
   epPhase=phase;
   document.querySelectorAll('#ep-phase-tabs .pb').forEach(function(b){b.style.background='var(--bg2)';b.style.borderColor='var(--border2)';b.style.color='var(--muted)';});
-  btn.style.background='var(--blue)';btn.style.borderColor='var(--blue)';btn.style.color='#0A1830';
+  btn.style.background='var(--blue)';btn.style.borderColor='var(--blue)';btn.style.color='#FFFFFF';
   document.querySelectorAll('#ep-tags .ep-tag').forEach(function(tag){
     var v=tag.getAttribute('data-v');
     var isPostTag=v&&v.indexOf('post-')===0;
@@ -1592,7 +1605,7 @@ function seqTabNew(key, btn, activeClass) {
   });
   document.getElementById('r-'+key).style.display='block';
   if(activeClass){btn.classList.add(activeClass);}
-  else{btn.style.color='var(--purple)';btn.style.background='rgba(179,157,255,.18)';}
+  else{btn.style.color='var(--purple)';btn.style.background='rgba(212,1,99,.18)';}
 }
 
 var REPLIES = [
