@@ -8,9 +8,9 @@
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
 
   :root {
-    --red:     #c8102e;
-    --red-dim: #8f0c20;
-    --red-bg:  #fff2f4;
+    --red:     #E01933;
+    --red-dim: #B30032;
+    --red-bg:  #FDECEF;
     --ink:     #0f1117;
     --ink-2:   #3a3d4a;
     --ink-3:   #6b6f80;
@@ -80,8 +80,8 @@
     gap: 6px;
   }
   .nav-btn:hover { background: rgba(255,255,255,0.12); color: white; border-color: rgba(255,255,255,0.3); }
-  .nav-btn.danger { border-color: rgba(200,16,46,0.4); color: rgba(255,100,120,0.85); }
-  .nav-btn.danger:hover { background: rgba(200,16,46,0.15); color: #ff6678; }
+  .nav-btn.danger { border-color: rgba(224,25,51,0.4); color: rgba(255,100,120,0.85); }
+  .nav-btn.danger:hover { background: rgba(224,25,51,0.15); color: #ff6678; }
 
   /* ── AGENT TABS ── */
   .agent-tabs {
@@ -149,7 +149,7 @@
     line-height: 1;
   }
   .rail-btn:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.8); }
-  .rail-btn.active { background: rgba(200,16,46,0.18); color: var(--red); }
+  .rail-btn.active { background: rgba(224,25,51,0.18); color: var(--red); }
   .rail-btn .rail-label {
     font-family: var(--mono);
     font-size: 7px;
@@ -195,8 +195,8 @@
     width: 36px;
     height: 36px;
     border-radius: 8px;
-    border: 1px solid rgba(200,16,46,0.5);
-    background: rgba(200,16,46,0.15);
+    border: 1px solid rgba(224,25,51,0.5);
+    background: rgba(224,25,51,0.15);
     color: var(--red);
     cursor: pointer;
     display: flex;
@@ -275,7 +275,7 @@
     transition: all 0.12s;
   }
   .lead-item:hover { background: rgba(255,255,255,0.04); }
-  .lead-item.active { background: rgba(200,16,46,0.12); border-left-color: var(--red); }
+  .lead-item.active { background: rgba(224,25,51,0.12); border-left-color: var(--red); }
   .lead-item-name {
     font-family: var(--display);
     font-size: 12px;
@@ -305,7 +305,7 @@
     padding: 2px 6px;
     border-radius: 20px;
   }
-  .score-pill.hot   { background: rgba(200,16,46,0.25);  color: #ff8a98; }
+  .score-pill.hot   { background: rgba(224,25,51,0.25);  color: #ff8a98; }
   .score-pill.warm  { background: rgba(196,124,0,0.25);  color: #ffc44d; }
   .score-pill.cold  { background: rgba(26,95,206,0.25);  color: #7eb4ff; }
   .score-pill.none  { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.25); }
@@ -1071,7 +1071,7 @@
     </div>
   </div>
   <div class="topnav-actions">
-    <a href="#" class="nav-btn" onclick="newLead();return false;" title="Start a new lead profile" style="background:#c8102e;border-color:#c8102e;color:#fff;font-weight:700;">+ New Lead</a>
+    <a href="#" class="nav-btn" onclick="newLead();return false;" title="Start a new lead profile" style="background:var(--red);border-color:var(--red);color:#fff;font-weight:700;">+ New Lead</a>
     <a href="#" class="nav-btn" onclick="openPipeline()" title="Sales Pipeline Board (works on any computer, requires Google login)">Pipeline</a>
     <a href="#" class="nav-btn" onclick="openSalesSystem()" title="Sales System / SOPs">Sales System</a>
     <span id="navSyncPill" style="display:none;font-family:var(--mono);font-size:10px;padding:5px 12px;border-radius:20px;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.4);letter-spacing:0.3px;align-items:center;gap:6px;">
@@ -2049,7 +2049,7 @@ function setSyncStatus(state, msg, time) {
   const ts   = document.getElementById('syncLastTime');
   if (!bar) return;
   bar.style.display = 'flex';
-  const colors = { ok: '#0e8a4a', error: '#c8102e', syncing: '#c47c00', idle: '#6b6f80' };
+  const colors = { ok: '#0e8a4a', error: '#E01933', syncing: '#c47c00', idle: '#6b6f80' };
   dot.style.background = colors[state] || colors.idle;
   text.textContent = msg || '';
   if (time) ts.textContent = 'Last sync: ' + time;
@@ -2060,7 +2060,7 @@ function setSyncStatus(state, msg, time) {
   const navText = document.getElementById('navSyncText');
   if (navPill) {
     navPill.style.display = 'inline-flex';
-    const pillColors = { ok: '#0e8a4a', error: '#c8102e', syncing: '#c47c00', idle: 'rgba(255,255,255,0.35)' };
+    const pillColors = { ok: '#0e8a4a', error: '#E01933', syncing: '#c47c00', idle: 'rgba(255,255,255,0.35)' };
     navDot.style.background = pillColors[state] || pillColors.idle;
     navDot.style.color = pillColors[state] || pillColors.idle;
     navText.textContent = state === 'syncing' ? 'Syncing…' : state === 'ok' ? 'Synced' : state === 'error' ? 'Sync Error' : 'Not Synced';
