@@ -752,6 +752,39 @@
     transition: background 0.12s;
   }
   .call-entry-header:hover { background: #E8EDF5; }
+  .call-producer {
+    font-family: var(--mono); font-size: 9px; font-weight: 500; letter-spacing: 0.4px;
+    text-transform: uppercase; padding: 2px 7px; border-radius: var(--radius-pill, 999px);
+    background: var(--blue-bg); color: var(--blue); flex-shrink: 0;
+  }
+
+  /* Calls written by the phone system — shared across producers, read-only */
+  .shared-calls {
+    border: 1px solid var(--border); border-left: 3px solid var(--blue);
+    border-radius: 8px; background: var(--surface-2); margin-bottom: 14px; overflow: hidden;
+  }
+  .shared-calls-head {
+    font-family: var(--mono); font-size: 10px; font-weight: 500; letter-spacing: 0.5px;
+    text-transform: uppercase; color: var(--blue);
+    padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--blue-bg);
+  }
+  .shared-calls-note { text-transform: none; letter-spacing: 0; color: var(--ink-2); font-weight: 400; }
+  .shared-call {
+    display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+    padding: 8px 12px; font-size: 12px; border-bottom: 1px solid var(--border);
+  }
+  .shared-call:last-child { border-bottom: none; }
+  .shared-call-who {
+    font-family: var(--mono); font-size: 9px; font-weight: 500; letter-spacing: 0.4px;
+    text-transform: uppercase; padding: 2px 7px; border-radius: 999px;
+    background: var(--blue-bg); color: var(--blue);
+  }
+  .shared-call-when { font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
+  .shared-call-dir, .shared-call-dur { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+  .shared-call-disp { font-weight: 500; color: var(--ink); }
+  .shared-call-notes { color: var(--ink-2); flex: 1 1 100%; }
+  .shared-call-rec { color: var(--blue); text-decoration: none; font-size: 11px; }
+  .shared-call-rec:hover { text-decoration: underline; }
   .call-num {
     font-family: var(--display);
     font-size: 10px;
@@ -1888,8 +1921,9 @@ function loadLeadIntoEditor(lead) {
     if (el) el.value = sf[k] !== undefined ? sf[k] : 0;
   });
 
-  // Calls
+  // Calls — local log first (instant), then fold in the shared Calls tab
   renderCallLog(lead.calls || []);
+  loadSharedCalls(lead);
 
   // Score display
   updateScoreDisplay(lead.score);
@@ -2319,6 +2353,7 @@ function addCallEntry() {
   lead.calls.push({
     id: callId,
     date: today,
+    producer: currentAgent,   // who made this call — the log is shared now
     outcome: '',
     notes: '',
     score: null,
@@ -2327,6 +2362,73 @@ function addCallEntry() {
   saveLeads();
   renderCallLog(lead.calls);
   saveCurrentLead();
+}
+
+// ── Shared call log ────────────────────────────────────────────────────────
+// Calls live in a single "Calls" tab on the Sheet, keyed on phone number, not
+// on which producer's tab holds the lead. So a call Faith makes shows up on
+// Greg's copy of that lead and vice versa. The phone system writes them; these
+// are read-only here.
+
+// Must match normPhone_ in the Apps Script backend — see the note there on why
+// this is not "last 10 digits".
+function normPhone(p) {
+  let s = String(p == null ? '' : p);
+  s = s.split(/\s*(?:x|ext\.?|extension)\s*\d+\s*$/i)[0];
+  let d = s.replace(/[^0-9]/g, '');
+  if (d.length === 11 && d.charAt(0) === '1') d = d.slice(1);
+  return d.length === 10 ? d : '';
+}
+
+async function loadSharedCalls(lead) {
+  const box = document.getElementById('sharedCallsBox');
+  if (box) box.remove();
+  const phone = normPhone(lead && lead.phone);
+  if (!phone) return;                       // no usable key, nothing to join on
+  try {
+    const url = getSheetUrl() + '?action=getCalls&phone=' + phone +
+                '&key=' + encodeURIComponent(API_KEY);
+    const res = await fetch(url, { method: 'GET' });
+    const data = await res.json();
+    if (!data || !data.calls || !data.calls.length) return;
+    if (currentLeadId !== lead.id) return;  // user moved on while we fetched
+    // A call already logged by hand in this tracker shouldn't render twice.
+    const localIds = new Set((lead.calls || []).map(c => c.id));
+    renderSharedCalls(data.calls.filter(c => !localIds.has(c.callId)));
+  } catch (err) {
+    // Offline or backend down — the local log still works, so stay quiet.
+    console.log('[calls] shared log unavailable:', err.message);
+  }
+}
+
+function renderSharedCalls(calls) {
+  if (!calls.length) return;
+  const anchor = document.getElementById('callLogContainer');
+  if (!anchor) return;
+  const who = k => k ? k.charAt(0).toUpperCase() + k.slice(1) : 'Unknown';
+  const when = w => {
+    const d = new Date(w);
+    return isNaN(d) ? (w || '') : d.toLocaleString([], {
+      month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+    });
+  };
+  const box = document.createElement('div');
+  box.id = 'sharedCallsBox';
+  box.className = 'shared-calls';
+  box.innerHTML =
+    `<div class="shared-calls-head">From the phone system · ${calls.length} call${calls.length === 1 ? '' : 's'}
+       <span class="shared-calls-note">logged automatically, read-only</span></div>` +
+    calls.slice().reverse().map(c => `
+      <div class="shared-call">
+        <span class="shared-call-who">${who(c.producer)}</span>
+        <span class="shared-call-when">${when(c.when)}</span>
+        ${c.direction ? `<span class="shared-call-dir">${c.direction}</span>` : ''}
+        ${c.disposition ? `<span class="shared-call-disp">${c.disposition}</span>` : ''}
+        ${c.duration ? `<span class="shared-call-dur">${c.duration}</span>` : ''}
+        ${c.notes ? `<span class="shared-call-notes">${c.notes}</span>` : ''}
+        ${c.recording ? `<a class="shared-call-rec" href="${c.recording}" target="_blank" rel="noopener">▶ recording</a>` : ''}
+      </div>`).join('');
+  anchor.parentNode.insertBefore(box, anchor);
 }
 
 function renderCallLog(calls) {
@@ -2350,6 +2452,7 @@ function renderCallLog(calls) {
     <div class="call-entry" id="callEntry_${call.id}">
       <div class="call-entry-header" onclick="toggleCall('${call.id}')">
         <span class="call-num">CALL ${idx+1}</span>
+        ${call.producer ? `<span class="call-producer">${call.producer.charAt(0).toUpperCase()+call.producer.slice(1)}</span>` : ''}
         <input class="call-date-input" type="date" value="${call.date||''}"
           onclick="event.stopPropagation()"
           onchange="updateCallField('${call.id}','date',this.value)">
