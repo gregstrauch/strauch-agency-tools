@@ -2405,7 +2405,12 @@ function renderSharedCalls(calls) {
   if (!calls.length) return;
   const anchor = document.getElementById('callLogContainer');
   if (!anchor) return;
-  const who = k => k ? k.charAt(0).toUpperCase() + k.slice(1) : 'Unknown';
+  // These strings come from the phone system, not from us — escape before they
+  // go anywhere near innerHTML. Transcripts and dispositions will contain < and &.
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g,
+    ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
+  const safeUrl = u => /^https?:\/\//i.test(String(u || '')) ? esc(u) : '';
+  const who = k => esc(k ? k.charAt(0).toUpperCase() + k.slice(1) : 'Unknown');
   const when = w => {
     const d = new Date(w);
     return isNaN(d) ? (w || '') : d.toLocaleString([], {
@@ -2421,12 +2426,12 @@ function renderSharedCalls(calls) {
     calls.slice().reverse().map(c => `
       <div class="shared-call">
         <span class="shared-call-who">${who(c.producer)}</span>
-        <span class="shared-call-when">${when(c.when)}</span>
-        ${c.direction ? `<span class="shared-call-dir">${c.direction}</span>` : ''}
-        ${c.disposition ? `<span class="shared-call-disp">${c.disposition}</span>` : ''}
-        ${c.duration ? `<span class="shared-call-dur">${c.duration}</span>` : ''}
-        ${c.notes ? `<span class="shared-call-notes">${c.notes}</span>` : ''}
-        ${c.recording ? `<a class="shared-call-rec" href="${c.recording}" target="_blank" rel="noopener">▶ recording</a>` : ''}
+        <span class="shared-call-when">${esc(when(c.when))}</span>
+        ${c.direction ? `<span class="shared-call-dir">${esc(c.direction)}</span>` : ''}
+        ${c.disposition ? `<span class="shared-call-disp">${esc(c.disposition)}</span>` : ''}
+        ${c.duration ? `<span class="shared-call-dur">${esc(c.duration)}</span>` : ''}
+        ${c.notes ? `<span class="shared-call-notes">${esc(c.notes)}</span>` : ''}
+        ${safeUrl(c.recording) ? `<a class="shared-call-rec" href="${safeUrl(c.recording)}" target="_blank" rel="noopener">▶ recording</a>` : ''}
       </div>`).join('');
   anchor.parentNode.insertBefore(box, anchor);
 }
