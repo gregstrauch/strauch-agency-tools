@@ -120,9 +120,6 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
 .xnco-strip{display:flex;gap:20px;padding:10px 16px;background:rgba(255,215,0,0.05);border:1px solid rgba(255,215,0,.18);border-radius:4px;margin-bottom:16px;flex-wrap:wrap;}
 .xnco-label{font-size:10px;color:#ffd700;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;}
 .xnco-name{font-size:13px;font-weight:600;color:#fff;}
-.flight-chief{background:linear-gradient(135deg,rgba(255,215,0,.13),rgba(255,215,0,.03));border:2px solid #ffd700;padding:16px 20px;border-radius:4px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
-.chief-title{font-size:10px;color:#ffd700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:3px;}
-.chief-name{font-size:17px;font-weight:700;color:#fff;}
 .acting-banner{font-size:10px;color:#ff9999;background:rgba(255,100,100,.08);border-radius:3px;padding:3px 6px;margin-top:5px;}
 /* ── Org chart ───────────────────────────────────────────────────────────────
    Top-down boxes and lines. Each <li> draws the half-bar to its own side plus
@@ -187,9 +184,6 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
 
 /* ── BULLETIN ── */
 .ai-note{font-size:11px;color:#a0a0a0;line-height:1.7;background:rgba(255,255,255,.04);padding:10px 13px;border-radius:3px;border-left:2px solid rgba(255,215,0,.3);margin-bottom:14px;}
-.upload-zone{border:2px dashed rgba(255,215,0,.3);border-radius:4px;padding:30px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:14px;}
-.upload-zone:hover{border-color:#ffd700;background:rgba(255,215,0,.04);}
-.upload-zone-text{font-size:13px;color:#a0a0a0;}
 .req-list{display:flex;flex-direction:column;gap:8px;}
 .req-item{background:rgba(255,255,255,.04);border:1px solid rgba(255,215,0,.12);padding:12px 14px;border-radius:3px;display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;cursor:pointer;}
 .req-item:hover{border-color:rgba(255,215,0,.4);background:rgba(255,255,255,.07);}
@@ -281,11 +275,6 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
 .kpi-card-target{font-size:10px;color:#555;margin-bottom:4px;}
 .kpi-card-meta{font-size:11px;color:#c0c0c0;margin-top:4px;font-style:italic;}
 .kpi-trend{position:absolute;top:10px;right:10px;font-size:14px;}
-.kpi-rag-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle;}
-.kpi-rag-dot.G{background:#44cc77;box-shadow:0 0 5px #44cc77;}
-.kpi-rag-dot.A{background:#ffaa00;box-shadow:0 0 5px #ffaa00;}
-.kpi-rag-dot.R{background:#ff4444;box-shadow:0 0 5px #ff4444;}
-.kpi-rag-dot.N{background:#555;}
 .kpi-autocalc{background:linear-gradient(135deg,rgba(255,215,0,.08),rgba(255,215,0,.02));border:2px solid rgba(255,215,0,.25);border-radius:4px;padding:14px;margin-bottom:18px;}
 .kpi-autocalc-title{font-size:10px;color:#ffd700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;}
 .kpi-autocalc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;}
@@ -869,8 +858,8 @@ function loadLS(key,def){
     // saveLS refuses to write per-flight keys in rollup, so anything sitting under
     // a rollup-namespaced key is a stale cache from before that guard existed —
     // ignore it and let setFlight's syncSheets() rebuild from the Sheet.
-    if(isRollup()&&PER_FLIGHT_KEYS.has(key))return clone(def);
-    try{const s=localStorage.getItem(lsKey(key));return s?JSON.parse(s):clone(def);}catch{return clone(def);}
+    if(isRollup()&&PER_FLIGHT_KEYS.has(key))return structuredClone(def);
+    try{const s=localStorage.getItem(lsKey(key));return s?JSON.parse(s):structuredClone(def);}catch{return structuredClone(def);}
 }
 // Only openEdit and the push helpers used to check isRollup, so every OTHER
 // mutation (tracker toggles, requirements, KPI edits, periods, bulletin parse,
@@ -885,7 +874,6 @@ function saveLS(key,val){
     localStorage.setItem(lsKey(key),JSON.stringify(val));
     return true;
 }
-function clone(o){return JSON.parse(JSON.stringify(o));}
 // Escapes a value for an inline onclick="fn('…')" — flight names and surnames
 // (O'Brien) both carry apostrophes. Was local to renderFlightSel; hoisted so
 // attendance can use it too.
@@ -1277,13 +1265,6 @@ function saveScriptUrl(url){localStorage.setItem('afm_scripturl',url);}
 // The five 39 APS flights. Merged in (not just defaulted) so an existing browser
 // that saved the older two-flight list still picks up the other three.
 const SQUADRON_FLIGHTS=['PAX','AIR FREIGHT','ATOC/LOAD PLANNING','RAMP'];
-// ATOC and LOAD PLANNING merged into one flight on 7 Aug 2026. Both were empty —
-// no Manning, Tracker or Promotions rows — so there was nothing to migrate. They
-// are pruned from the saved flight list, but the Overview builds its list from the
-// Sheet as well as this constant, so a stray row under either name would still
-// surface there rather than vanish quietly.
-const MERGED_FLIGHT='ATOC/LOAD PLANNING';
-const RETIRED_FLIGHTS=['ATOC','LOAD PLANNING'];
 // Authorized strength per flight (UMD), editable by clicking the Authorized stat.
 // Stored in ONE map under a non-per-flight key so the rollup can sum every flight
 // without tripping the per-flight read guard. Raising it adds VACANT billets;
@@ -1291,16 +1272,13 @@ const RETIRED_FLIGHTS=['ATOC','LOAD PLANNING'];
 const AUTH_DEFAULTS={'PAX':24,'AIR FREIGHT':31,'ATOC/LOAD PLANNING':20,'RAMP':24};
 const authMap=()=>({...AUTH_DEFAULTS,...loadLS('afm_auth',{})});
 const authFor=f=>authMap()[f];
-let knownFlights=loadLS('afm_flights',SQUADRON_FLIGHTS.slice()).filter(f=>!RETIRED_FLIGHTS.includes(f));
+let knownFlights=loadLS('afm_flights',SQUADRON_FLIGHTS.slice());
 SQUADRON_FLIGHTS.forEach(f=>{if(!knownFlights.includes(f))knownFlights.push(f);});
 // Squadron order, not the order the saved list happens to be in — a newly added
 // flight appends to the end otherwise. Custom flights (index -1 → 99) stay last,
 // in the order they were created, since Array.sort is stable.
 knownFlights.sort((a,b)=>(SQUADRON_FLIGHTS.indexOf(a)+1||99)-(SQUADRON_FLIGHTS.indexOf(b)+1||99));
 saveLS('afm_flights',knownFlights);
-// A browser still sitting on ATOC or LOAD PLANNING would land on a flight that is
-// no longer in the nav bar. Move it to the merged flight instead.
-if(RETIRED_FLIGHTS.includes(currentFlight)){currentFlight=MERGED_FLIGHT;localStorage.setItem('afm_flight',currentFlight);}
 
 // Swap every piece of per-flight state when the flight changes.
 function reloadFlightState(){
@@ -2067,7 +2045,7 @@ function renderTracker(){
             const st=(tracker[reqKey]||{})[p.name]||'DUE';
             const applies=personApplies(p,req);
             if(!applies){html+=`<td><button class="status-btn status-NA" disabled>N/A</button></td>`;return;}
-            html+=`<td><button class="status-btn status-${st}" onclick="cycleStatus('${reqKey.replace(/'/g,"\\'")}','${p.name.replace(/'/g,"\\'")}',this)">${st}</button></td>`;
+            html+=`<td><button class="status-btn status-${st}" onclick="cycleStatus('${esc(reqKey)}','${esc(p.name)}',this)">${st}</button></td>`;
         });
         html+='</tr>';
     });
@@ -2280,7 +2258,7 @@ function ensureFlightKPISections(){
     if(!def) return;
     if(!kpiData.sections) kpiData.sections = [];
     if(kpiData.sections.some(s => s.id === def.id)) return;
-    kpiData.sections.unshift(clone(def));
+    kpiData.sections.unshift(structuredClone(def));
     saveLS('afm_kpi', kpiData);
 }
 
@@ -2290,7 +2268,7 @@ function ensureFlightKPISections(){
 // board. Other flights start bare and get their mission section from
 // ensureFlightKPISections(); rollup gets nothing because it never syncs KPIs.
 function defaultKPISectionsFor(f){
-    return String(f).toUpperCase()===DEFAULT_FLIGHT?clone(DEFAULT_KPI_SECTIONS):[];
+    return String(f).toUpperCase()===DEFAULT_FLIGHT?structuredClone(DEFAULT_KPI_SECTIONS):[];
 }
 let kpiData = loadLS('afm_kpi', { periods:[], sections: defaultKPISectionsFor(currentFlight) });
 // Migrate old data without sections
@@ -2603,7 +2581,7 @@ function dragLeave(e){ e.currentTarget.classList.remove('drag-over'); }
 // Restores manning AND every afm_* key: an earlier self-check here wrote its own
 // scratch state over a real flight's data because saveLS has a side effect.
 function _selfCheckDragAndRollup(){
-    const savedFlight=currentFlight, savedManning=clone(manning);
+    const savedFlight=currentFlight, savedManning=structuredClone(manning);
     const savedStatus=document.getElementById('syncStatus').textContent;
     const snapshot=Object.keys(localStorage).filter(k=>k.startsWith('afm_')).map(k=>[k,localStorage.getItem(k)]);
     const stub=()=>({rank:'',name:'',skills:'',duties:{},certs:{}});
@@ -2763,8 +2741,8 @@ function doDrop(e,targetPath){
     const swapFrom=manning.msgtLeads[+sp[1]].name,swapTo=manning.msgtLeads[+tp[1]].name;
     if(swapFrom!==swapTo){retireRow(swapFrom,src.name);retireRow(swapTo,tgt.name);}
     const tmp={};
-    fields.forEach(f=>tmp[f]=clone(src[f]));
-    fields.forEach(f=>src[f]=clone(tgt[f]));
+    fields.forEach(f=>tmp[f]=structuredClone(src[f]));
+    fields.forEach(f=>src[f]=structuredClone(tgt[f]));
     fields.forEach(f=>tgt[f]=tmp[f]);
     reActing();
     dragSrc=null; saveManning();
@@ -2829,7 +2807,7 @@ function renderPersonView(){
             <div class="person-req-title">${req.title}</div>
             <div class="person-req-meta">${req.category||''} · ${req.deadline||'This UTA'}</div>
             ${req.description?`<div style="font-size:11px;color:#606060;margin-bottom:8px;">${req.description}</div>`:''}
-            <button class="status-btn status-${st}" onclick="cyclePersonStatus('${req.title.replace(/'/g,"\\'")}','${name.replace(/'/g,"\\'")}',this)">${st}</button>
+            <button class="status-btn status-${st}" onclick="cyclePersonStatus('${esc(req.title)}','${esc(name)}',this)">${st}</button>
         </div>`).join('');
 }
 
@@ -2991,7 +2969,7 @@ function savePromoEdit(){
 // Self-check — run _selfCheckPromotions() in the console after touching the promo
 // editor. Snapshots/restores afm_* like its siblings; saveLS has a side effect.
 function _selfCheckPromotions(){
-    const savedFlight=currentFlight, savedPromos=clone(promotions);
+    const savedFlight=currentFlight, savedPromos=structuredClone(promotions);
     const snapshot=Object.keys(localStorage).filter(k=>k.startsWith('afm_')).map(k=>[k,localStorage.getItem(k)]);
     try{
         currentFlight='PAX';
@@ -3132,7 +3110,7 @@ function renderPromotions(){
                 const met=parseInt(p.ReqsMet)||0;
                 const total=parseInt(p.TotalReqs)||0;
                 const pct=total?Math.round(met/total*100):0;
-                return`<div class="promo-card" style="border-left-color:${color}" onclick="openPromoEdit('${String(p.Name).replace(/'/g,"\\'")}')" title="Click to edit">
+                return`<div class="promo-card" style="border-left-color:${color}" onclick="openPromoEdit('${esc(p.Name)}')" title="Click to edit">
                     <div class="promo-card-name">${p.Name}</div>
                     <div class="promo-card-rank">${p.Rank} → ${p.NextRank||'?'}</div>
                     <div class="promo-card-status" style="color:${color}">${label}</div>
@@ -3303,7 +3281,7 @@ function exportAttendance(){
 // Self-check — run _selfCheckAttendance() in the console after touching the
 // status cycle or the Sheet date round-trip.
 function _selfCheckAttendance(){
-    const saved=clone(attendance);
+    const saved=structuredClone(attendance);
     try{
         // The Sheet hands dates back in a different shape than the date input wrote.
         const p=parseASAttendance([
@@ -3447,7 +3425,7 @@ const parseASFlow=rows=>rows.map(r=>({
 // Self-check — run _selfCheckFlow() in the console after touching the flow box.
 // Snapshots/restores afm_* like its siblings; saveLS has a side effect.
 function _selfCheckFlow(){
-    const savedFlow=clone(flow), savedRetires=clone(_flowRetires);
+    const savedFlow=structuredClone(flow), savedRetires=structuredClone(_flowRetires);
     const snapshot=Object.keys(localStorage).filter(k=>k.startsWith('afm_')).map(k=>[k,localStorage.getItem(k)]);
     try{
         // The Sheet hands dates back in a different shape than the date input wrote.
@@ -3649,13 +3627,13 @@ function renderOverview(){
         const m=man.filter(r=>r.Flight===f), t=trk.filter(r=>r.Flight===f), p=pro.filter(r=>r.Flight===f);
         const chief=(m.find(r=>r.Role==='Chief')||{});
         const staffed=m.filter(r=>!isVacant(r.Name)).length;
-        if(!m.length)return `<div class="ov-card empty" onclick="jumpToFlight('${String(f).replace(/'/g,"\\'")}')">
+        if(!m.length)return `<div class="ov-card empty" onclick="jumpToFlight('${esc(f)}')">
             <div class="ov-name">${f}</div><div class="ov-chief">No roster loaded</div>
             <div class="ov-row"><span>Click to open and build it</span></div></div>`;
         const tOpen=t.filter(r=>OPEN_STATUS(r.Status)).length;
         const tPct=t.length?Math.round((t.length-tOpen)/t.length*100):0;
         const exp=t.filter(r=>OPEN_STATUS(r.Status)&&urgencyOf(r.Deadline)===2).length;
-        return `<div class="ov-card" onclick="jumpToFlight('${String(f).replace(/'/g,"\\'")}')">
+        return `<div class="ov-card" onclick="jumpToFlight('${esc(f)}')">
             <div class="ov-name">${f}</div>
             <div class="ov-chief">${[chief.Rank,chief.Name].filter(Boolean).join(' ')||'— no chief assigned —'}</div>
             <div class="ov-row"><span>Personnel</span><b>${staffed}${m.filter(r=>isVacant(r.Name)).length?` <span style="color:#ff6666">+${m.filter(r=>isVacant(r.Name)).length} vacant</span>`:''}</b></div>
@@ -3687,7 +3665,7 @@ function ovBar(dim,key,rows){
         const on=ovSel&&ovSel.dim===dim&&ovSel.key===key&&ovSel.bucket===c.k;
         return `<div class="ch-seg${on?' sel':''}" style="width:${pct}%;background:${c.color}"
                      title="${c.label}: ${c.rows.length} — click for names"
-                     onclick="ovDrill('${dim}','${String(key).replace(/'/g,"\\'")}','${c.k}')">${pct>7?c.rows.length:''}</div>`;
+                     onclick="ovDrill('${dim}','${esc(key)}','${c.k}')">${pct>7?c.rows.length:''}</div>`;
     }).join('');
     const pctDone=Math.round(counts[0].rows.length/n*100);
     return `<div class="ch-row">
@@ -4679,7 +4657,6 @@ utaSelfCheck();
    change (52 rows once shared a single bulk-push timestamp), so a "closed this UTA"
    figure derived from it would overstate the flight's work. A real delta needs a
    snapshot taken at close-out and compared next time. */
-const RPT_ATT_STATES=['PRESENT','ABSENT','EXCUSED','RST','TDY','LEAVE'];
 const RAG_WORD={G:'GREEN',A:'AMBER',R:'RED',N:''};
 const rptPct=(n,d)=>d?Math.round(n/d*100):0;
 const rptName=p=>`${p.rank||''} ${p.name}`.trim();
@@ -4784,7 +4761,7 @@ function rptFlight(n,flight,from,to){
                 worst:['ABSENT','EXCUSED','RST','TDY','LEAVE'].find(s=>marks.includes(s))||''};
     });
     const counts={};
-    RPT_ATT_STATES.forEach(s=>counts[s]=people.filter(r=>r.marks.includes(s)).length);
+    ATT_STATES.forEach(s=>counts[s]=people.filter(r=>r.marks.includes(s)).length);
     const unmarked=people.filter(r=>!r.marks.length);
 
     const rows=n.trk[flight]||[];
@@ -4929,7 +4906,7 @@ function renderRptFlight(n,from,to){
             // in both. Say so, or it gets challenged mid-brief.
             `<div class="brief-clear" style="margin-bottom:6px">Members with at least one such day — someone present one day and excused the other appears in both rows, so these can total more than ${d.assigned} assigned.</div>`
             +`<table class="flow-table" style="max-width:340px"><tbody>`
-            +RPT_ATT_STATES.map(s=>`<tr><td>${s}</td><td style="text-align:right">${d.counts[s]}</td></tr>`).join('')
+            +ATT_STATES.map(s=>`<tr><td>${s}</td><td style="text-align:right">${d.counts[s]}</td></tr>`).join('')
             +`<tr><td>Not marked</td><td style="text-align:right">${d.unmarked.length}</td></tr></tbody></table>`
             +(absent.length?`<div class="brief-person"><div class="brief-name" style="color:#ff8888">Unexcused (${absent.length})</div><div class="brief-clear">${absent.map(r=>rptName(r.p)).join(' · ')}</div></div>`:'')
             +(other.length?`<div class="brief-person"><div class="brief-name">Excused / RST / TDY / Leave (${other.length})</div><div class="brief-clear">${other.map(r=>rptName(r.p)+' — '+r.worst).join(' · ')}</div></div>`:'')
@@ -4993,7 +4970,7 @@ function rptFlightText(d,caveats){
     else{
         L.push(`  (${d.days.length} day${d.days.length===1?'':'s'} marked; counts are members with at least one such day,`,
                '   so someone present one day and excused the other appears in both.)');
-        RPT_ATT_STATES.forEach(s=>L.push(`  ${s.padEnd(9)} ${d.counts[s]}`));
+        ATT_STATES.forEach(s=>L.push(`  ${s.padEnd(9)} ${d.counts[s]}`));
         if(d.unmarked.length)L.push(`  NOT MARKED ${d.unmarked.length} (counted neither way)`);
         const ab=d.people.filter(r=>r.marks.includes('ABSENT'));
         if(ab.length)L.push('  Unexcused: '+ab.map(r=>rptName(r.p)).join(', '));

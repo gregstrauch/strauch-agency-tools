@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Strauch Agency — Lead Profile Tracker</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700;800&display=swap');
 
   /* Design tokens — Strauch Agency design system (~/strauch-design-system). */
   :root {
@@ -27,14 +27,13 @@
     --blue:    #003087;
     --blue-bg: #DAE7FF;
     --mono:    'DM Mono', monospace;
-    --sans:    'DM Sans', sans-serif;
     --display: 'DM Sans', sans-serif;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: var(--sans);
+    font-family: var(--display);
     background: var(--bg);
     color: var(--ink);
     min-height: 100vh;
@@ -564,7 +563,7 @@
     border: 1px solid var(--border);
     border-radius: 5px;
     padding: 8px 10px;
-    font-family: var(--sans);
+    font-family: var(--display);
     font-size: 13px;
     color: var(--ink);
     background: var(--surface-2);
@@ -775,7 +774,7 @@
   .pin-input:focus { border-color: var(--red); background: var(--white); }
   .pin-btn {
     width: 100%; margin-top: 12px; padding: 11px; border: none; border-radius: 8px;
-    background: var(--red); color: #fff; font-family: var(--sans); font-size: 14px;
+    background: var(--red); color: #fff; font-family: var(--display); font-size: 14px;
     font-weight: 600; cursor: pointer;
   }
   .pin-btn:hover { background: var(--red-dim); }
@@ -877,7 +876,7 @@
     border: 1px solid var(--border);
     border-radius: 6px;
     padding: 10px 12px;
-    font-family: var(--sans);
+    font-family: var(--display);
     font-size: 13px;
     color: var(--ink);
     background: var(--surface-2);
@@ -925,7 +924,6 @@
   .outcome-select:focus { border-color: var(--red); }
 
   /* ── HANDOFF EXPORT ── */
-  .handoff-section { }
   .handoff-preview {
     background: var(--ink);
     border-radius: 8px;
@@ -967,24 +965,6 @@
   .export-btn.ghl-export { background: var(--green); color: white; }
   .export-btn.az-export  { background: var(--blue); color: white; }
 
-  /* ── GHL SETTINGS ── */
-  .settings-card {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 16px;
-  }
-  .settings-card h4 {
-    font-family: var(--display);
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--ink);
-    margin-bottom: 14px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border);
-  }
-
   /* ── TOAST ── */
   .toast {
     position: fixed;
@@ -1010,18 +990,6 @@
 
   /* ── MISC ── */
   .divider { height: 1px; background: var(--border); margin: 16px 0; }
-  .inline-badge {
-    display: inline-block;
-    font-family: var(--mono);
-    font-size: 9px;
-    padding: 2px 8px;
-    border-radius: 20px;
-    font-weight: 500;
-  }
-  .badge-lead { background: var(--green-bg); color: var(--green); }
-  .badge-ref  { background: var(--blue-bg); color: var(--blue); }
-  .badge-int  { background: var(--amber-bg); color: var(--amber); }
-
   .no-leads-msg {
     text-align: center;
     padding: 60px 20px;
@@ -1760,24 +1728,18 @@ let currentLeadId = null;
 let callCounter = 0;
 
 // Agent-aware storage keys
-const STORAGE_KEYS = {
-  greg:  'strauch_leads_greg_v3',
-  faith: 'strauch_leads_faith_v2'
-};
-const SETTINGS_KEYS = {
-  greg:  'strauch_settings_greg_v1',
-  faith: 'strauch_settings_faith_v1'
-};
-const SYNC_KEYS = {
-  greg:  'strauch_last_sync_greg',
-  faith: 'strauch_last_sync_faith'
+// The version suffixes differ per agent and per kind — they are not derivable,
+// so they stay written out. Changing one orphans that agent's saved leads.
+const AGENT_KEYS = {
+  greg:  { leads: 'strauch_leads_greg_v3',  settings: 'strauch_settings_greg_v1',  sync: 'strauch_last_sync_greg' },
+  faith: { leads: 'strauch_leads_faith_v2', settings: 'strauch_settings_faith_v1', sync: 'strauch_last_sync_faith' }
 };
 
 let currentAgent = localStorage.getItem('strauch_active_agent') || 'greg';
 
-function getStorageKey()  { return STORAGE_KEYS[currentAgent]; }
-function getSettingsKey() { return SETTINGS_KEYS[currentAgent]; }
-function getSyncKey()     { return SYNC_KEYS[currentAgent]; }
+function getStorageKey()  { return AGENT_KEYS[currentAgent].leads; }
+function getSettingsKey() { return AGENT_KEYS[currentAgent].settings; }
+function getSyncKey()     { return AGENT_KEYS[currentAgent].sync; }
 
 // One Apps Script URL shared by both workspaces — set it once, works for Greg and Faith
 const SHEET_URL_KEY = 'strauch_sheet_url_shared_v1';
@@ -1898,7 +1860,7 @@ function init() {
 // LEAD CRUD
 // ════════════════════════════════════════
 function generateId() {
-  return 'lead_' + Date.now() + '_' + Math.random().toString(36).substr(2,5);
+  return 'lead_' + crypto.randomUUID();
 }
 
 function newLead() {
@@ -1974,18 +1936,7 @@ function loadLeadIntoEditor(lead) {
 
   // Coverage
   const c = lead.coverage || {};
-  sv('cAutoCurrentPrem',    c.autoCurrentPrem);
-  sv('cAutoFarmersPrem',    c.autoFarmersPrem);
-  sv('cAutoCurrentCarrier', c.autoCurrentCarrier);
-  sv('cAutoFarmersNote',    c.autoFarmersNote);
-  sv('cAutoCurrentDeduct',  c.autoCurrentDeduct);
-  sv('cAutoFarmersDeduct',  c.autoFarmersDeduct);
-  sv('cHomeCurrentPrem',    c.homeCurrentPrem);
-  sv('cHomeFarmersPrem',    c.homeFarmersPrem);
-  sv('cHomeCurrentCarrier', c.homeCurrentCarrier);
-  sv('cHomeFarmersNote',    c.homeFarmersNote);
-  sv('cHomeCurrentDeduct',  c.homeCurrentDeduct);
-  sv('cHomeFarmersDeduct',  c.homeFarmersDeduct);
+  COV_FIELDS.forEach(k => sv(covId(k), c[k]));
 
   // Quoted premium & commercial intake
   sv('pQuotedPremium', lead.quotedPremium);
@@ -2046,20 +1997,7 @@ function saveCurrentLead() {
   lead.updatedAt  = new Date().toISOString();
   // status is saved via setLeadStatus(), not here
 
-  lead.coverage = {
-    autoCurrentPrem:    gv('cAutoCurrentPrem'),
-    autoFarmersPrem:    gv('cAutoFarmersPrem'),
-    autoCurrentCarrier: gv('cAutoCurrentCarrier'),
-    autoFarmersNote:    gv('cAutoFarmersNote'),
-    autoCurrentDeduct:  gv('cAutoCurrentDeduct'),
-    autoFarmersDeduct:  gv('cAutoFarmersDeduct'),
-    homeCurrentPrem:    gv('cHomeCurrentPrem'),
-    homeFarmersPrem:    gv('cHomeFarmersPrem'),
-    homeCurrentCarrier: gv('cHomeCurrentCarrier'),
-    homeFarmersNote:    gv('cHomeFarmersNote'),
-    homeCurrentDeduct:  gv('cHomeCurrentDeduct'),
-    homeFarmersDeduct:  gv('cHomeFarmersDeduct'),
-  };
+  lead.coverage = COV_FIELDS.reduce((o, k) => { o[k] = gv(covId(k)); return o; }, {});
 
   lead.leadType      = gv('pLeadType') || 'personal';
   lead.quotedPremium = gv('pQuotedPremium');
@@ -2084,6 +2022,13 @@ function gv(id) {
 // Commercial quoting needs a different intake than personal lines. Rather than a
 // second app, a lead carries leadType and a business{} block; the personal
 // coverage grid and the commercial cards swap based on it.
+// Coverage grid inputs are id'd 'c' + capitalised key, so the list drives both
+// directions — read and write — instead of two hand-kept 12-line blocks.
+const COV_FIELDS = ['autoCurrentPrem', 'autoFarmersPrem', 'autoCurrentCarrier', 'autoFarmersNote',
+                    'autoCurrentDeduct', 'autoFarmersDeduct', 'homeCurrentPrem', 'homeFarmersPrem',
+                    'homeCurrentCarrier', 'homeFarmersNote', 'homeCurrentDeduct', 'homeFarmersDeduct'];
+const covId = k => 'c' + k[0].toUpperCase() + k.slice(1);
+
 const COMMERCIAL_FIELDS = [
   { id: 'bLegalName',      key: 'legalName',      label: 'Legal Name' },
   { id: 'bDBA',            key: 'dba',            label: 'DBA' },
