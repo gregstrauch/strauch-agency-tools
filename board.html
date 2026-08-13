@@ -51,6 +51,30 @@
   #syncStatus { font-size: 11px; color: #8a95a8; }
   #syncStatus.err { color: #ff8a80; }
 
+  /* ── Access PIN gate ────────────────────── */
+  #pinGate {
+    position: fixed; inset: 0; z-index: 99999;
+    background: var(--ink); display: flex; align-items: center; justify-content: center;
+  }
+  .pin-card {
+    background: var(--panel); border-radius: 12px; padding: 32px;
+    width: 100%; max-width: 360px; text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,.45);
+  }
+  .pin-title { font-family: var(--display); font-size: 20px; font-weight: 700; color: var(--ink); }
+  .pin-sub { font-size: 13px; color: var(--ink-2); margin: 8px 0 20px; line-height: 1.5; }
+  .pin-input {
+    width: 100%; padding: 11px 12px; font-size: 14px; border: 1px solid var(--line);
+    border-radius: 8px; background: var(--bg); color: var(--ink); outline: none;
+  }
+  .pin-input:focus { border-color: var(--blue); background: var(--panel); }
+  .pin-btn {
+    width: 100%; margin-top: 12px; padding: 11px; border: none; border-radius: 8px;
+    background: var(--blue); color: #fff; font-family: var(--display);
+    font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  .pin-note { font-size: 11px; color: var(--ink-3); margin-top: 14px; }
+
   /* ── Setup banner ───────────────────────── */
   #setupBanner {
     display: none; background: var(--amber-bg); color: var(--amber);
@@ -393,6 +417,48 @@ const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz56VTJ3aVML
 // Shared access key — must match API_KEY in the Apps Script backend. Blocks
 // anyone who finds the bare deployment URL from reading/writing lead data.
 const API_KEY = '1aayVUlCj1XYzUUHLDs6pTtqSROi496D';
+
+// ── Access PIN ─────────────────────────────────────────────────────────────
+// This page is published publicly, so API_KEY above is visible to anyone who
+// views source. Lead data additionally needs a PIN that is typed, never shipped
+// in the page, and checked by the backend. Reactive: nothing shows until the
+// server answers {needPin:true}, so publishing this before the backend is
+// deployed changes nothing visible.
+const PIN_KEY = 'strauch_access_pin_v1';   // same key as the Lead Tracker — type it once
+const getAccessPin = () => localStorage.getItem(PIN_KEY) || '';
+
+function askForAccessPin(message) {
+  if (document.getElementById('pinGate')) return;
+  const box = document.createElement('div');
+  box.id = 'pinGate';
+  box.innerHTML =
+    '<div class="pin-card">' +
+      '<div class="pin-title">Strauch Agency</div>' +
+      '<div class="pin-sub">' + (message || 'Enter the access PIN to open the pipeline.') + '</div>' +
+      '<input id="pinInput" class="pin-input" type="password" autocomplete="current-password" placeholder="Access PIN">' +
+      '<button id="pinGo" class="pin-btn">Unlock</button>' +
+      '<div class="pin-note">Ask Greg if you don\'t have it.</div>' +
+    '</div>';
+  document.body.appendChild(box);
+  const input = document.getElementById('pinInput');
+  const submit = () => {
+    const v = input.value.trim();
+    if (!v) return;
+    localStorage.setItem(PIN_KEY, v);
+    location.reload();
+  };
+  document.getElementById('pinGo').onclick = submit;
+  input.onkeydown = (e) => { if (e.key === 'Enter') submit(); };
+  input.focus();
+}
+
+/** True if the response was a PIN refusal (and the prompt has been raised). */
+function needsPin(data) {
+  if (!data || !data.needPin) return false;
+  localStorage.removeItem(PIN_KEY);
+  askForAccessPin('That PIN was not accepted. Try again.');
+  return true;
+}
 const URL_KEY  = 'strauch_pipeline_script_url';
 const VIEW_KEY = 'strauch_pipeline_view';
 const MODE_KEY = 'strauch_pipeline_mode';
@@ -598,8 +664,10 @@ function deriveStage(lead) {
 
 /* ═══════════════ DATA ═══════════════ */
 async function apiGet(params) {
-  const res = await fetch(getScriptUrl() + '?' + params + '&key=' + encodeURIComponent(API_KEY), { method: 'GET' });
+  const res = await fetch(getScriptUrl() + '?' + params + '&key=' + encodeURIComponent(API_KEY) +
+                          '&access=' + encodeURIComponent(getAccessPin()), { method: 'GET' });
   const data = await res.json();
+  if (needsPin(data)) throw new Error('Access PIN required');   // prompt is already up
   if (data.error) throw new Error(data.error);
   return data;
 }
@@ -629,7 +697,7 @@ async function _getWrite(url, body) {
 // clean success; surfaces a real backend error (bad PIN, lead not found) at once;
 // only a stale-URL "unknown action" is treated as "try the next endpoint".
 async function apiPost(body) {
-  body = Object.assign({ key: API_KEY }, body);
+  body = Object.assign({ key: API_KEY, access: getAccessPin() }, body);
   const primary = getScriptUrl();
   const urls = (primary === DEFAULT_SCRIPT_URL) ? [primary] : [primary, DEFAULT_SCRIPT_URL];
   const isStale = (msg) => /unknown action|bad payload|no such|not found: action/i.test(msg || '');
@@ -638,6 +706,7 @@ async function apiPost(body) {
     for (const send of [_postTo, _getWrite]) {
       try {
         const data = await send(url, body);
+        if (needsPin(data)) throw new Error('Access PIN required');   // prompt is already up
         if (data && data.error) {
           if (isStale(data.error)) { lastErr = new Error(data.error); continue; } // wrong/old endpoint — try next
           throw new Error(data.error);                                            // real error — surface it

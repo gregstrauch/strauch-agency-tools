@@ -752,6 +752,35 @@
     transition: background 0.12s;
   }
   .call-entry-header:hover { background: #E8EDF5; }
+  /* Access PIN gate — covers everything until the backend accepts the PIN */
+  #pinGate {
+    position: fixed; inset: 0; z-index: 99999;
+    background: var(--ink); display: flex; align-items: center; justify-content: center;
+  }
+  .pin-card {
+    background: var(--white); border-radius: var(--radius-lg, 10px);
+    padding: 32px; width: 100%; max-width: 360px; text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,.45);
+  }
+  .pin-title {
+    font-family: var(--display); font-size: 20px; font-weight: 800;
+    letter-spacing: 0.4px; color: var(--ink);
+  }
+  .pin-sub { font-size: 13px; color: var(--ink-2); margin: 8px 0 20px; line-height: 1.5; }
+  .pin-input {
+    width: 100%; padding: 11px 12px; font-family: var(--mono); font-size: 14px;
+    border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2);
+    color: var(--ink); outline: none;
+  }
+  .pin-input:focus { border-color: var(--red); background: var(--white); }
+  .pin-btn {
+    width: 100%; margin-top: 12px; padding: 11px; border: none; border-radius: 8px;
+    background: var(--red); color: #fff; font-family: var(--sans); font-size: 14px;
+    font-weight: 600; cursor: pointer;
+  }
+  .pin-btn:hover { background: var(--red-dim); }
+  .pin-note { font-size: 11px; color: var(--ink-3); margin-top: 14px; }
+
   .call-producer {
     font-family: var(--mono); font-size: 9px; font-weight: 500; letter-spacing: 0.4px;
     text-transform: uppercase; padding: 2px 7px; border-radius: var(--radius-pill, 999px);
@@ -1756,6 +1785,61 @@ const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz56VTJ3aVML
 // Shared access key — must match API_KEY in the Apps Script backend. Blocks
 // anyone who finds the bare deployment URL from reading/writing lead data.
 const API_KEY = '1aayVUlCj1XYzUUHLDs6pTtqSROi496D';
+
+// ── Access PIN ─────────────────────────────────────────────────────────────
+// This page is published publicly, so API_KEY above is visible to anyone who
+// views source and protects nothing on its own. Lead data additionally needs a
+// PIN that is typed, never shipped in the page, and checked by the backend.
+// The prompt is REACTIVE: nothing appears until the server actually answers
+// {needPin:true}, so this file is harmless to publish before the backend is
+// deployed, and a stale saved PIN self-heals instead of dead-ending.
+const PIN_KEY = 'strauch_access_pin_v1';
+const getAccessPin = () => localStorage.getItem(PIN_KEY) || '';
+
+function askForAccessPin(message) {
+  if (document.getElementById('pinGate')) return;
+  const box = document.createElement('div');
+  box.id = 'pinGate';
+  box.innerHTML =
+    '<div class="pin-card">' +
+      '<div class="pin-title">Strauch Agency</div>' +
+      '<div class="pin-sub">' + (message || 'Enter the access PIN to open the tracker.') + '</div>' +
+      '<input id="pinInput" class="pin-input" type="password" autocomplete="current-password" placeholder="Access PIN">' +
+      '<button id="pinGo" class="pin-btn">Unlock</button>' +
+      '<div class="pin-note">Ask Greg if you don\'t have it.</div>' +
+    '</div>';
+  document.body.appendChild(box);
+  const input = document.getElementById('pinInput');
+  const submit = () => {
+    const v = input.value.trim();
+    if (!v) return;
+    localStorage.setItem(PIN_KEY, v);
+    location.reload();          // simplest correct reset — every view refetches
+  };
+  document.getElementById('pinGo').onclick = submit;
+  input.onkeydown = (e) => { if (e.key === 'Enter') submit(); };
+  input.focus();
+}
+
+/** True if the response was a PIN refusal (and the prompt has been raised). */
+function needsPin(data) {
+  if (!data || !data.needPin) return false;
+  localStorage.removeItem(PIN_KEY);
+  askForAccessPin('That PIN was not accepted. Try again.');
+  return true;
+}
+
+/** Cheap authenticated probe on load: the push path uses no-cors and can't read
+ *  a refusal, so without this the gate would be invisible until a manual read. */
+async function checkAccessOnLoad() {
+  const url = getSheetUrl();
+  if (!url) return;
+  try {
+    const res = await fetch(url + '?action=getConfig&key=' + encodeURIComponent(API_KEY) +
+                            '&access=' + encodeURIComponent(getAccessPin()), { method: 'GET' });
+    needsPin(await res.json());
+  } catch (err) { /* offline — local data still works, stay quiet */ }
+}
 function getSheetUrl() {
   const settings = JSON.parse(localStorage.getItem(getSettingsKey()) || '{}');
   return (settings.sheet && settings.sheet.trim()) || (localStorage.getItem(SHEET_URL_KEY) || '').trim() || DEFAULT_SCRIPT_URL;
@@ -2127,7 +2211,7 @@ async function syncAllToSheet(silent) {
   }
   if (!silent) setSyncStatus('syncing', 'Pushing all leads…');
   try {
-    const payload = { action: 'syncAll', agent: currentAgent, leads: leads, key: API_KEY };
+    const payload = { action: 'syncAll', agent: currentAgent, leads: leads, key: API_KEY, access: getAccessPin() };
     // text/plain avoids the CORS preflight that Apps Script can't answer
     await fetch(url, {
       method: 'POST',
@@ -2153,9 +2237,12 @@ async function restoreFromSheet() {
   toast('Fetching leads from Google Sheet…', 'info');
 
   try {
-    const res = await fetch(url + '?action=getAll&agent=' + currentAgent + '&key=' + encodeURIComponent(API_KEY), { method: 'GET' });
+    const res = await fetch(url + '?action=getAll&agent=' + currentAgent + '&key=' + encodeURIComponent(API_KEY) +
+                            '&access=' + encodeURIComponent(getAccessPin()), { method: 'GET' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
+
+    if (needsPin(data)) { setSyncStatus('idle', 'PIN required'); return; }
 
     if (!data || !Array.isArray(data.leads)) {
       throw new Error('Unexpected response format — check your Apps Script code');
@@ -2387,9 +2474,11 @@ async function loadSharedCalls(lead) {
   if (!phone) return;                       // no usable key, nothing to join on
   try {
     const url = getSheetUrl() + '?action=getCalls&phone=' + phone +
-                '&key=' + encodeURIComponent(API_KEY);
+                '&key=' + encodeURIComponent(API_KEY) +
+                '&access=' + encodeURIComponent(getAccessPin());
     const res = await fetch(url, { method: 'GET' });
     const data = await res.json();
+    if (needsPin(data)) return;
     if (!data || !data.calls || !data.calls.length) return;
     if (currentLeadId !== lead.id) return;  // user moved on while we fetched
     // A call already logged by hand in this tracker shouldn't render twice.
@@ -3006,6 +3095,7 @@ function switchAgent(agent) {
 // BOOT
 // ════════════════════════════════════════
 init();
+checkAccessOnLoad();
 </script>
 </body>
 </html>
