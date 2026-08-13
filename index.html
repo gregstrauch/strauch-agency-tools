@@ -5,27 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Strauch Agency — Lead Profile Tracker</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
 
+  /* Design tokens — Strauch Agency design system (~/strauch-design-system). */
   :root {
     --red:     #E01933;
     --red-dim: #B30032;
     --red-bg:  #FDECEF;
-    --ink:     #0f1117;
-    --ink-2:   #3a3d4a;
-    --ink-3:   #6b6f80;
-    --border:  #d8dce8;
-    --bg:      #f4f5f8;
-    --white:   #ffffff;
-    --green:   #0e8a4a;
-    --green-bg:#f0fdf7;
-    --amber:   #c47c00;
-    --amber-bg:#fffbf0;
-    --blue:    #1a5fce;
-    --blue-bg: #f0f5ff;
+    --ink:     #12161F;
+    --ink-2:   #465061;
+    --ink-3:   #78839A;
+    --border:  #D8DEE9;
+    --bg:      #F4F6FA;
+    --white:   #FFFFFF;
+    --surface-2: #F7F9FC;
+    --blue-light:#B4C4EA;
+    --green:   #0E7A46;
+    --green-bg:#E9F7F0;
+    --amber:   #A96500;
+    --amber-bg:#FFF6E6;
+    --blue:    #003087;
+    --blue-bg: #DAE7FF;
     --mono:    'DM Mono', monospace;
     --sans:    'DM Sans', sans-serif;
-    --display: 'Syne', sans-serif;
+    --display: 'DM Sans', sans-serif;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -214,7 +217,7 @@
   .lead-panel {
     width: 0;
     overflow: hidden;
-    background: #13151e;
+    background: var(--ink);
     border-right: 1px solid rgba(255,255,255,0.06);
     display: flex;
     flex-direction: column;
@@ -434,7 +437,7 @@
     transition: all 0.3s;
   }
   .score-circle.hot  { border-color: var(--red); background: var(--red-bg); }
-  .score-circle.warm { border-color: #e07b00; background: var(--amber-bg); }
+  .score-circle.warm { border-color: var(--amber); background: var(--amber-bg); }
   .score-circle.cold { border-color: var(--blue); background: var(--blue-bg); }
   .score-number {
     font-family: var(--display);
@@ -487,8 +490,8 @@
     letter-spacing: 0.3px;
   }
   .crm-btn:hover { border-color: var(--ink-2); background: var(--bg); }
-  .crm-btn.ghl { border-color: #00b894; color: #00b894; }
-  .crm-btn.ghl:hover { background: #f0fff8; }
+  .crm-btn.ghl { border-color: var(--green); color: var(--green); }
+  .crm-btn.ghl:hover { background: var(--green-bg); }
   .crm-btn.az  { border-color: var(--blue); color: var(--blue); }
   .crm-btn.az:hover  { background: var(--blue-bg); }
   .crm-btn.copy { border-color: var(--ink-3); }
@@ -564,7 +567,7 @@
     font-family: var(--sans);
     font-size: 13px;
     color: var(--ink);
-    background: #fafbfc;
+    background: var(--surface-2);
     outline: none;
     transition: border 0.12s;
   }
@@ -599,14 +602,14 @@
     font-size: 11px;
     color: var(--ink-3);
     border-right: 1px solid var(--border);
-    border-bottom: 1px solid #f0f0f0;
-    background: #fafbfc;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
     display: flex;
     align-items: center;
   }
   .cg-cell {
     padding: 6px 12px;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--border);
     border-right: 1px solid var(--border);
   }
   .cg-cell:last-child { border-right: none; background: var(--red-bg); }
@@ -699,7 +702,7 @@
   .score-bar-fill {
     height: 100%;
     border-radius: 4px;
-    background: linear-gradient(90deg, var(--blue) 0%, #e07b00 50%, var(--red) 80%);
+    background: linear-gradient(90deg, var(--blue) 0%, var(--amber) 50%, var(--red) 80%);
     transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     width: 0%;
   }
@@ -748,7 +751,7 @@
     cursor: pointer;
     transition: background 0.12s;
   }
-  .call-entry-header:hover { background: #eaedf2; }
+  .call-entry-header:hover { background: #E8EDF5; }
   .call-num {
     font-family: var(--display);
     font-size: 10px;
@@ -815,7 +818,7 @@
     font-family: var(--sans);
     font-size: 13px;
     color: var(--ink);
-    background: #fafbfc;
+    background: var(--surface-2);
     outline: none;
     resize: vertical;
     min-height: 88px;
@@ -843,8 +846,8 @@
     letter-spacing: 0.3px;
   }
   .call-action-btn:hover { border-color: var(--ink-2); }
-  .call-action-btn.del { border-color: #ffcdd2; color: #e57373; }
-  .call-action-btn.del:hover { background: #ffebee; border-color: #e57373; }
+  .call-action-btn.del { border-color: var(--red); color: var(--red); }
+  .call-action-btn.del:hover { background: var(--red-bg); border-color: var(--red); }
 
   .outcome-select {
     font-family: var(--mono);
@@ -899,7 +902,7 @@
   .export-btn:hover { opacity: 0.84; }
   .export-btn.primary   { background: var(--red); color: white; }
   .export-btn.secondary { background: var(--ink); color: white; }
-  .export-btn.ghl-export { background: #00b894; color: white; }
+  .export-btn.ghl-export { background: var(--green); color: white; }
   .export-btn.az-export  { background: var(--blue); color: white; }
 
   /* ── GHL SETTINGS ── */
@@ -939,7 +942,7 @@
     pointer-events: none;
   }
   .toast.show { transform: translateY(0); opacity: 1; }
-  .toast.success { border-left: 3px solid #00b894; }
+  .toast.success { border-left: 3px solid var(--green); }
   .toast.error   { border-left: 3px solid var(--red); }
   .toast.info    { border-left: 3px solid var(--blue); }
 
@@ -953,9 +956,9 @@
     border-radius: 20px;
     font-weight: 500;
   }
-  .badge-lead { background: #e8f5e9; color: #2e7d32; }
+  .badge-lead { background: var(--green-bg); color: var(--green); }
   .badge-ref  { background: var(--blue-bg); color: var(--blue); }
-  .badge-int  { background: #fff3e0; color: #e65100; }
+  .badge-int  { background: var(--amber-bg); color: var(--amber); }
 
   .no-leads-msg {
     text-align: center;
@@ -1005,7 +1008,7 @@
   .status-btn:hover { border-color: var(--ink-2); color: var(--ink); }
   .status-btn.active-status-active { border-color: var(--blue); background: var(--blue-bg); color: var(--blue); }
   .status-btn.active-status-won    { border-color: var(--green); background: var(--green-bg); color: var(--green); }
-  .status-btn.active-status-lost   { border-color: #e57373; background: #ffebee; color: #c62828; }
+  .status-btn.active-status-lost   { border-color: var(--red); background: var(--red-bg); color: var(--red-dim); }
   .status-btn.active-status-nurture { border-color: var(--amber); background: var(--amber-bg); color: var(--amber); }
 
   /* Won banner on profile header */
@@ -1047,7 +1050,7 @@
     flex-shrink: 0;
   }
   .legend-dot.hot  { background: var(--red); }
-  .legend-dot.warm { background: #e07b00; }
+  .legend-dot.warm { background: var(--amber); }
   .legend-dot.cold { background: var(--blue); }
 
   @media (max-width: 768px) {
@@ -1447,7 +1450,7 @@
             <div class="cg-cell"><input class="cg-input" id="cHomeFarmersDeduct" placeholder="$1,000" oninput="saveCurrentLead()"></div>
           </div>
 
-          <div style="margin-top:16px;padding:14px 16px;border:1px solid var(--border);border-left:3px solid #c47c00;border-radius:8px;background:rgba(196,124,0,0.06);">
+          <div style="margin-top:16px;padding:14px 16px;border:1px solid var(--border);border-left:3px solid var(--amber);border-radius:8px;background:rgba(169,101,0,0.06);">
             <div class="field-group">
               <label class="field-label" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                 <span>Total Quoted Premium (annual)</span>
@@ -1628,7 +1631,7 @@
         <div class="card" style="margin-top:16px;">
           <div class="card-title">Google Sheets Sync</div>
 
-          <div style="background:var(--blue-bg);border:1px solid #c5d8ff;border-radius:7px;padding:12px 16px;margin-bottom:16px;font-family:var(--mono);font-size:11px;color:var(--ink-2);line-height:1.7;">
+          <div style="background:var(--blue-bg);border:1px solid var(--blue-light);border-radius:7px;padding:12px 16px;margin-bottom:16px;font-family:var(--mono);font-size:11px;color:var(--ink-2);line-height:1.7;">
             <strong style="font-family:var(--display);font-size:12px;">How to get your Apps Script URL:</strong><br>
             1. Open your Google Sheet → Extensions → Apps Script<br>
             2. Deploy → New deployment → Web app → Execute as: Me → Who has access: Anyone<br>
@@ -2049,7 +2052,7 @@ function setSyncStatus(state, msg, time) {
   const ts   = document.getElementById('syncLastTime');
   if (!bar) return;
   bar.style.display = 'flex';
-  const colors = { ok: '#0e8a4a', error: '#E01933', syncing: '#c47c00', idle: '#6b6f80' };
+  const colors = { ok: '#0E7A46', error: '#E01933', syncing: '#A96500', idle: '#78839A' };
   dot.style.background = colors[state] || colors.idle;
   text.textContent = msg || '';
   if (time) ts.textContent = 'Last sync: ' + time;
@@ -2060,7 +2063,7 @@ function setSyncStatus(state, msg, time) {
   const navText = document.getElementById('navSyncText');
   if (navPill) {
     navPill.style.display = 'inline-flex';
-    const pillColors = { ok: '#0e8a4a', error: '#E01933', syncing: '#c47c00', idle: 'rgba(255,255,255,0.35)' };
+    const pillColors = { ok: '#0E7A46', error: '#E01933', syncing: '#A96500', idle: 'rgba(255,255,255,0.35)' };
     navDot.style.background = pillColors[state] || pillColors.idle;
     navDot.style.color = pillColors[state] || pillColors.idle;
     navText.textContent = state === 'syncing' ? 'Syncing…' : state === 'ok' ? 'Synced' : state === 'error' ? 'Sync Error' : 'Not Synced';
@@ -2188,7 +2191,7 @@ function renderLeadList(filter, tierFilter) {
     const tierLabel = tier === 'hot' ? '🔥 Hot' : tier === 'warm' ? '⚡ Warm' : tier === 'cold' ? '❄ Cold' : '—';
     const lastCall = lead.calls && lead.calls.length > 0 ? lead.calls[lead.calls.length-1].date || 'No date' : 'No calls';
     const statusClass = lead.status === 'won' ? 'won' : lead.status === 'lost' ? 'lost-lead' : '';
-    const statusTag = lead.status === 'won' ? ' <span style="color:var(--green);font-size:9px;">✓ WON</span>' : lead.status === 'lost' ? ' <span style="color:#e57373;font-size:9px;">✕ LOST</span>' : lead.status === 'nurture' ? ' <span style="color:var(--amber);font-size:9px;">◷</span>' : '';
+    const statusTag = lead.status === 'won' ? ' <span style="color:var(--green);font-size:9px;">✓ WON</span>' : lead.status === 'lost' ? ' <span style="color:var(--red);font-size:9px;">✕ LOST</span>' : lead.status === 'nurture' ? ' <span style="color:var(--amber);font-size:9px;">◷</span>' : '';
     return `
       <div class="lead-item ${lead.id === currentLeadId ? 'active' : ''} ${statusClass}" onclick="selectLead('${lead.id}')">
         <div class="lead-item-name">${lead.name || 'Unnamed Lead'}${statusTag}</div>
@@ -2806,9 +2809,9 @@ function updateStatusUI(status) {
       document.getElementById('wonBannerText').textContent = 'CLOSED — WON 🎉';
     } else if (status === 'lost') {
       banner.classList.add('show');
-      banner.style.background = '#ffebee';
-      banner.style.borderColor = '#e57373';
-      banner.style.color = '#c62828';
+      banner.style.background = 'var(--red-bg)';
+      banner.style.borderColor = 'var(--red)';
+      banner.style.color = 'var(--red-dim)';
       document.getElementById('wonBannerText').textContent = 'CLOSED — LOST';
     } else {
       banner.classList.remove('show');
