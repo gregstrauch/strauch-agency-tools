@@ -4199,6 +4199,12 @@ async function copyBrief(btn){
         <summary style="cursor:pointer;color:#ffd700;font-size:11px;letter-spacing:1px;text-transform:uppercase">
             9–11. Duty plan &amp; obligations — required for all reschedules (E-6 &amp; below)</summary>
         <div class="section-label">9. Areas I expect to work</div>
+        <div style="display:flex;align-items:center;gap:10px;margin:-4px 0 8px;flex-wrap:wrap">
+            <button class="btn-sm" type="button" onclick="utaSuggestPlan()">✎ Generate training plan</button>
+            <span style="font-size:11px;color:#9fb0c0">
+                E-6 &amp; below · PAX tasks by skill level · fills blanks only, never overwrites what you typed</span>
+        </div>
+        <div id="utaPlanMsg" style="font-size:11px;min-height:14px;margin-bottom:6px"></div>
         <div class="form-row">
             <div class="form-group"><label>Work in duty section</label><input id="utaW1"></div>
             <div class="form-group"><label>EPR/OPR preparation</label><input id="utaW2"></div>
@@ -4542,6 +4548,86 @@ async function openUtaWorksheet(name,status){
     await restoring;
 }
 
+/* ═════════ Section 9/11 training-plan generator
+   The worksheet demands a duty plan from every E-6 and below who reschedules, and the
+   thing that actually gets forms returned is a blank or hand-waved section 11. This
+   writes a PAX-specific one off rank alone. Plain-language tasks only — no CFETP
+   paragraph numbers, because inventing one onto a signed form is worse than a blank.
+   Tier by rank, not by the Skill Level column: that column is free text ("(5)"), often
+   empty, and the member reads it off their stripes anyway. */
+const UTA_TIER={AB:'3',AMN:'3',A1C:'3',SrA:'5',SSgt:'5',TSgt:'7'};
+const UTA_PAX_TASKS={
+ '3':{label:'3-level / apprentice, in upgrade',
+   duty:'Passenger check-in, ID and travel-eligibility screening, baggage acceptance and weighing, and terminal customer service under trainer supervision',
+   epr:'Initial feedback with supervisor; start duty-description and performance inputs for the next EPB',
+   cfetp:'2T2X1 3-level CFETP core tasks — passenger processing, baggage handling, GATES/ADPS entry; CDC volume review and end-of-course test prep',
+   other:'Space-A sign-up and roll call familiarization; passenger briefing shadowing; task evaluations signed off by trainer'},
+ '5':{label:'5-level / journeyman',
+   duty:'Run passenger check-in and manifesting independently — GATES/ADPS entries, baggage accountability, Space-A seat release, and gate handling of the PAX load',
+   epr:'Draft EPB narrative inputs and update duty description with supervisor',
+   cfetp:'2T2X1 5-level CFETP tasks and duty-position qualification currency; clear outstanding task evaluations and 7-level upgrade prerequisites',
+   other:'Passenger service complaint follow-up; terminal readiness checks; assist the trainer with 3-level task sign-offs'},
+ '7':{label:'7-level / craftsman, trainer',
+   duty:'Supervise the passenger terminal shift — manifest accuracy and pre-departure transmission, baggage accountability, Space-A management, on-time departure of PAX loads',
+   epr:'EPB drafting and review for assigned Airmen; own feedback sessions documented',
+   cfetp:'Trainer/certifier duties — review and sign 3- and 5-level task evaluations, update the Master Training Plan and AF Form 623 records, close flight CFETP shortfalls',
+   other:'Duty-position qualification currency for assigned Airmen; review PAX metrics (on-time departure, baggage accuracy, complaints) and brief the flight chief'},
+};
+
+/* Pure: rank + make-up days in, field values out. Returns null above E-6 — the
+   section is not required there and a generated plan would be noise on the form. */
+function paxDutyPlan(rank,days,name){
+    const tier=UTA_TIER[String(rank||'').trim()];
+    if(!tier)return null;
+    const t=UTA_PAX_TASKS[tier];
+    const when=(days||[]).filter(d=>d.date).map(d=>
+        d.date+' ('+(d.period==='am'?'AM period':d.period==='pm'?'PM period':'full day')+')');
+    const head=[rank,name].filter(Boolean).join(' ')||'The member';
+    return {fields:{
+        utaW1:t.duty,
+        utaW2:t.epr,
+        utaW3:'N/A — PAX has no drop zone taskings',
+        utaW4:'Complete or verify all TFAT and mobility CBTs current in ADLS',
+        utaW5:t.cfetp,
+        utaW6:'Verify clearance current in DISS; submit e-QIP / CE actions if flagged',
+        utaW7:t.other,
+    },narrative:[
+        head+' will make up the missed UTA in the Passenger Service Flight'+
+            (when.length?' on '+when.join(', '):'')+', working the '+t.label+' plan below.',
+        '',
+        '1. Duty section: '+t.duty+'.',
+        '2. Training: '+t.cfetp+'.',
+        '3. Ancillary: '+'Complete or verify all TFAT and mobility CBTs current in ADLS; confirm IMR items and clearance status.',
+        '4. Additional: '+t.other+'.',
+        '',
+        'Supervisor will verify completion of each item before the make-up period is credited.',
+    ].join('\n')};
+}
+
+function utaSuggestPlan(){
+    const msg=document.getElementById('utaPlanMsg');
+    const rank=(document.getElementById('utaRank').value||'').trim();
+    const p=paxDutyPlan(rank,
+        [1,2,3,4].map(i=>({date:(document.getElementById('utaRDate'+i).value||'').trim(),
+                           period:document.getElementById('utaRPer'+i).value})),
+        (document.getElementById('utaName').value||'').trim());
+    if(!p){msg.style.color='#ffaa66';
+        msg.textContent=rank?rank+' is above E-6 — sections 9–11 are not required.':'Pick a rank first.';return;}
+    let filled=0,skipped=0;
+    Object.entries(p.fields).forEach(([id,val])=>{
+        const el=document.getElementById(id);
+        if(el.value.trim()){skipped++;return;}
+        el.value=val;filled++;
+    });
+    const plan=document.getElementById('utaPlan');
+    if(plan.value.trim())skipped++;else{plan.value=p.narrative;filled++;}
+    msg.style.color='#77dd99';
+    msg.textContent='✓ Filled '+filled+' field'+(filled===1?'':'s')+
+        (skipped?', left '+skipped+' you had already written':'')+
+        '. PAX task set — edit before generating the PDF.'+
+        (String(currentFlight).toUpperCase()==='PAX'?'':' (Flight is '+currentFlight+', not PAX.)');
+}
+
 function utaCollect(){
     const v=id=>(document.getElementById(id).value||'').trim();
     const days=prefix=>[1,2,3,4].map(i=>({date:v(prefix+'Date'+i),period:v(prefix+'Per'+i)}))
@@ -4607,8 +4693,20 @@ function utaSelfCheck(){
      {reason:'maybe'},{missed:[1,2,3,4,5].map(()=>({date:'x'}))}].forEach(bad=>{
         try{utaPlan(bad);}catch(e){rejects++;}
     });
-    const pass=ok&&rejects===5;
-    console.log('[UTA worksheet] self-check '+(pass?'OK':'FAILED')+' (mapping '+ok+', rejects '+rejects+'/5)');
+    // Section 9/11 generator: tiering, the E-7+ cutoff, and the make-up dates in the narrative.
+    const a1c=paxDutyPlan('A1C',[{date:'2026-09-26',period:'am'}],'Doe, Jane A');
+    const tsgt=paxDutyPlan('TSgt',[],'');
+    const plan=[
+        a1c&&a1c.fields.utaW5.includes('3-level'),
+        paxDutyPlan('SSgt',[],'').fields.utaW5.includes('5-level'),
+        tsgt&&tsgt.fields.utaW5.includes('Trainer'),
+        paxDutyPlan('MSgt',[],'')===null, paxDutyPlan('Capt',[],'')===null, paxDutyPlan('',[],'')===null,
+        a1c.narrative.includes('2026-09-26 (AM period)'),
+        !tsgt.narrative.includes(' on ,'),      // no dates -> no dangling date clause
+        a1c.fields.utaW3.startsWith('N/A'),     // PAX has no drop zone
+    ].every(Boolean);
+    const pass=ok&&rejects===5&&plan;
+    console.log('[UTA worksheet] self-check '+(pass?'OK':'FAILED')+' (mapping '+ok+', rejects '+rejects+'/5, plan '+plan+')');
     return pass;
 }
 utaSelfCheck();
