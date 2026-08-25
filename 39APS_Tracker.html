@@ -2844,14 +2844,21 @@ function cyclePersonStatus(reqKey,personName,btn){
 // first-N-checked — the old behaviour — until someone re-saves that person.
 const NEXT_RANK={A1C:'SrA',SrA:'SSgt',SSgt:'TSgt',TSgt:'MSgt',MSgt:'SMSgt',SMSgt:'CMSgt'};
 const PROMO_REQS={
-    'A1C':  ['UMD Vacancy','TIG Requirements Met','Skill Level Current','Fitness Passing','UTA Participation OK','CC Recommendation','No Adverse Action'],
-    'SrA':  ['UMD Vacancy','5-Level Awarded','ALS Complete','EPB Supports Promo','Fitness Passing','UTA Participation OK','CC Recommendation','Board Selection','No Adverse Action'],
-    'SSgt': ['UMD Vacancy','5-Level Min (7 Preferred)','ALS Complete','EPB Supports Promo','Fitness Passing','UTA Participation OK','CC Recommendation','Wing Board Selection','No Adverse Action'],
-    'TSgt': ['UMD Vacancy','7-Level Awarded','NCOA Complete','EPB Supports Promo','Fitness Passing','UTA Participation OK','Wing CC Recommendation','Wing Board Selection','No Adverse Action'],
+    'A1C':  ['TIG Requirements Met','Skill Level Current','Fitness Passing','UTA Participation OK','CC Recommendation','No Adverse Action'],
+    'SrA':  ['5-Level Awarded','ALS Complete','EPB Supports Promo','Fitness Passing','UTA Participation OK','CC Recommendation','Board Selection','No Adverse Action'],
+    'SSgt': ['5-Level Min (7 Preferred)','ALS Complete','EPB Supports Promo','Fitness Passing','UTA Participation OK','CC Recommendation','No Adverse Action'],
+    'TSgt': ['7-Level Awarded','NCOA Complete','EPB Supports Promo','Fitness Passing','UTA Participation OK','Wing CC Recommendation','No Adverse Action'],
     'MSgt': ['7-Level Required','SNCOA Complete','EPB Trend Supports Promo','Fitness Passing','Strong UTA/Activation Record','Deployment Experience','No Adverse Action','DT Board Eligible'],
     'SMSgt':['7-Level (9-Level Desired)','Senior PME Complete','Consistent EPB ≥5','Fitness Passing','Exceptional UTA Record','Significant Leadership','Talent Mgmt Current','No Adverse Action','DT Chief Board Eligible'],
 };
 const promoReqsFor=rank=>PROMO_REQS[String(rank||'').trim()]||[];
+
+// 25 Aug 2026: UMD Vacancy and Wing Board Selection dropped — neither gates a
+// Reserve promotion. ReqsMetList stores indices, so rows saved against the old
+// list would silently shift; these are the OLD positions that were removed, used
+// to remap a stored list once, on read. Detected by the stored TotalReqs still
+// matching the old length.
+const REMOVED_REQ_IDX={'A1C':[0],'SrA':[0],'SSgt':[0,7],'TSgt':[0,7]};
 
 // Board-package paperwork. Deliberately NOT part of PROMO_REQS: these only come
 // due once everything else is met, and folding them in would have changed every
@@ -2869,10 +2876,14 @@ let editingPromo=null;
 // legacy count (first N) when the column is blank — old rows, or a sheet that has
 // not had migrateAddReqsMetList() run against it yet.
 function metIndices(p,total){
+    const gone=REMOVED_REQ_IDX[String(p.Rank||'').trim()]||[];
+    const legacy=gone.length&&parseInt(p.TotalReqs)===total+gone.length;
+    const shift=i=>gone.includes(i)?-1:i-gone.filter(g=>g<i).length;
     const raw=String(p.ReqsMetList||'').trim();
     if(raw){
         return new Set(raw.split(',').map(n=>parseInt(n,10))
-                          .filter(n=>Number.isInteger(n)&&n>=0&&n<total));
+                          .filter(Number.isInteger).map(n=>legacy?shift(n):n)
+                          .filter(n=>n>=0&&n<total));
     }
     const n=Math.min(parseInt(p.ReqsMet)||0,total);
     return new Set(Array.from({length:n},(_,i)=>i));
@@ -2904,7 +2915,6 @@ function openPromoEdit(name){
     const docs=promoDocsFor(p.Rank), dmet=docIndices(p,docs.length);
     document.getElementById('promoDocsGrid').innerHTML=docs.map((d,i)=>
         `<div class="promo-req-row"><input type="checkbox" id="pd_${i}" ${dmet.has(i)?'checked':''} onchange="updatePromoCount()"><label for="pd_${i}">${d}</label></div>`).join('');
-    document.getElementById('promoCycle').value=p.Cycle||'';
     document.getElementById('promoNotes').value=p.Notes||'';
     document.getElementById('promoReason').value=p.NotReadyReason||'';
     updatePromoCount();
@@ -2955,7 +2965,6 @@ function savePromoEdit(){
         .map((b,i)=>b.checked?i:-1).filter(i=>i>=0).join(',');
     p.NotReadyReason=rec==='not_ready'?reason:'';
     p.Notes=document.getElementById('promoNotes').value.trim();
-    p.Cycle=document.getElementById('promoCycle').value.trim();
     p.NextRank=p.NextRank||NEXT_RANK[p.Rank]||'';
     saveLS('afm_promos',promotions);
     closePromoEdit();
@@ -3012,6 +3021,14 @@ function _selfCheckPromotions(){
         const legacy={Rank:'SrA',ReqsMet:'3',ReqsMetList:''};
         const fb=[...metIndices(legacy,9)].sort((a,b)=>a-b).join(',');
         if(fb!=='0,1,2')throw new Error('legacy fallback broken: '+fb);
+        // a row saved under the pre-25-Aug list must remap, not shift: an old SSgt
+        // list of 0(UMD Vacancy),1,7(Wing Board),8 keeps only 1 and 8 → 0 and 6.
+        const old={Rank:'SSgt',TotalReqs:'9',ReqsMetList:'0,1,7,8'};
+        const rm=[...metIndices(old,promoReqsFor('SSgt').length)].sort((a,b)=>a-b).join(',');
+        if(rm!=='0,6')throw new Error('legacy req remap wrong: '+rm);
+        // and a row already saved under the new list must be left alone
+        const cur={Rank:'SSgt',TotalReqs:'7',ReqsMetList:'0,6'};
+        if([...metIndices(cur,7)].join(',')!=='0,6')throw new Error('current row got remapped');
         // a malformed list must not crash or leak out-of-range indices
         if([...metIndices({ReqsMetList:'2,99,abc,-1'},9)].join(',')!=='2')throw new Error('bad ReqsMetList not sanitised');
         // rollup must refuse to open the editor at all
@@ -3115,7 +3132,7 @@ function renderPromotions(){
                     <div class="promo-card-rank">${p.Rank} → ${p.NextRank||'?'}</div>
                     <div class="promo-card-status" style="color:${color}">${label}</div>
                     <div class="promo-req-bar"><div class="promo-req-fill" style="width:${pct}%;background:${color}"></div></div>
-                    <div style="font-size:10px;color:#666;margin-top:3px;">${met} of ${total} reqs${p.Cycle?' · '+p.Cycle:''}</div>
+                    <div style="font-size:10px;color:#666;margin-top:3px;">${met} of ${total} reqs</div>
                     ${(()=>{const d=promoDocsFor(p.Rank);
                         if(!d.length||!total||met<total)return'';
                         const n=docIndices(p,d.length).size;
@@ -4076,10 +4093,7 @@ async function copyBrief(btn){
         <div id="promoDocsGrid" style="max-height:220px;overflow-y:auto;"></div>
     </div>
 
-    <div class="form-row">
-        <div class="form-group"><label>Cycle</label><input id="promoCycle" placeholder="e.g. FY26"></div>
-        <div class="form-group"><label>Notes</label><input id="promoNotes" placeholder="Optional"></div>
-    </div>
+    <div class="form-group"><label>Notes</label><input id="promoNotes" placeholder="Optional"></div>
 
     <div class="modal-btns">
         <button class="btn" onclick="savePromoEdit()">✓ Save</button>
