@@ -891,6 +891,7 @@ function switchTab(name,btn){
     if(name==='promotions') renderPromotions();
     if(name==='brief') renderBrief();
     if(name==='utarpt') renderUtaReport();
+    if(name==='afdocs') renderAfDocs();
 }
 
 // ═══════════════════════ MANNING RENDER
@@ -4756,18 +4757,915 @@ utaSelfCheck();
 </div>
 </div>
 
-<!-- ═══════════════════════════════════ AF DOCUMENTS / MILITARY TEMPLATES
-     Both were external links in the old ref-links strip. They are self-contained
-     pages sitting next to this one in the same repo, so they are framed rather
-     than inlined — their CSS is global (body, header, .tab, .card) and would
-     collide head-on with this file's if pasted in. -->
+<!-- ═══════════════════════════════════ TAB: AF DOCUMENTS
+     Was a Claude artifact. The verify log is per-browser (localStorage), same as it
+     was there — it is an "I read the cover page" audit trail, not shared flight data. -->
 <div class="tab-content" id="tab-afdocs">
-<iframe src="af_document_dashboard.html" title="AF Document Reference" style="width:100%;height:calc(100vh - 150px);border:0;display:block"></iframe>
+<div class="container">
+    <div style="padding-top:6px"></div>
+    <div class="page-header">
+        <div><div class="page-title">AF Document Reference</div>
+             <div class="page-sub">39 APS working set — direct e-Pubs links where confirmed</div></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <span style="font-size:11px;color:#a0a0a0">Last full pass: <strong id="afdocGlobal" style="color:#ffd700">—</strong></span>
+            <button class="btn-sm" onclick="afdocMarkGlobal()">✓ Full review done today</button>
+        </div>
+    </div>
+    <div class="card" style="font-size:11px;color:#a0a0a0;line-height:1.6;margin-bottom:14px">
+        <strong style="color:#ffd700">There is no auto-check button on purpose.</strong>
+        e-Publishing's file server sits behind Akamai bot protection (403 to a normal browser identity)
+        and sends no CORS headers, so a page cannot read it. A button claiming to have checked for updates
+        would be lying. Instead: open the doc, read the cover page (date, Certified by, Supersedes, any
+        IC/GM heading), then press <strong style="color:#ffd700">Mark verified</strong> — that timestamp is a real audit trail.
+        <span style="color:#606060">Saved in this browser only.</span>
+    </div>
+    <input id="afdocSearch" type="text" placeholder="Search by number, title, or keyword…" oninput="renderAfDocs()"
+           style="width:100%;padding:10px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,215,0,.15);border-radius:3px;color:#e0e0e0;font-size:13px;">
+    <div id="afdocCats" style="display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 16px"></div>
+    <div id="afdocList"></div>
+</div>
 </div>
 
+<script>
+/* ═════════ AF DOCUMENT REFERENCE */
+const DOCS = [
+// ---------------- CARGO / AIR TRANSPORTATION OPS ----------------
+{
+  cat: "Cargo / Air Transportation",
+  num: "DAFI 24-605V2",
+  title: "Air Transportation Operations (redesignated from AFI 24-605V2)",
+  url: "https://static.e-publishing.af.mil/production/1/af_a4/publication/dafi24-605v2/dafi24-605v2.pdf",
+  direct: true,
+  verified: "28 Jul 2026",
+  note: "⚠ Renumbered 30 Jan 2025 (was AFI 24-605V2). Incorporating Change 1, 20 Feb 2025. ACTIVE Guidance Memorandum dated 4 Feb 2026 is bundled at the front of this PDF — GM expires 1 year from that date (~4 Feb 2027) unless superseded sooner by an IC or rewrite. Re-check the GM expiration date before citing in a board answer."
+},
+{
+  cat: "Cargo / Air Transportation",
+  num: "AF Form 4080",
+  title: "Load/Sequence Breakdown Worksheet",
+  url: "https://www.e-publishing.af.mil/Product-Index/",
+  direct: false,
+  note: "Prescribed form under AFI 24-605V2. Search \"AF4080\" (no spaces) in the box at top of e-Pubs Product Index."
+},
+{
+  cat: "Cargo / Air Transportation",
+  num: "AF Form 847",
+  title: "Recommendation for Change of Publication",
+  url: "https://www.e-publishing.af.mil/Product-Index/",
+  direct: false,
+  note: "Used to route recommended changes to any AFI, including 24-605V2, up through OPR. Search \"AF847\"."
+},
+{
+  cat: "Cargo / Air Transportation",
+  num: "AMC Form 68",
+  title: "Aerial Port Movement Log",
+  url: "https://www.e-publishing.af.mil/Product-Index/",
+  direct: false,
+  note: "AMC-series form, hosted under Air Mobility Command in e-Pubs rather than departmental AF. Search \"AMC68\"."
+},
+{
+  cat: "Cargo / Air Transportation",
+  num: "DD Form 1385",
+  title: "Cargo Manifest",
+  url: "https://www.esd.whs.mil/Directives/forms/",
+  direct: false,
+  note: "DD-series forms live on the DoD Executive Services Directorate site, not e-Publishing. Use their form search."
+},
+
+// ---------------- PERSONNEL / EVALUATIONS / PROMOTION ----------------
+{
+  cat: "Personnel & Evaluations",
+  num: "AF Form 717",
+  title: "Performance Objectives and Feedback Form",
+  url: "https://static.e-publishing.af.mil/production/1/af_a1/form/af717/af717.pdf",
+  direct: true,
+  verified: "28 Jul 2026",
+  note: "Formal feedback documentation, all grades. Confirm no DAF-series redesignation before citing — same failure mode caught on 605V2 applies here too, just unconfirmed either way."
+},
+{
+  cat: "Personnel & Evaluations",
+  num: "AFI 36-2406",
+  title: "Officer and Enlisted Evaluation Systems",
+  url: "https://static.e-publishing.af.mil/production/1/af_a1/publication/afi36-2406/afi36-2406.pdf",
+  direct: true,
+  verified: "28 Jul 2026",
+  note: "Governs EPB/feedback timing and standards. Check cover page for Incorporating Change / Guidance Memorandum before citing — do not assume this path survived any AFI→DAFI renumbering."
+},
+{
+  cat: "Personnel & Evaluations",
+  num: "Enlisted Force Structure",
+  title: "\"The Little Brown Book\" — formerly AFH 36-2618",
+  url: "https://www.e-publishing.af.mil/Product-Index/",
+  direct: false,
+  note: "⚠ In flux. AFH 36-2618 (5 Jul 2018) was superseded by a Sept 2025 rewrite titled simply \"The Enlisted Force Structure,\" seen hosted on individual wing sites (not yet confirmed on a stable e-Pubs path under a new number). Search e-Pubs for \"Enlisted Force Structure\" directly — do not trust any 36-2618 link you find elsewhere without checking the date."
+},
+{
+  cat: "Personnel & Evaluations",
+  num: "DAF Form 3538 / 3538E",
+  title: "Retention Recommendation Form / Enlisted RRF",
+  url: "https://www.e-publishing.af.mil/Product-Index/",
+  direct: false,
+  note: "Performance-based differentiation, involuntary sep/retirement boards. Search \"DAF3538\"."
+},
+
+// ---------------- CHIEF BOARD / PROMOTION ----------------
+{
+  cat: "Chief Board / Promotion",
+  num: "AFI 36-2502",
+  title: "Enlisted Airman Promotion and Demotion Programs",
+  url: "https://static.e-publishing.af.mil/production/1/af_a1/publication/afi36-2502/afi36-2502.pdf",
+  direct: true,
+  verified: "28 Jul 2026",
+  note: "The governing pub for the MSgt/SMSgt/CMSgt boards themselves — eligibility, process, board authority. Current edition dated 2 JULY 2026 — brand new, only weeks old as of this build. Worth a full re-read given how recent it is."
+},
+{
+  cat: "Chief Board / Promotion",
+  num: "DAFMAN 36-2689",
+  title: "Training Program",
+  url: "https://www.e-publishing.af.mil/Product-Index/",
+  direct: false,
+  note: "Referenced for 60-day initial training evaluation and informal feedback standards feeding into your Q2/Q3 board answers. Search \"DAFMAN36-2689\"."
+},
+{
+  cat: "Chief Board / Promotion",
+  num: "AFI 1-1",
+  title: "Air Force Standards",
+  url: "https://www.e-publishing.af.mil/Product-Index/",
+  direct: false,
+  note: "Core standards reference, commonly cited alongside informal feedback and conduct expectations in board answers. Search \"AFI1-1\"."
+},
+{
+  cat: "Chief Board / Promotion",
+  num: "AFH 33-337",
+  title: "Tongue and Quill",
+  url: "https://www.e-publishing.af.mil/Product-Index/",
+  direct: false,
+  note: "⚠ Unconfirmed whether still active or rescinded — this handbook has had status changes in recent years. Search e-Pubs before relying on it for board-answer writing structure; if it's gone, AFH 33-337 content has been folded into other guidance."
+},
+
+// ---------------- ADMIN / COMPLIANCE (Porras, Sjolin, unit actions) ----------------
+{
+  cat: "Admin & Unit Actions",
+  num: "AFI 36-2254V1",
+  title: "Reserve Personnel Participation",
+  url: "https://www.e-publishing.af.mil/Product-Index/",
+  direct: false,
+  note: "Governs UTA participation and unexcused absence actions. Search \"AFI36-2254V1\" — confirm this is the current volume/number before citing in the Porras action."
+},
+{
+  cat: "Admin & Unit Actions",
+  num: "AFI 36-2905",
+  title: "Fitness Program",
+  url: "https://www.e-publishing.af.mil/Product-Index/",
+  direct: false,
+  note: "Governs fitness assessment/TFAT status and follow-on requirements. Search \"AFI36-2905\"."
+},
+{
+  cat: "Admin & Unit Actions",
+  num: "IRR Transfer Guidance",
+  title: "Individual Ready Reserve process (AFRC-level)",
+  url: "https://www.afrc.af.mil/",
+  direct: false,
+  note: "IRR actions are governed at AFRC level, not unit level — start at AFRC's official site or MPF for current guidance rather than e-Publishing."
+},
+
+// ---------------- E-PUBS DIRECT ----------------
+{
+  cat: "Search / Index",
+  num: "e-Publishing Product Index",
+  title: "Full AF publications and forms search",
+  url: "https://www.e-publishing.af.mil/Product-Index/",
+  direct: true,
+  note: "Type a pub or form number with no spaces (e.g. AFI36-2618, AF4080) to jump straight to it."
+},
+{
+  cat: "Search / Index",
+  num: "DoD Forms (DD-series)",
+  title: "Executive Services Directorate forms search",
+  url: "https://www.esd.whs.mil/Directives/forms/",
+  direct: true,
+  note: "For any DD Form — these are not hosted on e-Publishing."
+}
+];
+
+let afdocCat='All';
+let afdocLog=loadLS('afm_afdoc_verify',{});   // {num: ISO} plus _global
+const afdocFmt=iso=>{try{return new Date(iso).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});}catch(e){return iso;}};
+
+function afdocMarkGlobal(){
+    afdocLog._global=new Date().toISOString();
+    saveLS('afm_afdoc_verify',afdocLog);
+    renderAfDocs();
+}
+function afdocMarkVerified(num){
+    afdocLog[num]=new Date().toISOString();
+    saveLS('afm_afdoc_verify',afdocLog);
+    renderAfDocs();
+}
+function afdocSetCat(c){ afdocCat=c; renderAfDocs(); }
+
+function renderAfDocs(){
+    document.getElementById('afdocGlobal').textContent =
+        afdocLog._global ? afdocFmt(afdocLog._global) : 'never';
+
+    const cats=['All',...new Set(DOCS.map(d=>d.cat))];
+    document.getElementById('afdocCats').innerHTML=cats.map(c=>
+        `<button class="btn-sm" onclick="afdocSetCat('${esc(c)}')" style="${c===afdocCat?'':'border-color:rgba(255,215,0,.25);background:transparent;color:#a0a0a0;'}">${c}</button>`
+    ).join('');
+
+    const q=(document.getElementById('afdocSearch').value||'').trim().toLowerCase();
+    const hits=DOCS.filter(d=>(afdocCat==='All'||d.cat===afdocCat)
+        && (!q||(d.num+' '+d.title+' '+d.note).toLowerCase().includes(q)));
+
+    if(!hits.length){
+        document.getElementById('afdocList').innerHTML=
+            '<div style="color:#606060;font-size:12px;padding:20px 0;text-align:center">Nothing matches. Add the doc to the DOCS array in the tracker.</div>';
+        return;
+    }
+
+    let html='',lastCat=null;
+    hits.forEach(d=>{
+        if(d.cat!==lastCat){ html+=`<div class="section-label">${d.cat}</div>`; lastCat=d.cat; }
+        const seen=afdocLog[d.num];
+        html+=`<div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
+                <div><div style="font-size:14px;font-weight:700;color:#e0e0e0">${d.num}</div>
+                     <div style="font-size:12px;color:#a0a0a0;margin-top:2px">${d.title}</div></div>
+                <span class="badge" style="background:${d.direct?'rgba(85,255,153,.12)':'rgba(255,181,71,.12)'};color:${d.direct?'#55ff99':'#ffb547'};border:1px solid ${d.direct?'rgba(85,255,153,.35)':'rgba(255,181,71,.35)'}">${d.direct?'DIRECT LINK':'SEARCH E-PUBS'}</span>
+            </div>
+            <div style="font-size:12px;color:#a0a0a0;line-height:1.6;margin-top:10px">${d.note}</div>
+            ${d.verified?`<div style="font-size:11px;color:#d8bf6a;margin-top:6px">Link path built ${d.verified} — re-check the cover page date/GM/IC before citing, don't rely on the badge alone.</div>`:''}
+            <div style="font-size:11px;color:${seen?'#55ff99':'#606060'};margin-top:6px">${seen?'✓ You last confirmed this on '+afdocFmt(seen):'Not yet manually verified'}</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+                <a class="btn-sm" href="${d.url}" target="_blank" rel="noopener" style="text-decoration:none">${d.direct?'Open PDF':'Go search'}</a>
+                <button class="btn-sm" onclick="afdocMarkVerified('${esc(d.num)}')" style="border-color:rgba(255,215,0,.25);background:transparent;color:#a0a0a0">Mark verified today</button>
+            </div>
+        </div>`;
+    });
+    document.getElementById('afdocList').innerHTML=html;
+}
+</script>
+
+<!-- ═══════════════════════════════════ TAB: MILITARY TEMPLATES
+     Was a separate Apps Script web app. Markup lifted verbatim; its CSS is scoped
+     to #tab-templates (it styled bare body/*/section) and repainted to the tracker
+     palette. -->
+<style>
+#tab-templates{--bg:transparent;--bg3:rgba(255,255,255,0.04);--border:rgba(255,215,0,0.15);--green:#ffd700;--yellow:#ffd700;--text:#e0e0e0;--muted:#a0a0a0;--dim:#606060;--mono:"DM Mono",monospace;}
+#tplMain *{box-sizing:border-box;margin:0;padding:0;}
+#tab-templates #tplMain{background:var(--bg);color:var(--text);font-size:15px;line-height:1.7;}
+#tab-templates #tplMain{max-width:900px;padding:4px 0 60px;}
+#tab-templates .ps{font-family:var(--mono);font-size:10px;letter-spacing:.25em;color:var(--dim);text-transform:uppercase;margin-bottom:8px;}
+#tab-templates .pt{font-size:26px;font-weight:normal;letter-spacing:-.5px;color:#ffd700;margin-bottom:4px;}
+#tab-templates .pm{font-size:13px;color:var(--muted);font-style:italic;margin-bottom:24px;}
+#tab-templates .topnav{display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:4px;gap:4px;margin-bottom:28px;}
+#tab-templates .topbtn{flex:1;font-family:var(--mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;padding:13px 0;border:1px solid transparent;border-radius:6px;cursor:pointer;background:transparent;color:var(--dim);transition:all .15s;text-align:center;}
+#tab-templates .topbtn.active{background:rgba(255,215,0,0.10);border-color:rgba(255,215,0,.55);color:var(--green);}
+#tab-templates .section{display:none;}
+#tab-templates .section.active{display:block;}
+#tab-templates .intro{font-size:13px;color:#a0a0a0;line-height:1.75;margin-bottom:28px;padding-bottom:22px;border-bottom:1px solid var(--border);}
+#tab-templates .intro strong{color:var(--text);}
+#tab-templates .intro ul{margin:10px 0 0 18px;}
+#tab-templates .intro li{margin-bottom:8px;}
+#tab-templates .grp{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase;margin:24px 0 8px;}
+#tab-templates .grp:first-child{margin-top:0;}
+#tab-templates .stab{display:flex;flex-wrap:wrap;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:3px;gap:3px;margin-bottom:24px;}
+#tab-templates .stabtn{flex:1;min-width:100px;font-family:var(--mono);font-size:11px;padding:9px 6px;border:1px solid transparent;border-radius:4px;cursor:pointer;background:transparent;color:var(--dim);transition:all .15s;text-align:center;}
+#tab-templates .stabtn.active{background:rgba(255,215,0,0.10);border-color:rgba(255,215,0,.45);color:var(--green);}
+#tab-templates .tpl{display:none;}
+#tab-templates .tpl.active{display:block;}
+#tab-templates .mb{background:var(--bg3);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px;}
+#tab-templates .mm{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;border-bottom:1px solid var(--border);background:var(--bg);}
+#tab-templates .mt{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.08em;text-transform:uppercase;}
+#tab-templates .cb{font-family:var(--mono);font-size:10px;padding:5px 12px;background:transparent;border:1px solid var(--border);color:var(--dim);border-radius:4px;cursor:pointer;transition:all .15s;}
+#tab-templates .cb:hover{border-color:var(--green);color:var(--green);}
+#tab-templates .cb.copied{border-color:#55ff99;color:#55ff99;}
+#tab-templates .mc{padding:16px;font-size:12.5px;line-height:1.85;white-space:pre-wrap;color:var(--text);font-family:var(--mono);}
+#tab-templates .sc{margin-top:0;padding:14px 16px;border:1px solid rgba(255,215,0,.25);background:rgba(255,215,0,.06);border-radius:8px;font-size:12.5px;color:#d8bf6a;line-height:1.7;}
+#tab-templates .sc strong{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--yellow);display:block;margin-bottom:8px;}
+#tab-templates .sc ul{margin:0 0 0 16px;}
+#tab-templates .sc li{margin-bottom:6px;}
+</style>
 <div class="tab-content" id="tab-templates">
-<iframe src="Military_Templates.html" title="Military Templates" style="width:100%;height:calc(100vh - 150px);border:0;display:block"></iframe>
+<div class="container">
+    <div style="padding-top:6px"></div>
+    <div class="page-header">
+        <div><div class="page-title">Military Templates</div>
+             <div class="page-sub">Flight Chief admin docs · SMSgt / CMSgt career templates</div></div>
+    </div>
+<div id="tplMain">
+
+  <div class="topnav">
+    <button class="topbtn active" onclick="tplSection('sec-admin',this)">LOC / LOR / MFR</button>
+    <button class="topbtn" onclick="tplSection('sec-career',this)">Career Templates (SMSgt / CMSgt)</button>
+  </div>
+
+  <!-- ============ SECTION: LOC / LOR / MFR ============ -->
+  <div id="sec-admin" class="section active">
+
+    <div class="intro">
+      Header and signature-block layout matched to Greg's actual signed MFR (23 Jul 2026). Start every memo from a copy of <strong>Official Letterhead Template AFRC_CD</strong> — it has the real seal graphic; paste your body text below it, don't retype the header. Tongue &amp; Quill is the format authority if a question comes up these don't answer.
+      <ul>
+        <li><strong>LOC (Letter of Counseling)</strong> — lowest-level, most common. Documents a specific issue and puts the member on notice. Coaching record, not punishment.</li>
+        <li><strong>LOR (Letter of Reprimand)</strong> — formal administrative action, one step up. Carries appeal rights language; normally commander-signed. Get legal eyes on it first.</li>
+        <li><strong>MFR (Memorandum for Record)</strong> — no addressee. Documents an event or conversation for the record. Use it to build the paper trail before an LOC/LOR becomes necessary.</li>
+      </ul>
+    </div>
+
+    <div class="stab">
+      <button class="stabtn active" onclick="tplShow('loc',this)">LOC</button>
+      <button class="stabtn" onclick="tplShow('lor',this)">LOR</button>
+      <button class="stabtn" onclick="tplShow('mfr',this)">MFR</button>
+    </div>
+
+    <div id="tpl-loc" class="tpl active">
+      <div class="mb">
+        <div class="mm"><span class="mt">Letter of Counseling</span><button class="cb" onclick="tplCopy(this)">Copy</button></div>
+        <div class="mc">[SEAL — DEPARTMENT OF THE AIR FORCE / AIR FORCE RESERVE COMMAND — from letterhead template]
+
+                                                              [Day Month Year]
+
+MEMORANDUM FOR [RANK] [LAST NAME], [FIRST NAME]
+
+FROM:  [YOUR OFFICE SYMBOL, e.g. 39 APS/TROC]
+
+SUBJECT:  Letter of Counseling
+
+1.  This letter is to counsel you concerning [specific issue — e.g., "your failure to report for scheduled duty on 14 July 2026"]. This is considered a [performance/conduct] issue that must be corrected.
+
+2.  Specifically, on [date], [factual, observable description of what happened — no interpretation, no character judgments. Example: "you arrived 45 minutes after your scheduled report time of 0700 without prior notification to your supervisor."]. This [is a violation of / does not meet] [cite standard if applicable — AFI, unit policy, published schedule, etc.].
+
+3.  [Optional — only if there is prior relevant history: "This is not the first instance of a similar issue. On (date), you were verbally counseled regarding (same or related issue)."]
+
+4.  You are expected to [specific corrective expectation — e.g., "report for all scheduled duty at the assigned time, and to notify your supervisor in advance of any conflict"]. Failure to correct this behavior may result in further administrative or disciplinary action, to include a Letter of Reprimand.
+
+5.  This is considered administrative counseling and is not a punitive action under the UCMJ. This letter will be filed in [locally / not filed — state your unit's practice] and is not part of your permanent record unless further action is warranted.
+
+6.  If you have questions regarding this counseling, contact me at [phone/email].
+
+
+[YOUR NAME IN CAPS], [Rank], USAF
+[Duty title]
+[Squadron], [Wing]
+[Base], [State abbrev].
+
+I acknowledge receipt of this Letter of Counseling. My signature does not necessarily indicate agreement with its contents.
+
+_____________________________          _______________
+[RANK] [NAME], Member                   Date</div>
+      </div>
+      <div class="sc">
+        <strong>Coaching notes</strong>
+        <ul>
+          <li>Keep paragraph 2 to facts a video camera could confirm — dates, times, what was and wasn't done. "Was disrespectful" is an argument; "raised his voice and told the supervisor 'this is BS' in front of two other Airmen" is a fact.</li>
+          <li>Always give the member a path to correct it (para 4) — an LOC with no stated expectation reads as punitive, not corrective, and is easier to grieve.</li>
+          <li>Confirm your unit's actual filing practice for LOCs (some units keep none, some keep a flight-level log) before writing para 5 — don't promise "not filed" if your squadron does file them locally.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div id="tpl-lor" class="tpl">
+      <div class="mb">
+        <div class="mm"><span class="mt">Letter of Reprimand</span><button class="cb" onclick="tplCopy(this)">Copy</button></div>
+        <div class="mc">[SEAL — DEPARTMENT OF THE AIR FORCE / AIR FORCE RESERVE COMMAND — from letterhead template]
+
+                                                              [Day Month Year]
+
+MEMORANDUM FOR [RANK] [LAST NAME], [FIRST NAME]
+
+FROM:  [OFFICE SYMBOL — normally the commander's, e.g. 39 APS/CC]
+
+SUBJECT:  Letter of Reprimand
+
+1.  You are hereby reprimanded for [specific misconduct or performance failure].
+
+2.  Specifically, on [date(s)], [detailed factual account — what happened, where, who else was present or affected, and how it came to your attention]. This conduct [violates / fails to meet] [cite the specific standard: AFI number, UTA attendance policy, duty performance standard, etc.].
+
+3.  [If applicable: prior corrective action already taken — "You were previously counseled in writing on (date) regarding a similar issue (reference LOC), and were informed at that time that continued failure to (standard) could result in further action."]
+
+4.  Your conduct reflects a disregard for [the standards expected of a member of your grade / mission readiness / good order and discipline — pick what fits]. This is unacceptable and will not be tolerated.
+
+5.  You are required to immediately correct this behavior. Any recurrence may result in more severe administrative action, including but not limited to placement on a Control Roster, referral performance report, or discharge/separation action.
+
+6.  This Letter of Reprimand may be filed in your Unfavorable Information File (UIF) at the discretion of your commander. You have the right to submit a written rebuttal within [duty's standard window — typically 3 duty days, confirm with MPF/legal] of receipt of this letter. Any rebuttal will be attached to and considered with this letter.
+
+7.  This is an administrative action and is separate from and does not preclude any action under the Uniform Code of Military Justice.
+
+
+[COMMANDER'S NAME IN CAPS], [Rank], USAF
+Commander, [Squadron]
+[Wing]
+[Base], [State abbrev].
+
+I acknowledge receipt of this Letter of Reprimand on the date indicated below. My signature does not necessarily indicate agreement with its contents. I understand I have the right to submit a written rebuttal within the timeframe stated above.
+
+_____________________________          _______________
+[RANK] [NAME], Member                   Date</div>
+      </div>
+      <div class="sc">
+        <strong>Coaching notes</strong>
+        <ul>
+          <li>An LOR is normally issued <strong>by the commander</strong>, not the Flight Chief — your role is usually building the supporting package (facts, dates, prior counseling record, witness statements) and recommending the action up the chain, not signing it yourself. Confirm who actually signs before using this as final.</li>
+          <li>Get legal (SJA) review before this goes out if there's any UIF/control roster/discharge implication downstream — an LOR done wrong is exactly the kind of thing that gets overturned on appeal and makes the unit look worse than doing nothing.</li>
+          <li>Never skip the rebuttal-rights paragraph (6) — omitting it is a due-process defect that alone can get the whole action thrown out.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div id="tpl-mfr" class="tpl">
+      <div class="mb">
+        <div class="mm"><span class="mt">Memorandum for Record</span><button class="cb" onclick="tplCopy(this)">Copy</button></div>
+        <div class="mc">[SEAL — DEPARTMENT OF THE AIR FORCE / AIR FORCE RESERVE COMMAND — from letterhead template]
+
+                                                              [Day Month Year]
+
+MEMORANDUM FOR RECORD
+
+FROM:  [YOUR OFFICE SYMBOL, e.g. 39 APS/TROC]
+
+SUBJECT:  [Short, specific subject line — e.g., "Verbal Counseling of SSgt (Name) Regarding UTA Attendance, 12 July 2026"]
+
+1.  [State the purpose in one sentence — why this memo exists, and name the member/unit in full on first reference. e.g., "This Memorandum for Record documents a verbal counseling session conducted with Staff Sergeant (Full Name), 39th Aerial Port Squadron, 302nd Airlift Wing, Peterson Space Force Base, Colo., on 12 July 2026 regarding repeated late arrival to scheduled UTA duty."]
+
+2.  [Chronological, factual narrative — what happened, when, who was present, what was said/decided. One idea per numbered paragraph if there's more than one event to capture.]
+
+3.  [If applicable: any follow-up action taken or planned — e.g., "SSgt (Name) was advised that continued lateness would result in a written Letter of Counseling."]
+
+4.  This memorandum is submitted for record-keeping purposes only. [Add if relevant: "No further action was taken at this time."]
+
+5.  Questions may be directed to [Rank Full Name] at [email] or [phone].
+
+
+[YOUR NAME IN CAPS], [Rank], USAF
+[Duty title]
+[Squadron], [Wing]
+[Base], [State abbrev].</div>
+      </div>
+      <div class="sc">
+        <strong>Coaching notes</strong>
+        <ul>
+          <li>MFRs have no addressee and need no acknowledgment signature — they document something happened, they don't require the other person to agree.</li>
+          <li>Write it the same day if possible. An MFR written three weeks after the fact ("as I recall...") is far weaker evidence than one dated the day of the event.</li>
+          <li>This is the cheapest, lowest-friction paper trail you can create — when in doubt about whether something is worth documenting, write the MFR. It costs you five minutes and can matter a lot later if the issue repeats and escalates to an LOC or LOR.</li>
+          <li>Closing with a POC paragraph (as in the real example) is good practice even though it's optional — it's what makes an MFR read as a finished official document rather than a note to self.</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============ SECTION: CAREER TEMPLATES ============ -->
+  <div id="sec-career" class="section">
+
+    <div class="intro">
+      Companion set to the LOC / LOR / MFR templates above — those document individuals; this set is the rest of the Flight Chief's writing load, plus what opens up once you pin on CMSgt. Memo-format templates (Appointment Ltr, Waiver Request, Sponsor Checklist, Policy Letter, IO Appointment, Dev Team Input, Retirement Ltr, UMD Request) use the same header/signature layout, matched to Greg's actual signed MFR. Narrative-only templates (Feedback, 1206, Award Package, 1168, CMSgt of Year) have no header — they feed a form or board packet, not a standalone memo. Use with <strong>Official Letterhead Template AFRC_CD</strong> for the seal graphic. Tongue &amp; Quill is the format authority where these don't cover it.
+    </div>
+
+    <div class="grp">SMSgt / Flight Chief — use now</div>
+    <div class="stab">
+      <button class="stabtn active" onclick="tplShow('t1',this)">Feedback</button>
+      <button class="stabtn" onclick="tplShow('t2',this)">1206 Narrative</button>
+      <button class="stabtn" onclick="tplShow('t3',this)">Award Package</button>
+      <button class="stabtn" onclick="tplShow('t4',this)">Appointment Ltr</button>
+      <button class="stabtn" onclick="tplShow('t5',this)">1168 Statement</button>
+      <button class="stabtn" onclick="tplShow('t6',this)">Waiver Request</button>
+      <button class="stabtn" onclick="tplShow('t7',this)">Sponsor Checklist</button>
+    </div>
+
+    <div class="grp">CMSgt tier — draft before the board result</div>
+    <div class="stab">
+      <button class="stabtn" onclick="tplShow('t8',this)">Policy Letter</button>
+      <button class="stabtn" onclick="tplShow('t9',this)">IO Appointment</button>
+      <button class="stabtn" onclick="tplShow('t10',this)">Dev Team Input</button>
+      <button class="stabtn" onclick="tplShow('t11',this)">CMSgt of Year</button>
+      <button class="stabtn" onclick="tplShow('t12',this)">Retirement Ltr</button>
+      <button class="stabtn" onclick="tplShow('t13',this)">UMD Request</button>
+    </div>
+
+    <div id="tpl-t1" class="tpl active">
+      <div class="mb">
+        <div class="mm"><span class="mt">Feedback Session Prep Worksheet</span><button class="cb" onclick="tplCopy(this)">Copy</button></div>
+        <div class="mc">FEEDBACK SESSION PREP WORKSHEET
+
+MEMBER: [Rank Name]
+FEEDBACK TYPE: [Initial / Midterm / Close-out / Referral]
+RATING PERIOD: [dates]
+DATE OF SESSION: [date]
+
+1. DUTY DESCRIPTION
+[One or two sentences — what this Airman actually does day to day.]
+
+2. PERFORMANCE SINCE LAST FEEDBACK
+Strengths:
+- [specific, observable — a task, a save, a metric]
+
+Areas to improve:
+- [specific, observable, tied to a standard — not a feeling]
+
+3. WHOLE AIRMAN CONCEPT
+- Fitness: [status / next test date]
+- PME / CDCs: [status]
+- Additional duties: [status]
+- Off-duty education / goals: [note if known]
+
+4. GOALS FOR NEXT PERIOD
+- [1-3 concrete, measurable goals]
+
+5. TALKING POINTS FOR THE SESSION
+Open with a specific strength. State one improvement area plainly, tied to the standard, not your reaction to it. Close with a concrete goal and a date you'll check back in.</div>
+      </div>
+      <div class="sc"><strong>Coaching notes</strong>Initial feedback sets the standard before problems exist — it's your single best tool for making sure an LOC never becomes necessary later, because the expectation was already on record. Midterm is the "no surprises before the EPB" checkpoint. Close-out should be written in language you can lift straight into EPB bullets later — write it that way the first time.</div>
+    </div>
+
+    <div id="tpl-t2" class="tpl">
+      <div class="mb">
+        <div class="mm"><span class="mt">AF Form 1206 Decoration Narrative</span><button class="cb" onclick="tplCopy(this)">Copy</button></div>
+        <div class="mc">DECORATION NARRATIVE — AF FORM 1206
+
+MEMBER: [Rank, Full Name]
+DECORATION: [e.g., AF Achievement Medal / AF Commendation Medal / Meritorious Service Medal]
+PERIOD OF ACTION/SERVICE: [dates]
+
+NARRATIVE:
+[Rank Last Name] distinguished [himself/herself] by [exceptionally meritorious service/outstanding achievement] as [duty title], [unit], from [date] to [date]. During this period, [Name] [specific achievement #1 — quantify: numbers, dollars, percentage, people affected]. [He/She] [specific achievement #2]. [He/She] [specific achievement #3, ideally beyond the individual's own lane — mission or unit-level impact].
+
+[Optional closing: "These actions directly contributed to [outcome] and reflect great credit upon [Name], [unit], and the United States Air Force."]</div>
+      </div>
+      <div class="sc"><strong>Coaching notes</strong>Quantify everything you can — "processed 400 passengers with zero discrepancies" beats "worked hard." Use three genuinely distinct achievements, not one achievement restated three ways. Write it the week it happens; character limits force precision and details fade fast if you wait for the suspense deadline.</div>
+    </div>
+
+    <div id="tpl-t3" class="tpl">
+      <div class="mb">
+        <div class="mm"><span class="mt">Quarterly/Annual Award Package Narrative</span><button class="cb" onclick="tplCopy(this)">Copy</button></div>
+        <div class="mc">[RANK NAME] NARRATIVE — [NCO / SNCO / AIRMAN] OF THE [QUARTER / YEAR], [period]
+
+DUTY PERFORMANCE:
+[2-3 sentences, quantified, tied to primary duty.]
+
+LEADERSHIP:
+[Specific example of leading, mentoring, or developing others — not a generality.]
+
+ADDITIONAL DUTIES / SELF-IMPROVEMENT:
+[PME completed, CCAF progress, additional-duty impact.]
+
+COMMUNITY INVOLVEMENT:
+[Volunteer hours, specific community impact — not "actively volunteers."]
+
+CLOSING:
+[Rank Name]'s performance this [quarter/year] reflects the whole-person concept the Air Force expects — sustained excellence in primary duty, deliberate professional development, and genuine investment in the community. [He/She] is a top performer and the clear choice for [award].</div>
+      </div>
+      <div class="sc"><strong>Coaching notes</strong>Boards read dozens of these back to back — the ones that win are the ones with numbers and specifics in every section, not just duty performance. A blank or thin "Community Involvement" section is often the tiebreaker that loses it.</div>
+    </div>
+
+    <div id="tpl-t4" class="tpl">
+      <div class="mb">
+        <div class="mm"><span class="mt">Letter of Appointment</span><button class="cb" onclick="tplCopy(this)">Copy</button></div>
+        <div class="mc">[SEAL — DEPARTMENT OF THE AIR FORCE / AIR FORCE RESERVE COMMAND — from letterhead template]
+
+                                                              [Day Month Year]
+
+MEMORANDUM FOR [RANK NAME]
+
+FROM:  [YOUR OFFICE SYMBOL]
+
+SUBJECT:  Letter of Appointment — [Duty Title, e.g. Flight Safety Representative]
+
+1.  Effective [date], you are appointed as the [duty title] for [unit/flight].
+
+2.  In this capacity, you will [2-4 bullet responsibilities — be concrete].
+
+3.  This appointment does not relieve you of your primary duty responsibilities. Estimated additional time commitment: [X hours/week or per UTA].
+
+4.  This appointment is effective until [date / rescinded in writing / PCS-gain-loss], whichever occurs first.
+
+
+[YOUR NAME IN CAPS], [Rank], USAF
+[Duty title]
+[Squadron], [Wing]
+[Base], [State abbrev].</div>
+      </div>
+      <div class="sc"><strong>Coaching notes</strong>Keep the responsibilities list concrete — a vague appointment letter produces vague performance, and you have no standard to hold the Airman to later if you never wrote one down. Stating the time commitment up front is also a fairness/workload-management move, not just paperwork.</div>
+    </div>
+
+    <div id="tpl-t5" class="tpl">
+      <div class="mb">
+        <div class="mm"><span class="mt">AF Form 1168 Statement</span><button class="cb" onclick="tplCopy(this)">Copy</button></div>
+        <div class="mc">STATEMENT (for use with AF Form 1168)
+
+I, [Rank, Full Name, SSN last 4], make the following free and voluntary statement to [Investigating Officer/authority], who has identified [himself/herself] to me as [title]. No threats, promises, or coercion have been used against me.
+
+[Chronological, factual, first person. One idea per sentence. State only what you personally witnessed or did — if you're relaying something someone told you, say so explicitly: "I was told by [name] that..."]
+
+I have read this statement consisting of [X] page(s), and it is true to the best of my knowledge and belief.
+
+_____________________________          _______________
+Signature                               Date</div>
+      </div>
+      <div class="sc"><strong>Coaching notes</strong>First person only, only direct knowledge, hearsay flagged as hearsay. Don't guess at dates or times you're unsure of — write "approximately" rather than inventing precision. This is a legal document; let the investigating officer or legal office own the process, your job is an accurate statement, not an argument.</div>
+    </div>
+
+    <div id="tpl-t6" class="tpl">
+      <div class="mb">
+        <div class="mm"><span class="mt">Waiver Request Memo</span><button class="cb" onclick="tplCopy(this)">Copy</button></div>
+        <div class="mc">[SEAL — DEPARTMENT OF THE AIR FORCE / AIR FORCE RESERVE COMMAND — from letterhead template]
+
+                                                              [Day Month Year]
+
+MEMORANDUM FOR [APPROVAL AUTHORITY, e.g. 39 APS/CC]
+
+FROM:  [YOUR OFFICE SYMBOL]
+
+SUBJECT:  Request for Waiver — [specific waiver, e.g. Fitness Assessment Extension for SSgt (Name)]
+
+1.  I request a waiver of [specific requirement/standard] for [member/situation], due to [reason].
+
+2.  Background: [facts establishing the situation — dates, what happened, why the standard can't be met on time].
+
+3.  Impact if not granted: [operational or personal consequence].
+
+4.  Recommended resolution: [exactly what you're asking for — new date, alternate requirement, etc.]
+
+5.  POC for this request is [you], [phone/email].
+
+
+[YOUR NAME IN CAPS], [Rank], USAF
+[Duty title]
+[Squadron], [Wing]
+[Base], [State abbrev].</div>
+      </div>
+      <div class="sc"><strong>Coaching notes</strong>Waivers get approved on specificity. A vague request ("can we push this back a bit") gets denied by default because there's nothing concrete to approve — always name the exact new date or exact alternate requirement you're asking for.</div>
+    </div>
+
+    <div id="tpl-t7" class="tpl">
+      <div class="mb">
+        <div class="mm"><span class="mt">Sponsor Letter + In-Processing Checklist</span><button class="cb" onclick="tplCopy(this)">Copy</button></div>
+        <div class="mc">[SEAL — DEPARTMENT OF THE AIR FORCE / AIR FORCE RESERVE COMMAND — from letterhead template]
+
+                                                              [Day Month Year]
+
+MEMORANDUM FOR [SPONSOR NAME]
+
+FROM:  [YOUR OFFICE SYMBOL]
+
+SUBJECT:  Sponsorship Appointment — [Incoming Member Name]
+
+1.  You are appointed as sponsor for [Rank Name], reporting [gain date] to [unit].
+
+2.  Minimum sponsorship actions expected:
+   - Initial contact within [X] days of appointment
+   - Housing/area orientation info provided
+   - First UTA in-brief / meet at the door
+   - Check-in at 30 / 60 / 90 days
+
+3.  Report completion of initial contact to me by [date].
+
+
+[YOUR NAME IN CAPS], [Rank], USAF
+[Duty title]
+[Squadron], [Wing]
+[Base], [State abbrev].
+
+---
+IN-PROCESSING CHECKLIST — [Incoming Member Name]  (no header — working checklist, not a memo)
+[ ] Initial welcome contact (phone/email)
+[ ] Housing/area info sent
+[ ] IT/CAC/network access requested
+[ ] Gear/equipment issue scheduled
+[ ] First UTA schedule + POC provided
+[ ] Met in person at first UTA
+[ ] 30-day check-in
+[ ] 60-day check-in
+[ ] 90-day check-in — sponsorship complete</div>
+      </div>
+      <div class="sc"><strong>Coaching notes</strong>The checklist is what actually gets used — the memo just makes the appointment official and puts a deadline on the first contact. Most sponsorship failures are the "initial contact within X days" step getting skipped; that's the one to protect.</div>
+    </div>
+
+    <div id="tpl-t8" class="tpl">
+      <div class="mb">
+        <div class="mm"><span class="mt">Command Policy Letter / Philosophy Statement</span><button class="cb" onclick="tplCopy(this)">Copy</button></div>
+        <div class="mc">[SEAL — DEPARTMENT OF THE AIR FORCE / AIR FORCE RESERVE COMMAND — from letterhead template]
+
+                                                              [Day Month Year]
+
+MEMORANDUM FOR ALL [UNIT] PERSONNEL
+
+FROM:  [YOUR OFFICE SYMBOL]
+
+SUBJECT:  Command Policy — Standards and Priorities, [Unit]
+
+1.  PURPOSE. [One paragraph: why you're publishing this and what it covers.]
+
+2.  PRIORITIES. [3-5 numbered priorities, in your own words — mission readiness, taking care of Airmen, standards and discipline, professional development, whatever is actually true for you. State WHY each one matters to you, not just that it does.]
+
+3.  EXPECTATIONS. [What you expect from every Airman regardless of rank — attendance, communication, accountability.]
+
+4.  MY COMMITMENT TO YOU. [What Airmen can expect from you in return — an open door, fair treatment, advocacy up the chain.]
+
+5.  This policy is effective immediately and supersedes any prior policy letter on this subject.
+
+
+[YOUR NAME IN CAPS], CMSgt, USAF
+[Duty title]
+[Squadron], [Wing]
+[Base], [State abbrev].</div>
+      </div>
+      <div class="sc"><strong>Coaching notes</strong>This one isn't fill-in-the-blank — it's a personal statement, use the skeleton for structure only. Write it before the board result, not after — a package that shows you already think at this altitude is a real differentiator, and drafting it under deadline pressure after you pin on produces something generic. Boards and Airmen alike can tell a template from a real philosophy.</div>
+    </div>
+
+    <div id="tpl-t9" class="tpl">
+      <div class="mb">
+        <div class="mm"><span class="mt">IO Appointment Memo + Report Skeleton</span><button class="cb" onclick="tplCopy(this)">Copy</button></div>
+        <div class="mc">PART A — APPOINTMENT MEMO (from the commander, appointing you)
+
+[SEAL — DEPARTMENT OF THE AIR FORCE / AIR FORCE RESERVE COMMAND — from letterhead template]
+
+                                                              [Day Month Year]
+
+MEMORANDUM FOR [YOUR NAME], [RANK]
+
+FROM:  [COMMANDER'S OFFICE SYMBOL, e.g. 39 APS/CC]
+
+SUBJECT:  Appointment as Investigating Officer
+
+1.  You are appointed as Investigating Officer (IO) under [AFI 90-301 or applicable authority] to investigate [specific allegation/incident], which occurred on or about [date].
+
+2.  Your report is due to this office no later than [date].
+
+3.  You are authorized to interview witnesses, request documents, and take any other reasonable investigative action necessary to complete this inquiry.
+
+
+[COMMANDER'S NAME IN CAPS], [Rank], USAF
+Commander, [Squadron]
+[Wing]
+[Base], [State abbrev].
+
+
+PART B — IO REPORT SKELETON
+
+[SEAL — DEPARTMENT OF THE AIR FORCE / AIR FORCE RESERVE COMMAND — from letterhead template]
+
+                                                              [Day Month Year]
+
+MEMORANDUM FOR [APPOINTING COMMANDER'S OFFICE SYMBOL]
+
+FROM:  [YOUR OFFICE SYMBOL — Investigating Officer]
+
+SUBJECT:  Report of Investigation — [Subject/Case Reference]
+
+1.  APPOINTMENT. [Cite the appointment memo, date, and scope.]
+2.  ALLEGATION/ISSUE. [Restate precisely what you were asked to investigate.]
+3.  METHODOLOGY. [Interviews conducted, documents reviewed, dates.]
+4.  FINDINGS OF FACT. [Numbered, factual, one finding per paragraph, evidence cited for each.]
+5.  ANALYSIS. [Apply the facts to the standard or regulation at issue.]
+6.  CONCLUSION. [Substantiated / Not substantiated / Partially substantiated — state clearly.]
+7.  RECOMMENDATIONS. [Only if your appointment memo specifically asks for them.]
+
+
+[YOUR NAME IN CAPS], [Rank], USAF
+Investigating Officer
+[Squadron], [Wing]
+[Base], [State abbrev].</div>
+      </div>
+      <div class="sc"><strong>Coaching notes</strong>Keep Findings of Fact and Analysis in separate sections — findings are what happened, analysis is what it means. Mixing them together is the single most common reason an IO report gets challenged on appeal. Loop in legal early, not just at the end when the report's already written.</div>
+    </div>
+
+    <div id="tpl-t10" class="tpl">
+      <div class="mb">
+        <div class="mm"><span class="mt">Development Team / Promotion Board Input</span><button class="cb" onclick="tplCopy(this)">Copy</button></div>
+        <div class="mc">[SEAL — DEPARTMENT OF THE AIR FORCE / AIR FORCE RESERVE COMMAND — from letterhead template]
+
+                                                              [Day Month Year]
+
+MEMORANDUM FOR [DEVELOPMENT TEAM / PROMOTION BOARD]
+
+FROM:  [YOUR OFFICE SYMBOL]
+
+SUBJECT:  Senior Rater Input — [Member Name], [Board/Cycle]
+
+1.  I have supervised/worked with [Rank Name] for [duration] in [capacity].
+
+2.  [2-3 paragraphs: specific, quantified performance highlights that distinguish this member from peers — scope of leadership, measurable results, indicators of future potential.]
+
+3.  Based on the above, I strongly recommend [Name] for [promotion/school/assignment], and rank [him/her] in the top [X]% of [rank] I have known in my career.
+
+
+[YOUR NAME IN CAPS], CMSgt, USAF
+[Duty title]
+[Squadron], [Wing]
+[Base], [State abbrev].</div>
+      </div>
+      <div class="sc"><strong>Coaching notes</strong>Boards read hundreds of these. Specific comparative language — "the top 1 of the 20 MSgts I've supervised in 20 years" — is what actually moves a package. Generic praise reads the same as every other memo in the stack and moves nothing.</div>
+    </div>
+
+    <div id="tpl-t11" class="tpl">
+      <div class="mb">
+        <div class="mm"><span class="mt">CMSgt of the Year Package Narrative</span><button class="cb" onclick="tplCopy(this)">Copy</button></div>
+        <div class="mc">[NAME] — CHIEF MASTER SERGEANT OF THE YEAR NARRATIVE, [YEAR]
+
+JOB PERFORMANCE:
+[Quantified, mission-level impact — what changed under this CMSgt's leadership.]
+
+LEADERSHIP:
+[Scope of people led; specific development outcomes — subordinates promoted, programs built.]
+
+JOB KNOWLEDGE / PROFESSIONAL DEVELOPMENT:
+[PME, CCAF/degree completion, certifications, knowledge shared with others.]
+
+BASE / COMMUNITY INVOLVEMENT:
+[Volunteer leadership roles, hours, measurable community impact.]
+
+CLOSING:
+[One sentence synthesizing why this person, this year, stands above peers.]</div>
+      </div>
+      <div class="sc"><strong>Coaching notes</strong>Same discipline as the quarterly/annual narrative, scaled to a full year and a much higher bar — every section needs a number or a named outcome, not a description of effort.</div>
+    </div>
+
+    <div id="tpl-t12" class="tpl">
+      <div class="mb">
+        <div class="mm"><span class="mt">Retirement/Separation Recognition Memo</span><button class="cb" onclick="tplCopy(this)">Copy</button></div>
+        <div class="mc">[SEAL — DEPARTMENT OF THE AIR FORCE / AIR FORCE RESERVE COMMAND — from letterhead template]
+
+                                                              [Day Month Year]
+
+MEMORANDUM FOR RECORD
+
+FROM:  [YOUR OFFICE SYMBOL]
+
+SUBJECT:  Letter of Appreciation — Retirement of [Rank Name]
+
+1.  On behalf of [unit], I extend sincere appreciation to [Rank Name] for [X] years of honorable service to the United States Air Force [Reserve], culminating in [his/her] assignment as [duty title], [unit].
+
+2.  [2-3 sentences: specific career highlights, impact on the unit, a personal note if appropriate.]
+
+3.  [Rank Name]'s dedication, professionalism, and leadership leave a lasting impact on this unit and the Airmen [he/she] mentored. We wish [him/her] and [his/her] family continued success in this next chapter.
+
+
+[YOUR NAME IN CAPS], CMSgt, USAF
+[Duty title]
+[Squadron], [Wing]
+[Base], [State abbrev].</div>
+      </div>
+      <div class="sc"><strong>Coaching notes</strong>This is one of the few documents here that's purely about the person, not the mission — make it specific to them, not a form letter. The extra ten minutes finding one real, specific memory is what makes it land.</div>
+    </div>
+
+    <div id="tpl-t13" class="tpl">
+      <div class="mb">
+        <div class="mm"><span class="mt">UMD / Manpower Change Request Memo</span><button class="cb" onclick="tplCopy(this)">Copy</button></div>
+        <div class="mc">[SEAL — DEPARTMENT OF THE AIR FORCE / AIR FORCE RESERVE COMMAND — from letterhead template]
+
+                                                              [Day Month Year]
+
+MEMORANDUM FOR [MANPOWER OFFICE / CC]
+
+FROM:  [YOUR OFFICE SYMBOL]
+
+SUBJECT:  Request for Unit Manning Document (UMD) Change — [Position/Unit]
+
+1.  I request the following change to the UMD for [unit]: [specific change — add position, upgrade AFSC/grade, realign position].
+
+2.  Justification: [mission requirement driving the change — workload data, manning shortfall, capability gap].
+
+3.  Impact if not approved: [operational risk or limitation].
+
+4.  Recommended effective date: [date].
+
+
+[YOUR NAME IN CAPS], [Rank], USAF
+[Duty title]
+[Squadron], [Wing]
+[Base], [State abbrev].</div>
+      </div>
+      <div class="sc"><strong>Coaching notes</strong>Manpower changes move on data, not narrative — attach whatever workload or manning numbers you have. A UMD request with no supporting data is easy to defer indefinitely; one with numbers forces an actual decision.</div>
+    </div>
+
+  </div>
+
 </div>
+</div>
+</div>
+
+<script>
+function tplSection(id, btn){
+  document.querySelectorAll('#tab-templates .section').forEach(function(s){s.classList.remove('active');});
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('#tab-templates .topbtn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+}
+function tplShow(key, btn){
+  var scope = btn.closest('.section');
+  scope.querySelectorAll('.tpl').forEach(function(t){t.classList.remove('active');});
+  scope.querySelector('#tpl-'+key).classList.add('active');
+  scope.querySelectorAll('.stabtn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+}
+function tplCopy(btn){
+  var mc = btn.closest('.mb').querySelector('.mc');
+  navigator.clipboard.writeText(mc.innerText).then(function(){
+    btn.textContent='Copied'; btn.classList.add('copied');
+    setTimeout(function(){btn.textContent='Copy'; btn.classList.remove('copied');},2000);
+  });
+}
+</script>
 
 <script>
 /* ═════════ END-OF-UTA REPORT
