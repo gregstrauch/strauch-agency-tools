@@ -361,9 +361,6 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
 .tpl-note{font-size:10px;color:#666;}
 
 /* ── REFERENCE LINKS (top strip, every tab) ── */
-.ref-links{display:flex;flex-wrap:wrap;gap:8px;padding:8px 20px;border-bottom:1px solid rgba(255,215,0,.12);background:rgba(0,0,0,.25);}
-.ref-links a{font-size:11px;color:#7fc4ff;text-decoration:none;padding:4px 10px;border:1px solid rgba(127,196,255,.25);border-radius:3px;white-space:nowrap;}
-.ref-links a:hover{color:#a9d9ff;border-color:rgba(127,196,255,.5);background:rgba(127,196,255,.08);}
 
 /* ── PROJECTED GAINS & LOSSES ── */
 .flow-table{width:100%;border-collapse:collapse;font-size:12px;}
@@ -440,17 +437,14 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
     <button class="tab-btn" onclick="switchTab('promotions',this)">🎯 Promotions</button>
     <button class="tab-btn" onclick="switchTab('brief',this)">📣 Morning Brief</button>
     <button class="tab-btn" onclick="switchTab('utarpt',this)">🎖 End-of-UTA Report</button>
+    <button class="tab-btn" onclick="switchTab('afdocs',this)">📖 AF Documents</button>
+    <button class="tab-btn" onclick="switchTab('templates',this)">📝 Military Templates</button>
 </div>
 
 <!-- FLIGHT NAV — squadron scope. Separate class from .tab-btn on purpose:
      switchTab() indexes into document.querySelectorAll('.tab-btn'). -->
 <div class="flight-nav" id="flightNav"></div>
 
-<!-- REFERENCE LINKS — outside every tab so they are reachable from all of them. -->
-<div class="ref-links">
-    <a href="https://claude.ai/public/artifacts/8be57fb8-2de3-443c-8fbe-c26c23faa9df" target="_blank" rel="noopener noreferrer">📖 AF Document Reference</a>
-    <a href="https://script.google.com/macros/s/AKfycbyajuvmyFP5bo9ay4iuTYtrhiNROOSF570rqzgEVx5C0mMl0brjg-oHGyMzU1HXtpjR_A/exec" target="_blank" rel="noopener noreferrer">📝 Military Templates</a>
-</div>
 
 <!-- ═══════════════════════════════════ TAB 1: MANNING -->
 <!-- ═══════════════════════════════════ TAB 0: OVERVIEW -->
@@ -4760,6 +4754,19 @@ utaSelfCheck();
         <pre id="rptPlain" style="user-select:all;white-space:pre-wrap;background:rgba(255,255,255,.04);border:1px solid rgba(255,215,0,.22);border-radius:4px;padding:14px;margin-top:10px;font-size:12px;line-height:1.6;"></pre>
     </details>
 </div>
+</div>
+
+<!-- ═══════════════════════════════════ AF DOCUMENTS / MILITARY TEMPLATES
+     Both were external links in the old ref-links strip. They are self-contained
+     pages sitting next to this one in the same repo, so they are framed rather
+     than inlined — their CSS is global (body, header, .tab, .card) and would
+     collide head-on with this file's if pasted in. -->
+<div class="tab-content" id="tab-afdocs">
+<iframe src="af_document_dashboard.html" title="AF Document Reference" style="width:100%;height:calc(100vh - 150px);border:0;display:block"></iframe>
+</div>
+
+<div class="tab-content" id="tab-templates">
+<iframe src="Military_Templates.html" title="Military Templates" style="width:100%;height:calc(100vh - 150px);border:0;display:block"></iframe>
 </div>
 
 <script>

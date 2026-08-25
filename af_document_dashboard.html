@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AF Document Reference — 39 APS</title>
+<style>
+:root {
+  --navy: #0a1628;
+  --navy-2: #10203a;
+  --steel: #1c2e4a;
+  --accent: #4a9eff;
+  --accent-dim: #2a5a8a;
+  --gold: #c9a24b;
+  --text: #e8edf4;
+  --text-dim: #8fa3bf;
+  --ok: #4caf7d;
+  --warn: #d99b3f;
+  --border: #24384f;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: linear-gradient(180deg, var(--navy) 0%, #08111f 100%);
+  color: var(--text);
+  min-height: 100vh;
+}
+header {
+  padding: 22px 18px 16px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: rgba(10,22,40,0.96);
+  backdrop-filter: blur(6px);
+  z-index: 10;
+}
+header h1 { margin: 0 0 4px; font-size: 1.25rem; letter-spacing: 0.02em; }
+header .sub { color: var(--text-dim); font-size: 0.82rem; line-height: 1.4; }
+.searchwrap { margin-top: 14px; }
+#search {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--steel);
+  color: var(--text);
+  font-size: 0.95rem;
+}
+#search:focus { outline: 2px solid var(--accent); }
+.tabs { display: flex; gap: 6px; margin-top: 12px; overflow-x: auto; padding-bottom: 2px; }
+.tab {
+  flex: none;
+  padding: 7px 13px;
+  border-radius: 999px;
+  background: var(--steel);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tab.active { background: var(--accent-dim); color: var(--text); border-color: var(--accent); }
+main { padding: 16px 14px 60px; max-width: 760px; margin: 0 auto; }
+.category-heading {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  margin: 22px 4px 10px;
+}
+.category-heading:first-child { margin-top: 4px; }
+.card {
+  background: var(--navy-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 15px;
+  margin-bottom: 10px;
+}
+.card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.card-num { font-weight: 700; font-size: 0.98rem; color: var(--text); }
+.card-title { color: var(--text-dim); font-size: 0.85rem; margin-top: 2px; }
+.badge {
+  flex: none;
+  font-size: 0.66rem;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.badge.direct { background: rgba(76,175,125,0.15); color: var(--ok); border: 1px solid rgba(76,175,125,0.35); }
+.badge.search { background: rgba(217,155,63,0.15); color: var(--warn); border: 1px solid rgba(217,155,63,0.35); }
+.card-note { font-size: 0.78rem; color: var(--text-dim); margin-top: 8px; line-height: 1.4; }
+.card-actions { margin-top: 11px; display: flex; gap: 8px; flex-wrap: wrap; }
+.btn {
+  display: inline-block;
+  padding: 8px 14px;
+  border-radius: 7px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid var(--border);
+}
+.btn.primary { background: var(--accent); color: #06121f; border-color: var(--accent); }
+.btn.secondary { background: transparent; color: var(--text-dim); }
+.empty { text-align: center; color: var(--text-dim); padding: 40px 20px; font-size: 0.85rem; }
+footer {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  padding: 20px;
+  border-top: 1px solid var(--border);
+  line-height: 1.5;
+}
+footer a { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header>
+<h1>AF Document Reference</h1>
+<div class="sub">39 APS working set — direct links to e-Publishing where confirmed. Green badge = link path confirmed working as of its verify date. Amber badge = number not yet confirmed on a stable path, routes to e-Pubs search instead.</div>
+<div class="sub" style="margin-top:10px;"><strong>Why there's no auto-sync button:</strong> tested pulling e-Publishing's static file server directly — it sits behind Akamai bot protection and returned 403 Forbidden even with a normal browser identity, and it sends no CORS headers a page would need to read the response anyway. A button claiming to "auto-check for updates" would silently fail or lie about having checked. Instead: each card has a <strong>Verify Now</strong> button (opens real e-Pubs search) and a <strong>Mark Verified</strong> button you press after actually reading the cover page — that timestamp saves in this browser so you have a real audit trail, not a fake one.</div>
+<div class="sub" style="margin-top:10px;">Global last full pass: <strong id="global-sync">loading…</strong> <button class="tab" style="margin-left:8px;display:inline-block;" onclick="markGlobalSync()">Mark full review complete today</button></div>
+<div class="searchwrap">
+<input id="search" type="text" placeholder="Search by number, title, or keyword…" oninput="filterCards()">
+</div>
+<div class="tabs" id="tabs"></div>
+</header>
+
+<main id="main"></main>
+
+<footer>
+Before citing anything here in a board answer or official action: open the doc fresh from e-Publishing Product Index, read the cover page (date, Certified by, Supersedes, any IC/GM heading), and press Mark Verified once you have.<br><br>
+Built for Greg Strauch, 39 APS. Edit the DOCS array to add entries — set a fresh <code>verified</code> date whenever you touch a link.
+</footer>
+
+<script>
+const DOCS = [
+// ---------------- CARGO / AIR TRANSPORTATION OPS ----------------
+{
+  cat: "Cargo / Air Transportation",
+  num: "DAFI 24-605V2",
+  title: "Air Transportation Operations (redesignated from AFI 24-605V2)",
+  url: "https://static.e-publishing.af.mil/production/1/af_a4/publication/dafi24-605v2/dafi24-605v2.pdf",
+  direct: true,
+  verified: "28 Jul 2026",
+  note: "⚠ Renumbered 30 Jan 2025 (was AFI 24-605V2). Incorporating Change 1, 20 Feb 2025. ACTIVE Guidance Memorandum dated 4 Feb 2026 is bundled at the front of this PDF — GM expires 1 year from that date (~4 Feb 2027) unless superseded sooner by an IC or rewrite. Re-check the GM expiration date before citing in a board answer."
+},
+{
+  cat: "Cargo / Air Transportation",
+  num: "AF Form 4080",
+  title: "Load/Sequence Breakdown Worksheet",
+  url: "https://www.e-publishing.af.mil/Product-Index/",
+  direct: false,
+  note: "Prescribed form under AFI 24-605V2. Search \"AF4080\" (no spaces) in the box at top of e-Pubs Product Index."
+},
+{
+  cat: "Cargo / Air Transportation",
+  num: "AF Form 847",
+  title: "Recommendation for Change of Publication",
+  url: "https://www.e-publishing.af.mil/Product-Index/",
+  direct: false,
+  note: "Used to route recommended changes to any AFI, including 24-605V2, up through OPR. Search \"AF847\"."
+},
+{
+  cat: "Cargo / Air Transportation",
+  num: "AMC Form 68",
+  title: "Aerial Port Movement Log",
+  url: "https://www.e-publishing.af.mil/Product-Index/",
+  direct: false,
+  note: "AMC-series form, hosted under Air Mobility Command in e-Pubs rather than departmental AF. Search \"AMC68\"."
+},
+{
+  cat: "Cargo / Air Transportation",
+  num: "DD Form 1385",
+  title: "Cargo Manifest",
+  url: "https://www.esd.whs.mil/Directives/forms/",
+  direct: false,
+  note: "DD-series forms live on the DoD Executive Services Directorate site, not e-Publishing. Use their form search."
+},
+
+// ---------------- PERSONNEL / EVALUATIONS / PROMOTION ----------------
+{
+  cat: "Personnel & Evaluations",
+  num: "AF Form 717",
+  title: "Performance Objectives and Feedback Form",
+  url: "https://static.e-publishing.af.mil/production/1/af_a1/form/af717/af717.pdf",
+  direct: true,
+  verified: "28 Jul 2026",
+  note: "Formal feedback documentation, all grades. Confirm no DAF-series redesignation before citing — same failure mode caught on 605V2 applies here too, just unconfirmed either way."
+},
+{
+  cat: "Personnel & Evaluations",
+  num: "AFI 36-2406",
+  title: "Officer and Enlisted Evaluation Systems",
+  url: "https://static.e-publishing.af.mil/production/1/af_a1/publication/afi36-2406/afi36-2406.pdf",
+  direct: true,
+  verified: "28 Jul 2026",
+  note: "Governs EPB/feedback timing and standards. Check cover page for Incorporating Change / Guidance Memorandum before citing — do not assume this path survived any AFI→DAFI renumbering."
+},
+{
+  cat: "Personnel & Evaluations",
+  num: "Enlisted Force Structure",
+  title: "\"The Little Brown Book\" — formerly AFH 36-2618",
+  url: "https://www.e-publishing.af.mil/Product-Index/",
+  direct: false,
+  note: "⚠ In flux. AFH 36-2618 (5 Jul 2018) was superseded by a Sept 2025 rewrite titled simply \"The Enlisted Force Structure,\" seen hosted on individual wing sites (not yet confirmed on a stable e-Pubs path under a new number). Search e-Pubs for \"Enlisted Force Structure\" directly — do not trust any 36-2618 link you find elsewhere without checking the date."
+},
+{
+  cat: "Personnel & Evaluations",
+  num: "DAF Form 3538 / 3538E",
+  title: "Retention Recommendation Form / Enlisted RRF",
+  url: "https://www.e-publishing.af.mil/Product-Index/",
+  direct: false,
+  note: "Performance-based differentiation, involuntary sep/retirement boards. Search \"DAF3538\"."
+},
+
+// ---------------- CHIEF BOARD / PROMOTION ----------------
+{
+  cat: "Chief Board / Promotion",
+  num: "AFI 36-2502",
+  title: "Enlisted Airman Promotion and Demotion Programs",
+  url: "https://static.e-publishing.af.mil/production/1/af_a1/publication/afi36-2502/afi36-2502.pdf",
+  direct: true,
+  verified: "28 Jul 2026",
+  note: "The governing pub for the MSgt/SMSgt/CMSgt boards themselves — eligibility, process, board authority. Current edition dated 2 JULY 2026 — brand new, only weeks old as of this build. Worth a full re-read given how recent it is."
+},
+{
+  cat: "Chief Board / Promotion",
+  num: "DAFMAN 36-2689",
+  title: "Training Program",
+  url: "https://www.e-publishing.af.mil/Product-Index/",
+  direct: false,
+  note: "Referenced for 60-day initial training evaluation and informal feedback standards feeding into your Q2/Q3 board answers. Search \"DAFMAN36-2689\"."
+},
+{
+  cat: "Chief Board / Promotion",
+  num: "AFI 1-1",
+  title: "Air Force Standards",
+  url: "https://www.e-publishing.af.mil/Product-Index/",
+  direct: false,
+  note: "Core standards reference, commonly cited alongside informal feedback and conduct expectations in board answers. Search \"AFI1-1\"."
+},
+{
+  cat: "Chief Board / Promotion",
+  num: "AFH 33-337",
+  title: "Tongue and Quill",
+  url: "https://www.e-publishing.af.mil/Product-Index/",
+  direct: false,
+  note: "⚠ Unconfirmed whether still active or rescinded — this handbook has had status changes in recent years. Search e-Pubs before relying on it for board-answer writing structure; if it's gone, AFH 33-337 content has been folded into other guidance."
+},
+
+// ---------------- ADMIN / COMPLIANCE (Porras, Sjolin, unit actions) ----------------
+{
+  cat: "Admin & Unit Actions",
+  num: "AFI 36-2254V1",
+  title: "Reserve Personnel Participation",
+  url: "https://www.e-publishing.af.mil/Product-Index/",
+  direct: false,
+  note: "Governs UTA participation and unexcused absence actions. Search \"AFI36-2254V1\" — confirm this is the current volume/number before citing in the Porras action."
+},
+{
+  cat: "Admin & Unit Actions",
+  num: "AFI 36-2905",
+  title: "Fitness Program",
+  url: "https://www.e-publishing.af.mil/Product-Index/",
+  direct: false,
+  note: "Governs fitness assessment/TFAT status and follow-on requirements. Search \"AFI36-2905\"."
+},
+{
+  cat: "Admin & Unit Actions",
+  num: "IRR Transfer Guidance",
+  title: "Individual Ready Reserve process (AFRC-level)",
+  url: "https://www.afrc.af.mil/",
+  direct: false,
+  note: "IRR actions are governed at AFRC level, not unit level — start at AFRC's official site or MPF for current guidance rather than e-Publishing."
+},
+
+// ---------------- E-PUBS DIRECT ----------------
+{
+  cat: "Search / Index",
+  num: "e-Publishing Product Index",
+  title: "Full AF publications and forms search",
+  url: "https://www.e-publishing.af.mil/Product-Index/",
+  direct: true,
+  note: "Type a pub or form number with no spaces (e.g. AFI36-2618, AF4080) to jump straight to it."
+},
+{
+  cat: "Search / Index",
+  num: "DoD Forms (DD-series)",
+  title: "Executive Services Directorate forms search",
+  url: "https://www.esd.whs.mil/Directives/forms/",
+  direct: true,
+  note: "For any DD Form — these are not hosted on e-Publishing."
+}
+];
+
+// Was window.storage (Claude artifact runtime). Outside an artifact that object
+// does not exist, so the whole verify log silently failed to load. localStorage
+// is per-browser, which is what the artifact storage effectively was anyway.
+const storage = {
+  list: async p => ({ keys: Object.keys(localStorage).filter(k => k.startsWith(p)) }),
+  get: async k => ({ value: localStorage.getItem(k) }),
+  set: async (k, v) => localStorage.setItem(k, v)
+};
+
+const main = document.getElementById('main');
+const tabsEl = document.getElementById('tabs');
+const categories = ["All", ...new Set(DOCS.map(d => d.cat))];
+let activeCat = "All";
+let verifyLog = {}; // per-doc: num -> ISO date string
+let globalSyncDate = null;
+
+function fmtDate(iso) {
+  try { return new Date(iso).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' }); }
+  catch(e) { return iso; }
+}
+
+async function loadLog() {
+  try {
+    const list = await storage.list('verify:');
+    if (list && list.keys) {
+      for (const key of list.keys) {
+        try {
+          const r = await storage.get(key);
+          if (r && r.value) verifyLog[key.replace('verify:', '')] = r.value;
+        } catch(e) { /* key vanished, skip */ }
+      }
+    }
+  } catch(e) { console.error('Could not load verify log', e); }
+  try {
+    const g = await storage.get('global:lastFullSync');
+    if (g && g.value) globalSyncDate = g.value;
+  } catch(e) { /* never synced yet */ }
+  updateGlobalSyncDisplay();
+}
+
+function updateGlobalSyncDisplay() {
+  const el = document.getElementById('global-sync');
+  if (el) el.textContent = globalSyncDate ? fmtDate(globalSyncDate) : 'Never — click to log one';
+}
+
+async function markGlobalSync() {
+  const iso = new Date().toISOString();
+  try {
+    await storage.set('global:lastFullSync', iso);
+    globalSyncDate = iso;
+    updateGlobalSyncDisplay();
+  } catch(e) { alert('Could not save — storage error.'); }
+}
+
+async function markVerified(num) {
+  const iso = new Date().toISOString();
+  try {
+    await storage.set('verify:' + num, iso);
+    verifyLog[num] = iso;
+    render();
+  } catch(e) { alert('Could not save verification — storage error.'); }
+}
+
+function render() {
+  tabsEl.innerHTML = categories.map(c =>
+    `<div class="tab ${c===activeCat?'active':''}" onclick="setCat('${c.replace(/'/g,"\\'")}')">${c}</div>`
+  ).join('');
+
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const filtered = DOCS.filter(d => {
+    const matchesCat = activeCat === "All" || d.cat === activeCat;
+    const hay = (d.num + " " + d.title + " " + d.note).toLowerCase();
+    const matchesQ = !q || hay.includes(q);
+    return matchesCat && matchesQ;
+  });
+
+  if (filtered.length === 0) {
+    main.innerHTML = `<div class="empty">Nothing matches. Try a different term, or add the doc to the DOCS array.</div>`;
+    return;
+  }
+
+  let html = "";
+  let lastCat = null;
+  filtered.forEach(d => {
+    if (d.cat !== lastCat) {
+      html += `<div class="category-heading">${d.cat}</div>`;
+      lastCat = d.cat;
+    }
+    const lastCheck = verifyLog[d.num];
+    html += `
+<div class="card">
+  <div class="card-top">
+    <div>
+      <div class="card-num">${d.num}</div>
+      <div class="card-title">${d.title}</div>
+    </div>
+    <div class="badge ${d.direct ? 'direct' : 'search'}">${d.direct ? 'DIRECT LINK' : 'SEARCH E-PUBS'}</div>
+  </div>
+  <div class="card-note">${d.note}</div>
+  ${d.verified ? `<div class="card-note" style="color:var(--gold);margin-top:5px;">Link path built ${d.verified} — re-check cover page date/GM/IC before citing, don't rely on the badge alone.</div>` : ''}
+  <div class="card-note" style="margin-top:5px;">${lastCheck ? `✓ You last confirmed this on ${fmtDate(lastCheck)}` : 'Not yet manually verified'}</div>
+  <div class="card-actions">
+    <a class="btn primary" href="${d.url}" target="_blank" rel="noopener">${d.direct ? 'Open PDF' : 'Go search'}</a>
+    <button class="btn secondary" onclick="markVerified('${d.num.replace(/'/g,"\\'")}')">Mark Verified Today</button>
+  </div>
+</div>`;
+  });
+  main.innerHTML = html;
+}
+
+function setCat(c) { activeCat = c; render(); }
+function filterCards() { render(); }
+
+(async function init() {
+  await loadLog();
+  render();
+})();
+</script>
+
+</body>
+</html>
