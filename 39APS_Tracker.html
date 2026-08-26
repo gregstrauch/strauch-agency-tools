@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>39 APS Tracker</title>
+<!-- IBM Plex: a technical, government-adjacent face with real numerals. Google
+     Fonts cannot load inside the export SVG or a saved-offline copy, so the
+     fallback stack is metric-close on purpose. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
 :root,.tokens{
   /* Slate & Ink — light, document-like. One deep blue accent.
@@ -19,15 +25,25 @@
   --t-hi:#16202b; --t-mid:#47535f; --t-mid2:#5a6875;
   --t-lo:#6b7885; --t-faint:#8b96a2; --t-faint2:#b4bec8;   /* solved for 4.5:1 / 3:1 on white */
   --line:#d9dfe6; --line2:#e7ecf1;
+  --font:'IBM Plex Sans','Segoe UI',system-ui,-apple-system,Tahoma,sans-serif;
+  --font-num:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Segoe UI',Tahoma,sans-serif;background:linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);color:var(--t-hi);min-height:100vh;}
+body{font-family:var(--font);background:linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);color:var(--t-hi);min-height:100vh;}
 
 /* ── TABS ── */
 .tab-nav{display:flex;gap:0;border-bottom:2px solid var(--acc);background:var(--surface);padding:0 20px;}
-.tab-btn{padding:14px 24px;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border:none;background:transparent;color:var(--t-faint);border-bottom:3px solid transparent;margin-bottom:-2px;transition:all 0.2s;}
-.tab-btn:hover{color:var(--t-mid2);}
+.tab-btn{display:flex;align-items:center;gap:8px;padding:13px 20px;font-size:12px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;cursor:pointer;border:none;background:transparent;color:var(--t-lo);border-bottom:3px solid transparent;margin-bottom:-2px;transition:color .15s,border-color .15s;font-family:inherit;}
+.tab-btn:hover{color:var(--t-mid);}
 .tab-btn.active{color:var(--acc);border-bottom-color:var(--acc);}
+.tab-btn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+/* Row two: the pages inside the open group. Hidden when a group has only one. */
+.sub-nav{display:flex;gap:4px;align-items:center;padding:7px 20px;background:var(--bg);border-bottom:1px solid var(--line);flex-wrap:wrap;}
+.sub-nav.hide{display:none;}
+.sub-btn{padding:5px 13px;font-size:11px;font-weight:600;letter-spacing:.3px;cursor:pointer;border:1px solid transparent;border-radius:4px;background:transparent;color:var(--t-mid);font-family:inherit;transition:background .15s,color .15s;}
+.sub-btn:hover{background:rgba(var(--ink-rgb),.05);color:var(--t-hi);}
+.sub-btn.active{background:rgba(var(--acc-rgb),.10);border-color:rgba(var(--acc-rgb),.30);color:var(--acc);}
+.sub-step{font-size:10px;color:var(--t-faint);font-family:var(--font-num);margin-right:1px;}
 .flight-nav{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:8px 20px;background:var(--bg2);border-bottom:1px solid var(--line);}
 .flight-nav-label{font-size:9px;color:var(--t-faint2);text-transform:uppercase;letter-spacing:1.5px;margin-right:4px;}
 .flight-btn{padding:5px 13px;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--t-faint);font-family:inherit;transition:all .15s;}
@@ -56,6 +72,12 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:linear-gradient(180deg,
 .btn-green{border-color:var(--good);color:var(--good);background:rgba(var(--good-rgb),0.08);}
 .btn-green:hover{background:rgba(var(--good-rgb),0.18);}
 .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
+/* Inline icon set — drawn, not emoji, so they inherit color and print cleanly. */
+svg.i{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.7;
+      stroke-linecap:round;stroke-linejoin:round;vertical-align:-2.5px;margin-right:6px;}
+.icon-btn svg.i,.node-btn svg.i{margin-right:0;vertical-align:-2px;}
+.warn-bar svg.i,.acting-banner svg.i{width:13px;height:13px;}
+
 
 input,select,textarea{background:var(--surface);border:1px solid rgba(var(--acc-rgb),0.28);color:var(--t-hi);padding:8px 10px;border-radius:3px;font-family:inherit;font-size:13px;width:100%;}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc);box-shadow:0 0 8px rgba(var(--acc-rgb),0.18);}
@@ -68,7 +90,7 @@ label{display:block;font-size:10px;color:var(--t-mid2);text-transform:uppercase;
 .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;}
 .stat-card{background:rgba(var(--ink-rgb),0.05);border:1px solid rgba(var(--acc-rgb),0.22);padding:14px 16px;border-radius:4px;}
 .stat-label{font-size:10px;color:var(--t-mid2);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
-.stat-value{font-size:22px;font-weight:700;color:var(--acc);}
+.stat-value{font-size:22px;font-weight:600;color:var(--acc);font-family:var(--font-num);font-variant-numeric:tabular-nums;}
 .stat-sub{font-size:10px;color:var(--t-faint2);margin-top:2px;}
 /* ── Overview ── */
 .ov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
@@ -464,20 +486,11 @@ label{display:block;font-size:10px;color:var(--t-mid2);text-transform:uppercase;
   </div>
 </div>
 
-<!-- TAB NAV -->
-<div class="tab-nav">
-    <button class="tab-btn active" onclick="switchTab('overview',this)">📊 Overview</button>
-    <button class="tab-btn" onclick="switchTab('manning',this)">📋 Manning</button>
-    <button class="tab-btn" onclick="switchTab('bulletin',this)">📄 UTA Bulletin</button>
-    <button class="tab-btn" onclick="switchTab('tracker',this)">✅ Training Tracker</button>
-    <button class="tab-btn" onclick="switchTab('attendance',this)">🗓 Attendance</button>
-    <button class="tab-btn" onclick="switchTab('kpi',this)">📊 KPIs</button>
-    <button class="tab-btn" onclick="switchTab('promotions',this)">🎯 Promotions</button>
-    <button class="tab-btn" onclick="switchTab('brief',this)">📣 Morning Brief</button>
-    <button class="tab-btn" onclick="switchTab('utarpt',this)">🎖 End-of-UTA Report</button>
-    <button class="tab-btn" onclick="switchTab('templates',this)">📚 Pubs &amp; Templates</button>
-    <button class="tab-btn" onclick="switchTab('epb',this)">🔁 EPB Routing</button>
-</div>
+<!-- TAB NAV — two rows. Eleven flat tabs meant hunting; they are grouped by
+     WHEN they get used, and a drill weekend reads left to right along row two.
+     Both rows render from TAB_GROUPS so they can never drift apart. -->
+<div class="tab-nav" id="groupNav"></div>
+<div class="sub-nav" id="subNav"></div>
 
 <!-- FLIGHT NAV — squadron scope. Separate class from .tab-btn on purpose:
      switchTab() indexes into document.querySelectorAll('.tab-btn'). -->
@@ -519,7 +532,7 @@ label{display:block;font-size:10px;color:var(--t-mid2);text-transform:uppercase;
         <span class="sync-status" id="syncStatus">Google Sheets not configured</span>
         <button class="btn-sm" onclick="syncSheets()">⟳ Sync</button>
         <button class="btn-sm" onclick="pushAllToSheet()">⇧ Push to Sheet</button>
-        <button class="btn-sm grey" onclick="openSettings()">⚙ Sheet Settings</button>
+        <button class="btn-sm grey" onclick="openSettings()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 9 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4.6 9a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg> Sheet Settings</button>
         <span style="margin-left:auto;font-size:11px;color:var(--t-mid2);">Signed in: <strong id="whoami" style="color:var(--acc)"></strong></span>
         <button class="btn-sm grey" onclick="signOut()">Sign out</button>
     </div>
@@ -560,12 +573,12 @@ label{display:block;font-size:10px;color:var(--t-mid2);text-transform:uppercase;
 
     <div class="btn-row" style="justify-content:center;margin-top:20px;">
         <button class="btn" onclick="addTeam()">➕ Add Team</button>
-        <button class="btn" onclick="exportChartPNG()">🖼 Diagram PNG</button>
-        <button class="btn" onclick="exportChartPDF()">📄 Diagram PDF</button>
-        <button class="btn" onclick="exportCSV()">📥 Export CSV</button>
-        <button class="btn" onclick="exportJSON()">💾 Backup</button>
-        <button class="btn" onclick="importJSON()">📂 Restore</button>
-        <button class="btn btn-red" onclick="resetDefault()">🔄 Reload from Sheet</button>
+        <button class="btn" onclick="exportChartPNG()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 16l-5-5-6 6"/></svg> Diagram PNG</button>
+        <button class="btn" onclick="exportChartPDF()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg> Diagram PDF</button>
+        <button class="btn" onclick="exportCSV()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5"/><path d="M4 20h16"/></svg> Export CSV</button>
+        <button class="btn" onclick="exportJSON()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h7"/></svg> Backup</button>
+        <button class="btn" onclick="importJSON()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v1"/><path d="M3 9h18l-2 9a2 2 0 0 1-2 1.6H5.6A2 2 0 0 1 3.6 18z"/></svg> Restore</button>
+        <button class="btn btn-red" onclick="resetDefault()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg> Reload from Sheet</button>
     </div>
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)">
     <div class="footer">Click any name to edit &nbsp;|&nbsp; Changes auto-save</div>
@@ -583,11 +596,11 @@ label{display:block;font-size:10px;color:var(--t-mid2);text-transform:uppercase;
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
         <div class="card" style="border-color:rgba(var(--good-rgb),.25);cursor:default;">
-            <div style="font-size:12px;color:var(--good);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">⚡ Option 1 — Auto-Parse</div>
+            <div style="font-size:12px;color:var(--good);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg> Option 1 — Auto-Parse</div>
             <div style="font-size:12px;color:var(--t-mid2);line-height:1.6;">Paste your bulletin below and click <strong style="color:var(--t-hi)">Auto-Parse</strong>. Runs locally — no internet, no keys. Scans for bullet points, requirements, deadlines, and rank applicability automatically.</div>
         </div>
         <div class="card" style="border-color:rgba(var(--acc-rgb),.25);cursor:default;">
-            <div style="font-size:12px;color:var(--acc);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">📋 Option 2 — Import from Claude Chat</div>
+            <div style="font-size:12px;color:var(--acc);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M16 5h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2"/></svg> Option 2 — Import from Claude Chat</div>
             <div style="font-size:12px;color:var(--t-mid2);line-height:1.6;">Paste your bulletin into <strong style="color:var(--t-hi)">this Claude chat window</strong> and ask it to extract requirements as JSON. Copy the result, click <strong style="color:var(--t-hi)">Import from Claude</strong> and paste. Uses your existing Claude Pro — no extra cost.</div>
         </div>
     </div>
@@ -595,13 +608,13 @@ label{display:block;font-size:10px;color:var(--t-mid2);text-transform:uppercase;
     <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
             <div style="font-size:12px;color:var(--acc);font-weight:600;text-transform:uppercase;letter-spacing:1px;">Bulletin Text</div>
-            <button class="btn-sm" onclick="document.getElementById('bulletinFile').click()">📁 Upload .txt</button>
+            <button class="btn-sm" onclick="document.getElementById('bulletinFile').click()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Upload .txt</button>
         </div>
         <input type="file" id="bulletinFile" accept=".txt" style="display:none" onchange="loadBulletin(event)">
         <textarea id="bulletinText" rows="12" placeholder="Paste your UTA bulletin here, or upload a .txt file…" style="resize:vertical;"></textarea>
         <div class="btn-row">
-            <button class="btn btn-green" onclick="smartParse()" id="parseBtn">⚡ Auto-Parse Bulletin</button>
-            <button class="btn" onclick="openJSONImport()">📋 Import from Claude Chat</button>
+            <button class="btn btn-green" onclick="smartParse()" id="parseBtn"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg> Auto-Parse Bulletin</button>
+            <button class="btn" onclick="openJSONImport()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M16 5h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2"/></svg> Import from Claude Chat</button>
             <button class="btn" onclick="addReqManual()">+ Add Manually</button>
             <button class="btn btn-red" onclick="clearBulletin()">✕ Clear All</button>
         </div>
@@ -624,14 +637,14 @@ label{display:block;font-size:10px;color:var(--t-mid2);text-transform:uppercase;
     <div style="padding-top:6px"></div>
     <div class="page-header">
         <div><div class="page-title">Training Tracker</div><div class="page-sub">Grid view or per-person breakdown</div></div>
-        <button class="btn" onclick="exportTracker()">📥 Export Tracker</button>
+        <button class="btn" onclick="exportTracker()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5"/><path d="M4 20h16"/></svg> Export Tracker</button>
     </div>
 
     <div class="stats-row" id="trackerStats"></div>
 
     <div class="view-toggle">
         <button class="view-btn active" id="vBtnGrid" onclick="setTrackerView('grid')">⊞ Grid View</button>
-        <button class="view-btn" id="vBtnPerson" onclick="setTrackerView('person')">👤 Person View</button>
+        <button class="view-btn" id="vBtnPerson" onclick="setTrackerView('person')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg> Person View</button>
     </div>
 
     <!-- GRID VIEW -->
@@ -686,7 +699,7 @@ label{display:block;font-size:10px;color:var(--t-mid2);text-transform:uppercase;
     <div style="padding-top:6px"></div>
     <div class="page-header">
         <div><div class="page-title">Attendance</div><div class="page-sub">Tap a status to cycle · saves to the Sheet</div></div>
-        <button class="btn" onclick="exportAttendance()">📥 Export</button>
+        <button class="btn" onclick="exportAttendance()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5"/><path d="M4 20h16"/></svg> Export</button>
     </div>
 
     <div class="att-bar">
@@ -694,7 +707,7 @@ label{display:block;font-size:10px;color:var(--t-mid2);text-transform:uppercase;
         <input type="date" id="attDate" onchange="renderAttendance()" style="width:auto;">
         <button class="btn-sm" onclick="markAllAttendance('PRESENT')">✓ All Present</button>
         <button class="btn-sm grey" onclick="markAllAttendance('')">↩ Clear Day</button>
-        <button class="btn-sm" onclick="openUtaWorksheet('','')">📄 UTA Worksheet</button>
+        <button class="btn-sm" onclick="openUtaWorksheet('','')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg> UTA Worksheet</button>
         <button class="btn-sm" onclick="pushTab('Attendance')">⇧ Push</button>
     </div>
 
@@ -892,7 +905,7 @@ const emptyManning=()=>({msgtLeads:[]});
 // The Sheet is the only roster source. Two hardcoded seed rosters used to live above (86
 // lines) and had drifted — 10 names in the page were no longer on the live roster.
 // parseASManning() rebuilds chief, commander and every team losslessly from Sheet rows, so a
-// fresh browser just syncs. The old '🔄 Reset' also pushed that stale seed back OVER the Sheet,
+// fresh browser just syncs. The old '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg> Reset' also pushed that stale seed back OVER the Sheet,
 // and because the push sweeps rows the parse doesn't return, a drifted seed deleted real people.
 const defaultManningFor=()=>emptyManning();
 let manning=loadLS('afm_v4',defaultManningFor(currentFlight));
@@ -943,14 +956,65 @@ function saveLS(key,val){
 const esc=s=>String(s).replace(/'/g,"\\'");
 
 // ═══════════════════════ TABS
+
+// ── Tab groups ────────────────────────────────────────────────────────────
+// Eleven flat tabs meant scanning a wall of them for the one you wanted. They
+// are grouped by WHEN they get used; inside UTA the order is the order a drill
+// weekend actually runs, so row two doubles as the sequence.
+// `id` values are unchanged — every existing switchTab(name) call still works.
+const ICON={
+    overview:'<svg viewBox="0 0 24 24"><path d="M3 13h6v8H3zM10 3h4v18h-4zM15 9h6v12h-6z"/></svg>',
+    people:  '<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 5.5a3 3 0 0 1 0 5.6M17.5 20a6 6 0 0 0-2.2-4.6"/></svg>',
+    uta:     '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8 15l2.5 2.5L16 12"/></svg>',
+    ready:   '<svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4-3 7.5-7 9-4-1.5-7-5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>',
+    ref:     '<svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H19v3H6.5A2.5 2.5 0 0 0 4 20.5zM9 7h6M9 11h6"/></svg>'
+};
+const TAB_GROUPS=[
+    {id:'overview', label:'Overview', icon:'overview', tabs:[
+        {id:'overview', label:'Squadron Overview'}]},
+    {id:'people', label:'People', icon:'people', tabs:[
+        {id:'manning',    label:'Manning & Wiring'},
+        {id:'promotions', label:'Promotions'}]},
+    {id:'uta', label:'UTA', icon:'uta', step:true, tabs:[
+        {id:'brief',      label:'Morning Brief'},
+        {id:'attendance', label:'Attendance'},
+        {id:'bulletin',   label:'UTA Bulletin'},
+        {id:'utarpt',     label:'End-of-UTA Report'}]},
+    {id:'ready', label:'Readiness', icon:'ready', tabs:[
+        {id:'tracker', label:'Training Tracker'},
+        {id:'kpi',     label:'KPIs'}]},
+    {id:'ref', label:'Reference', icon:'ref', tabs:[
+        {id:'templates', label:'Pubs & Templates'},
+        {id:'epb',       label:'EPB Routing'}]}
+];
+const groupOf=name=>TAB_GROUPS.find(g=>g.tabs.some(t=>t.id===name))||TAB_GROUPS[0];
+
+function renderTabNav(active){
+    const g=groupOf(active);
+    document.getElementById('groupNav').innerHTML=TAB_GROUPS.map(x=>
+        `<button class="tab-btn${x.id===g.id?' active':''}" onclick="openGroup('${x.id}')">`
+        +`${ICON[x.icon]}<span>${x.label}</span></button>`).join('');
+    const sub=document.getElementById('subNav');
+    // One page in the group: row two would just repeat row one.
+    sub.classList.toggle('hide',g.tabs.length<2);
+    sub.innerHTML=g.tabs.map((t,i)=>
+        `<button class="sub-btn${t.id===active?' active':''}" onclick="switchTab('${t.id}')">`
+        +(g.step?`<span class="sub-step">${i+1}</span> `:'')+`${esc(t.label)}</button>`).join('');
+}
+// Clicking a group opens its first page — never a dead group header.
+function openGroup(gid){
+    const g=TAB_GROUPS.find(x=>x.id===gid);
+    if(g)switchTab(g.tabs[0].id);
+}
+
 function switchTab(name,btn){
     document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
     document.getElementById('tab-'+name).classList.add('active');
-    // Called programmatically (and from the console) without a button — the flight
-    // row uses .flight-btn, not .tab-btn, so querySelectorAll('.tab-btn')[n] hands
-    // back undefined and the whole page used to go blank on the throw.
-    (btn||document.querySelector(`.tab-btn[onclick*="'${name}'"]`))?.classList.add('active');
+    // Both nav rows are rendered from TAB_GROUPS, so the active states cannot
+    // drift from the open page. `btn` is ignored, kept so the old call sites
+    // (and anything typed at the console) still work.
+    renderTabNav(name);
+    localStorage.setItem('afm_tab',name);
     // Overview reads the Sheet, not local state — fetch once, then it is a re-render.
     if(name==='overview'){ ovData?renderOverview():loadOverview(); }
     if(name==='tracker'){ renderTracker(); renderTemplates(); }
@@ -1000,7 +1064,7 @@ function renderManning(){
     document.getElementById('sVacant').textContent=vacant;
     document.getElementById('sExpert').textContent=expert;
     document.getElementById('sDuties').textContent=duties;
-    document.getElementById('warnZone').innerHTML=expert<auth*.3?`<div class="warn-bar">⚠️ Deep Expertise Gap: ${expert} of ${auth} billets are 7-level. Surge capacity constrained.</div>`:'';
+    document.getElementById('warnZone').innerHTML=expert<auth*.3?`<div class="warn-bar"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5L2.8 19.5a1.4 1.4 0 0 0 1.2 2h16a1.4 1.4 0 0 0 1.2-2z"/><path d="M12 9v5M12 17.5h.01"/></svg> Deep Expertise Gap: ${expert} of ${auth} billets are 7-level. Surge capacity constrained.</div>`:'';
 
     // Chain of command, top-down. dragStart/doDrop paths and openEdit args are
     // unchanged from the old nested-div layout — only the boxes moved.
@@ -1032,7 +1096,7 @@ function renderManning(){
               <div class="otitle" onclick="event.stopPropagation();renameTeam(${si})" style="cursor:text" title="Click the team name to rename it">${sec.name} ✎</div>
               <div class="oname">${sec.msgt.rank} ${sec.msgt.name}</div>
               ${getBadges(sec.msgt)}
-              ${sec.actingLead?`<div class="acting-banner">⚠️ Acting: TSgt ${sec.actingLead}</div>`:''}
+              ${sec.actingLead?`<div class="acting-banner"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5L2.8 19.5a1.4 1.4 0 0 0 1.2 2h16a1.4 1.4 0 0 0 1.2-2z"/><path d="M12 9v5M12 17.5h.01"/></svg> Acting: TSgt ${sec.actingLead}</div>`:''}
               <div class="node-actions">
                 <button class="node-btn" onclick="event.stopPropagation();addTsgt(${si})">+ TSGT</button>
                 <button class="node-btn rm" onclick="event.stopPropagation();removeNode('team',${si},-1,-1)">✕</button>
@@ -1324,7 +1388,7 @@ function renderVerifyPanel(){
     if(!_verifyRefs.length){host.innerHTML='';return;}
     host.innerHTML=`<div class="card" style="cursor:default;border-color:rgba(var(--warn-rgb),.45)">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-        <div><strong style="color:var(--warn)">⚠ ${_verifyRefs.length} name${_verifyRefs.length===1?'':'s'} to verify</strong>
+        <div><strong style="color:var(--warn)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5L2.8 19.5a1.4 1.4 0 0 0 1.2 2h16a1.4 1.4 0 0 0 1.2-2z"/><path d="M12 9v5M12 17.5h.01"/></svg> ${_verifyRefs.length} name${_verifyRefs.length===1?'':'s'} to verify</strong>
           <div style="font-size:11px;color:var(--t-lo);margin-top:2px">
             Read off the wiring-diagram photo and not fully legible. Correct the spelling, or leave it and press Confirm.
             Anything still flagged shows a badge on the chart.</div></div>
@@ -2218,7 +2282,7 @@ function smartParse(){
     if(/^\s*[[{]/.test(text)){
         try{
             JSON.parse(text);
-            alert('That looks like JSON, not bulletin text.\n\nAuto-Parse scans prose line by line and would turn the JSON field names into requirements.\n\nUse "📋 Import from Claude Chat" instead — it is built for this.');
+            alert('That looks like JSON, not bulletin text.\n\nAuto-Parse scans prose line by line and would turn the JSON field names into requirements.\n\nUse "<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M16 5h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2"/></svg> Import from Claude Chat" instead — it is built for this.');
             return;
         }catch(e){ /* starts like JSON but is not valid — let the text parser try */ }
     }
@@ -2383,7 +2447,7 @@ function renderRequirements(){
             <span class="req-badge">${r.category||'General'}</span>
             <div class="req-actions">
                 <button class="icon-btn" onclick="event.stopPropagation();editReq(${i})" title="Edit">✏️</button>
-                <button class="icon-btn" onclick="event.stopPropagation();deleteReq(${i})" title="Delete">🗑</button>
+                <button class="icon-btn" onclick="event.stopPropagation();deleteReq(${i})" title="Delete"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M9 6V4h6v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14"/><path d="M10 11v6M14 11v6"/></svg></button>
             </div>
         </div>`).join('');
     document.getElementById('reqSection').style.display='block';
@@ -2873,7 +2937,7 @@ function renderKPI(){
                 <span class="kpi-owner-role">${sec.role}</span>
                 <span style="margin-left:auto;display:flex;gap:4px;">
                     <button class="kpi-edit-btn" onclick="openKPISectionEdit(${si})" title="Edit owner">✏️</button>
-                    <button class="kpi-edit-btn" style="color:var(--bad)" onclick="deleteKPISection(${si})" title="Remove section">🗑</button>
+                    <button class="kpi-edit-btn" style="color:var(--bad)" onclick="deleteKPISection(${si})" title="Remove section"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M9 6V4h6v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14"/><path d="M10 11v6M14 11v6"/></svg></button>
                 </span>
             </div>
             <div class="kpi-cards">
@@ -4026,8 +4090,8 @@ function renderPromotions(){
                     ${(()=>{const d=promoDocsFor(p.Rank);
                         if(!d.length||!total||met<total)return'';
                         const n=docIndices(p,d.length).size;
-                        return`<div style="font-size:10px;margin-top:3px;color:${n===d.length?'var(--good)':'var(--acc)'};">📄 package ${n} of ${d.length}</div>`;})()}
-                    ${p.NotReadyReason?`<div class="promo-reason">⚠ ${p.NotReadyReason}</div>`:''}
+                        return`<div style="font-size:10px;margin-top:3px;color:${n===d.length?'var(--good)':'var(--acc)'};"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg> package ${n} of ${d.length}</div>`;})()}
+                    ${p.NotReadyReason?`<div class="promo-reason"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5L2.8 19.5a1.4 1.4 0 0 0 1.2 2h16a1.4 1.4 0 0 0 1.2-2z"/><path d="M12 9v5M12 17.5h.01"/></svg> ${p.NotReadyReason}</div>`:''}
                     ${p.Notes?`<div style="font-size:10px;color:var(--t-faint);margin-top:4px;font-style:italic;">${p.Notes}</div>`:''}
                 </div>`;
             }).join('')}
@@ -4089,7 +4153,7 @@ function renderAttendance(){
                 return `<div class="att-row">
                     <div class="att-who"><span>${p.rank||''}</span>${p.name}</div>
                     <button class="att-btn ${st?'att-'+st:''}" onclick="cycleAttendance('${esc(p.name)}',this)">${st||'— not marked —'}</button>
-                    ${['ABSENT','EXCUSED','RST'].includes(st)?`<button class="btn-sm" title="UTA Participation Worksheet" onclick="openUtaWorksheet('${esc(p.name)}','${st}')">📄 Worksheet</button>`:''}
+                    ${['ABSENT','EXCUSED','RST'].includes(st)?`<button class="btn-sm" title="UTA Participation Worksheet" onclick="openUtaWorksheet('${esc(p.name)}','${st}')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg> Worksheet</button>`:''}
                 </div>`;
             }).join('')}</div>
         </div>`).join('');
@@ -4393,9 +4457,9 @@ function renderTemplates(){
     if(!templates.length){box.innerHTML='<div style="color:var(--t-faint2);font-size:12px;padding:12px 0;">No templates yet — click <strong>+ Add Template</strong> to link one.</div>';return;}
     box.innerHTML=templates.map((t,i)=>`
         <div class="tpl-row">
-            <a class="tpl-link" href="${encodeURI(t.url)}" target="_blank" rel="noopener noreferrer">🔗 ${t.name}</a>
+            <a class="tpl-link" href="${encodeURI(t.url)}" target="_blank" rel="noopener noreferrer"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/></svg> ${t.name}</a>
             <button class="icon-btn" onclick="openTplEdit(${i})" title="Edit">✏️</button>
-            <button class="icon-btn" onclick="deleteTpl(${i})" title="Delete">🗑</button>
+            <button class="icon-btn" onclick="deleteTpl(${i})" title="Delete"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M9 6V4h6v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14"/><path d="M10 11v6M14 11v6"/></svg></button>
         </div>`).join('');
 }
 
@@ -4525,7 +4589,7 @@ function renderOverview(){
             </div>`).join('')}
         </div>`;
     document.getElementById('ovAction').innerHTML=
-        block(ranked.filter(g=>g.u===2),'','⚠ Expired — already late')
+        block(ranked.filter(g=>g.u===2),'','<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5L2.8 19.5a1.4 1.4 0 0 0 1.2 2h16a1.4 1.4 0 0 0 1.2-2z"/><path d="M12 9v5M12 17.5h.01"/></svg> Expired — already late')
       + block(ranked.filter(g=>g.u===1),'warn','Hard deadline this UTA')
       || '<div style="color:var(--good);font-size:12px;padding:10px 0;">No expired or deadline-bound items outstanding.</div>';
 
@@ -4697,7 +4761,10 @@ function startApp(){
     renderAttendance();
     renderTemplates();
     renderFlow();
-    loadOverview();   // Overview is the landing tab — populate it without a click.
+    // Come back to the page you were last on, not always the landing tab.
+    const last=localStorage.getItem('afm_tab');
+    const known=TAB_GROUPS.some(g=>g.tabs.some(t=>t.id===last));
+    switchTab(known?last:'overview');
     // Several people edit this now, so a device that has been sitting open all day
     // must not push its stale copy over everyone else's work. Pull first, always.
     syncSheets();
@@ -4833,9 +4900,9 @@ async function copyBrief(btn){
     const label=btn.textContent;
     try{
         await navigator.clipboard.writeText(txt);
-        btn.textContent='✅ Copied';
+        btn.textContent='Copied';
     }catch{
-        btn.textContent='⚠ Use the text box below';
+        btn.textContent='Use the text box below';
         document.querySelector('#tab-brief details').open=true;
     }
     setTimeout(()=>{btn.textContent=label;},2000);
@@ -4847,7 +4914,7 @@ async function copyBrief(btn){
     <div style="padding-top:6px"></div>
     <div class="page-header">
         <div><div class="page-title">Flight KPI Dashboard</div><div class="page-sub">By program owner · UTA & Monthly tracking</div></div>
-        <button class="btn" onclick="exportKPIs()">📥 Export KPIs</button>
+        <button class="btn" onclick="exportKPIs()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5"/><path d="M4 20h16"/></svg> Export KPIs</button>
     </div>
 
     <!-- Period selector -->
@@ -4865,7 +4932,7 @@ async function copyBrief(btn){
 
     <!-- Auto-calculated -->
     <div class="kpi-autocalc">
-        <div class="kpi-autocalc-title">⚡ Auto-Calculated from Manning & Tracker</div>
+        <div class="kpi-autocalc-title"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg> Auto-Calculated from Manning & Tracker</div>
         <div class="kpi-autocalc-grid" id="autoCalcGrid"></div>
     </div>
 
@@ -5004,8 +5071,8 @@ async function copyBrief(btn){
     <div id="promoPkgMsg" style="font-size:11px;color:var(--t-lo);margin:-6px 0 10px"></div>
 
     <div class="modal-btns">
-        <button class="btn" onclick="generatePromoPackage()">📄 Promotion Form</button>
-        <button class="btn" onclick="openITPFor()">📋 Draft ITP</button>
+        <button class="btn" onclick="generatePromoPackage()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg> Promotion Form</button>
+        <button class="btn" onclick="openITPFor()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M16 5h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2"/></svg> Draft ITP</button>
         <button class="btn" onclick="savePromoEdit()">✓ Save</button>
         <button class="btn btn-red" onclick="closePromoEdit()">✕ Cancel</button>
     </div>
@@ -5035,8 +5102,8 @@ async function copyBrief(btn){
         <div><div class="page-title">Morning Brief</div><div class="page-sub" id="briefSub">Read top to bottom in front of the formation</div></div>
         <div style="display:flex;gap:8px;">
             <button class="btn" onclick="syncSheets()">⟳ Refresh</button>
-            <button class="btn" onclick="copyBrief(this)">📋 Copy as Text</button>
-            <button class="btn" onclick="window.print()">🖨 Print</button>
+            <button class="btn" onclick="copyBrief(this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M16 5h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2"/></svg> Copy as Text</button>
+            <button class="btn" onclick="window.print()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6M6 18H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-1"/><rect x="7" y="15" width="10" height="6" rx="1"/></svg> Print</button>
         </div>
     </div>
     <div class="stats-row" id="briefStats"></div>
@@ -5659,7 +5726,7 @@ utaSelfCheck();
             <div><label style="font-size:10px;color:var(--t-mid2);display:block">UTA end</label>
                  <input type="date" id="rptTo" onchange="renderUtaReport()" style="width:auto"></div>
             <button class="btn-sm" onclick="renderUtaReport(true)">⟳ Rebuild from Sheet</button>
-            <button class="btn-sm" onclick="copyUtaReport(this)">📋 Copy for email</button>
+            <button class="btn-sm" onclick="copyUtaReport(this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M16 5h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2"/></svg> Copy for email</button>
         </div>
     </div>
     <div id="rptWarn"></div>
@@ -5700,7 +5767,7 @@ const DOCS = [
   url: "https://static.e-publishing.af.mil/production/1/af_a4/publication/dafi24-605v2/dafi24-605v2.pdf",
   direct: true,
   verified: "28 Jul 2026",
-  note: "⚠ Renumbered 30 Jan 2025 (was AFI 24-605V2). Incorporating Change 1, 20 Feb 2025. ACTIVE Guidance Memorandum dated 4 Feb 2026 is bundled at the front of this PDF — GM expires 1 year from that date (~4 Feb 2027) unless superseded sooner by an IC or rewrite. Re-check the GM expiration date before citing in a board answer."
+  note: "Renumbered 30 Jan 2025 (was AFI 24-605V2). Incorporating Change 1, 20 Feb 2025. ACTIVE Guidance Memorandum dated 4 Feb 2026 is bundled at the front of this PDF — GM expires 1 year from that date (~4 Feb 2027) unless superseded sooner by an IC or rewrite. Re-check the GM expiration date before citing in a board answer."
 },
 {
   cat: "Cargo / Air Transportation",
@@ -5760,7 +5827,7 @@ const DOCS = [
   title: "\"The Little Brown Book\" — formerly AFH 36-2618",
   url: "https://www.e-publishing.af.mil/Product-Index/",
   direct: false,
-  note: "⚠ In flux. AFH 36-2618 (5 Jul 2018) was superseded by a Sept 2025 rewrite titled simply \"The Enlisted Force Structure,\" seen hosted on individual wing sites (not yet confirmed on a stable e-Pubs path under a new number). Search e-Pubs for \"Enlisted Force Structure\" directly — do not trust any 36-2618 link you find elsewhere without checking the date."
+  note: "In flux. AFH 36-2618 (5 Jul 2018) was superseded by a Sept 2025 rewrite titled simply \"The Enlisted Force Structure,\" seen hosted on individual wing sites (not yet confirmed on a stable e-Pubs path under a new number). Search e-Pubs for \"Enlisted Force Structure\" directly — do not trust any 36-2618 link you find elsewhere without checking the date."
 },
 {
   cat: "Personnel & Evaluations",
@@ -5803,7 +5870,7 @@ const DOCS = [
   title: "Tongue and Quill",
   url: "https://www.e-publishing.af.mil/Product-Index/",
   direct: false,
-  note: "⚠ Unconfirmed whether still active or rescinded — this handbook has had status changes in recent years. Search e-Pubs before relying on it for board-answer writing structure; if it's gone, AFH 33-337 content has been folded into other guidance."
+  note: "Unconfirmed whether still active or rescinded — this handbook has had status changes in recent years. Search e-Pubs before relying on it for board-answer writing structure; if it's gone, AFH 33-337 content has been folded into other guidance."
 },
 
 // ---------------- ADMIN / COMPLIANCE (Porras, Sjolin, unit actions) ----------------
@@ -5960,8 +6027,8 @@ function renderAfDocs(){
             <div class="page-sub">myEVAL routing order · cao November 2025</div>
         </div>
         <div class="btn-row">
-            <button class="btn" onclick="exportEPBPNG()">🖼 PNG</button>
-            <button class="btn" onclick="exportEPBPDF()">📄 PDF</button>
+            <button class="btn" onclick="exportEPBPNG()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 16l-5-5-6 6"/></svg> PNG</button>
+            <button class="btn" onclick="exportEPBPDF()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg> PDF</button>
         </div>
     </div>
     <div class="tpl-note" style="margin-bottom:14px;">
@@ -6036,9 +6103,9 @@ function renderAfDocs(){
            <option value="78">18 months</option><option value="156">36 months (ARC max)</option></select></div>
     </div>
     <div class="btn-row" style="margin-bottom:12px">
-      <button class="btn" onclick="renderITP()">📋 Draft the plan</button>
+      <button class="btn" onclick="renderITP()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M16 5h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2"/></svg> Draft the plan</button>
       <button class="btn" onclick="copyITP()">⧉ Copy as text</button>
-      <button class="btn" onclick="printITP()">📄 PDF</button>
+      <button class="btn" onclick="printITP()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg> PDF</button>
     </div>
     <div id="itpMsg" style="font-size:11px;color:var(--t-lo);margin-bottom:8px"></div>
     <div id="itpOut"></div>
@@ -6884,7 +6951,7 @@ async function renderUtaReport(force){
         ?Object.values(n.neverMarkableByFlight).flat()
         :(n.neverMarkableByFlight[currentFlight]||[]);
     const cov=rptAppCoverage(n);
-    const W=t=>`<div class="brief-clear" style="border-left:3px solid var(--warn);padding-left:10px;margin-bottom:10px;color:var(--warn)">⚠ ${t}</div>`;
+    const W=t=>`<div class="brief-clear" style="border-left:3px solid var(--warn);padding-left:10px;margin-bottom:10px;color:var(--warn)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5L2.8 19.5a1.4 1.4 0 0 0 1.2 2h16a1.4 1.4 0 0 0 1.2-2z"/><path d="M12 9v5M12 17.5h.01"/></svg> ${t}</div>`;
     warn.innerHTML=
         (n.attDupes?W(`${n.attDupes} redundant attendance row${n.attDupes===1?'':'s'} in the Sheet — every save appends instead of
             updating, so a person can hold several conflicting marks for one day. The most recent row wins here, which is
