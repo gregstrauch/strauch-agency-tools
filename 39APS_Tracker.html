@@ -448,8 +448,7 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
     <button class="tab-btn" onclick="switchTab('promotions',this)">🎯 Promotions</button>
     <button class="tab-btn" onclick="switchTab('brief',this)">📣 Morning Brief</button>
     <button class="tab-btn" onclick="switchTab('utarpt',this)">🎖 End-of-UTA Report</button>
-    <button class="tab-btn" onclick="switchTab('afdocs',this)">📖 AF Documents</button>
-    <button class="tab-btn" onclick="switchTab('templates',this)">📝 Military Templates</button>
+    <button class="tab-btn" onclick="switchTab('templates',this)">📚 Pubs &amp; Templates</button>
     <button class="tab-btn" onclick="switchTab('epb',this)">🔁 EPB Routing</button>
 </div>
 
@@ -811,8 +810,7 @@ const certList=()=>CERTS.filter(c=>!hiddenDuties().has(c.id));
 // sections, so the same name legitimately repeats across flights.
 const FLIGHT_COMMANDERS={
     'RAMP':            {rank:'Capt',name:'Haapapuro'},
-    'CARGO/SH':        {rank:'Lt',  name:'Matlock'},
-    'JOINT INSPECTION':{rank:'Lt',  name:'Matlock'},
+    'AIR FREIGHT':     {rank:'Lt',  name:'Matlock'},
     'ATOC':            {rank:'',    name:'VACANT (coverage)'},
     'LOAD PLANNING':   {rank:'',    name:'VACANT (coverage)'},
     'PAX':             {rank:'',    name:'VACANT (coverage)'},
@@ -826,15 +824,13 @@ const FLIGHT_CHIEFS={
     'PAX':             {rank:'SMSgt',name:'Gregory Strauch',skills:'9-Level'},
     'AIR FREIGHT':     {rank:'SMSgt',name:'Roy Wunderlich', skills:''},
     'RAMP':            {rank:'SMSgt',name:'Sears',          skills:''},
-    'CARGO/SH':        {rank:'SMSgt',name:'Roy Wunderlich', skills:''},
-    'JOINT INSPECTION':{rank:'SMSgt',name:'Roy Wunderlich', skills:''},
     'ATOC':            {rank:'SMSgt',name:'Buckley, A',     skills:''},
     'LOAD PLANNING':   {rank:'SMSgt',name:'Buckley, A',     skills:''},
     'PROGRAMS':        {rank:'SMSgt',name:'Moore',          skills:''},
     'NEWCOMERS':       {rank:'TSgt', name:'Olson',          skills:''},
 };
 // Office symbol per section, straight off the wiring diagram's left column.
-const FLIGHT_SYMBOLS={'RAMP':'TROCR','CARGO/SH':'TROCA','JOINT INSPECTION':'TROCS',
+const FLIGHT_SYMBOLS={'RAMP':'TROCR','AIR FREIGHT':'TROCA / TROCS',
     'ATOC':'TROAA','LOAD PLANNING':'TROOM','PAX':'TROP','PROGRAMS':'TROX','NEWCOMERS':''};
 const flightSymbol=()=>FLIGHT_SYMBOLS[String(currentFlight).toUpperCase()]||'';
 const NO_CHIEF={rank:'',name:'— not assigned —',skills:''};
@@ -931,7 +927,7 @@ function switchTab(name,btn){
     if(name==='promotions') renderPromotions();
     if(name==='brief') renderBrief();
     if(name==='utarpt') renderUtaReport();
-    if(name==='afdocs') renderAfDocs();
+    if(name==='templates') renderAfDocs();
     if(name==='epb') renderEPB();
 }
 
@@ -1521,18 +1517,16 @@ function saveScriptUrl(url){localStorage.setItem('afm_scripturl',url);}
 // is the 25-person roster already sitting in the Sheet. More via '+ Add'.
 // The five 39 APS flights. Merged in (not just defaulted) so an existing browser
 // that saved the older two-flight list still picks up the other three.
-// The wiring diagram's actual sections (cao 06 Aug 2026), in chart order.
-// 'AIR FREIGHT' and 'ATOC/LOAD PLANNING' are deliberately NOT here — they were
-// the old coarse split. Sheet rows still tagged with them re-add themselves via
-// scopeRows(), so nothing is lost while the roster migrates.
-const SQUADRON_FLIGHTS=['RAMP','CARGO/SH','JOINT INSPECTION','ATOC','LOAD PLANNING','PAX','PROGRAMS','NEWCOMERS'];
+// The wiring diagram's sections (cao 06 Aug 2026), in chart order. Cargo and
+// Joint Inspection are TEAMS inside AIR FREIGHT, not flights of their own —
+// SMSgt Wunderlich is Flight Chief, Air Freight Operations over both.
+const SQUADRON_FLIGHTS=['RAMP','AIR FREIGHT','ATOC','LOAD PLANNING','PAX','PROGRAMS','NEWCOMERS'];
 // Authorized strength per flight (UMD), editable by clicking the Authorized stat.
 // Stored in ONE map under a non-per-flight key so the rollup can sum every flight
 // without tripping the per-flight read guard. Raising it adds VACANT billets;
 // lowering it never deletes anyone — the chart is allowed to exceed the UMD.
-const AUTH_DEFAULTS={'RAMP':24,'CARGO/SH':21,'JOINT INSPECTION':10,'ATOC':10,
-    'LOAD PLANNING':10,'PAX':24,'PROGRAMS':6,'NEWCOMERS':21,
-    'AIR FREIGHT':31,'ATOC/LOAD PLANNING':20};
+const AUTH_DEFAULTS={'RAMP':24,'AIR FREIGHT':31,'ATOC':10,
+    'LOAD PLANNING':10,'PAX':24,'PROGRAMS':6,'NEWCOMERS':21};
 const authMap=()=>({...AUTH_DEFAULTS,...loadLS('afm_auth',{})});
 const authFor=f=>authMap()[f];
 let knownFlights=loadLS('afm_flights',SQUADRON_FLIGHTS.slice());
@@ -5028,31 +5022,7 @@ utaSelfCheck();
 <!-- ═══════════════════════════════════ TAB: AF DOCUMENTS
      Was a Claude artifact. The verify log is per-browser (localStorage), same as it
      was there — it is an "I read the cover page" audit trail, not shared flight data. -->
-<div class="tab-content" id="tab-afdocs">
-<div class="container">
-    <div style="padding-top:6px"></div>
-    <div class="page-header">
-        <div><div class="page-title">AF Document Reference</div>
-             <div class="page-sub">39 APS working set — direct e-Pubs links where confirmed</div></div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <span style="font-size:11px;color:#a0a0a0">Last full pass: <strong id="afdocGlobal" style="color:#ffd700">—</strong></span>
-            <button class="btn-sm" onclick="afdocMarkGlobal()">✓ Full review done today</button>
-        </div>
-    </div>
-    <div class="card" style="font-size:11px;color:#a0a0a0;line-height:1.6;margin-bottom:14px">
-        <strong style="color:#ffd700">There is no auto-check button on purpose.</strong>
-        e-Publishing's file server sits behind Akamai bot protection (403 to a normal browser identity)
-        and sends no CORS headers, so a page cannot read it. A button claiming to have checked for updates
-        would be lying. Instead: open the doc, read the cover page (date, Certified by, Supersedes, any
-        IC/GM heading), then press <strong style="color:#ffd700">Mark verified</strong> — that timestamp is a real audit trail.
-        <span style="color:#606060">Saved in this browser only.</span>
-    </div>
-    <input id="afdocSearch" type="text" placeholder="Search by number, title, or keyword…" oninput="renderAfDocs()"
-           style="width:100%;padding:10px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,215,0,.15);border-radius:3px;color:#e0e0e0;font-size:13px;">
-    <div id="afdocCats" style="display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 16px"></div>
-    <div id="afdocList"></div>
-</div>
-</div>
+
 
 <script>
 /* ═════════ AF DOCUMENT REFERENCE */
@@ -5343,21 +5313,52 @@ function renderAfDocs(){
 <div class="container">
     <div style="padding-top:6px"></div>
     <div class="page-header">
-        <div><div class="page-title">Military Templates</div>
-             <div class="page-sub">Flight Chief admin docs · SMSgt / CMSgt career templates</div></div>
+        <div><div class="page-title">Pubs &amp; Templates</div>
+             <div class="page-sub">AF publications · Flight Chief admin docs · SMSgt / CMSgt career templates</div></div>
+        <div id="afdocHead" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <span style="font-size:11px;color:#a0a0a0">Last full pass: <strong id="afdocGlobal" style="color:#ffd700">—</strong></span>
+            <button class="btn-sm" onclick="afdocMarkGlobal()">✓ Full review done today</button>
+        </div>
     </div>
 <div id="tplMain">
 
   <div class="topnav">
-    <button class="topbtn active" onclick="tplSection('sec-admin',this)">LOC / LOR / MFR</button>
+    <button class="topbtn active" onclick="tplSection('sec-pubs',this)">AF Publications</button>
+    <button class="topbtn" onclick="tplSection('sec-admin',this)">LOC / LOR / MFR</button>
     <button class="topbtn" onclick="tplSection('sec-career',this)">Career Templates (SMSgt / CMSgt)</button>
   </div>
 
+  <!-- ============ SECTION: AF PUBLICATIONS ============ -->
+  <div id="sec-pubs" class="section active">
+<div class="card" style="font-size:11px;color:#a0a0a0;line-height:1.6;margin-bottom:14px">
+        <strong style="color:#ffd700">There is no auto-check button on purpose.</strong>
+        e-Publishing's file server sits behind Akamai bot protection (403 to a normal browser identity)
+        and sends no CORS headers, so a page cannot read it. A button claiming to have checked for updates
+        would be lying. Instead: open the doc, read the cover page (date, Certified by, Supersedes, any
+        IC/GM heading), then press <strong style="color:#ffd700">Mark verified</strong> — that timestamp is a real audit trail.
+        <span style="color:#606060">Saved in this browser only.</span>
+    </div>
+    <input id="afdocSearch" type="text" placeholder="Search by number, title, or keyword…" oninput="renderAfDocs()"
+           style="width:100%;padding:10px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,215,0,.15);border-radius:3px;color:#e0e0e0;font-size:13px;">
+    <div id="afdocCats" style="display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 16px"></div>
+    <div id="afdocList"></div>
+  </div>
+
   <!-- ============ SECTION: LOC / LOR / MFR ============ -->
-  <div id="sec-admin" class="section active">
+  <div id="sec-admin" class="section">
 
     <div class="intro">
-      Header and signature-block layout matched to Greg's actual signed MFR (23 Jul 2026). Start every memo from a copy of <strong>Official Letterhead Template AFRC_CD</strong> — it has the real seal graphic; paste your body text below it, don't retype the header. Tongue &amp; Quill is the format authority if a question comes up these don't answer.
+      Header and signature-block layout matched to the real signed MFR of 1 Jul 2026. Start every memo from the squadron letterhead — it carries the actual seal graphic; paste your body text below it, don't retype the header. Tongue &amp; Quill is the format authority if a question comes up these don't answer.
+      <div style="margin:10px 0 4px">
+        <a class="btn-sm" style="text-decoration:none;display:inline-block"
+           href="Official_Letterhead_Template_AFRC.docx" download>⬇ Download the letterhead template (.docx)</a>
+      </div>
+      <div style="font-size:11px;color:#808080;margin-bottom:8px">
+        Format, straight off the signed example: date right-aligned as <strong>1 July 2026</strong> (no leading zero,
+        month spelled out); <strong>SUBJECT:</strong> followed by two spaces; numbered paragraphs with two spaces after
+        the period; no <code>//SIGNED//</code> — leave 3–4 blank lines for a real signature; Reserve members sign
+        <strong>USAFR</strong>.
+      </div>
       <ul>
         <li><strong>LOC (Letter of Counseling)</strong> — lowest-level, most common. Documents a specific issue and puts the member on notice. Coaching record, not punishment.</li>
         <li><strong>LOR (Letter of Reprimand)</strong> — formal administrative action, one step up. Carries appeal rights language; normally commander-signed. Get legal eyes on it first.</li>
@@ -5380,7 +5381,7 @@ function renderAfDocs(){
 
 MEMORANDUM FOR [RANK] [LAST NAME], [FIRST NAME]
 
-FROM:  [YOUR OFFICE SYMBOL, e.g. 39 APS/TROC]
+FROM:  [YOUR OFFICE SYMBOL — e.g. 39 APS/TROP (Pax), TROCR (Ramp), TROCA (Cargo), TROCS (JI), TROAA (ATOC), TROOM (Load Planning)]
 
 SUBJECT:  Letter of Counseling
 
@@ -5397,10 +5398,10 @@ SUBJECT:  Letter of Counseling
 6.  If you have questions regarding this counseling, contact me at [phone/email].
 
 
-[YOUR NAME IN CAPS], [Rank], USAF
+[FULL NAME IN CAPS], [Rank], USAFR
 [Duty title]
-[Squadron], [Wing]
-[Base], [State abbrev].
+39th Aerial Port Squadron, 302nd Airlift Wing
+Peterson Space Force Base, Colo.
 
 I acknowledge receipt of this Letter of Counseling. My signature does not necessarily indicate agreement with its contents.
 
@@ -5446,9 +5447,9 @@ SUBJECT:  Letter of Reprimand
 
 
 [COMMANDER'S NAME IN CAPS], [Rank], USAF
-Commander, [Squadron]
-[Wing]
-[Base], [State abbrev].
+Commander, 39th Aerial Port Squadron
+302nd Airlift Wing
+Peterson Space Force Base, Colo.
 
 I acknowledge receipt of this Letter of Reprimand on the date indicated below. My signature does not necessarily indicate agreement with its contents. I understand I have the right to submit a written rebuttal within the timeframe stated above.
 
@@ -5474,7 +5475,7 @@ _____________________________          _______________
 
 MEMORANDUM FOR RECORD
 
-FROM:  [YOUR OFFICE SYMBOL, e.g. 39 APS/TROC]
+FROM:  [YOUR OFFICE SYMBOL — e.g. 39 APS/TROP (Pax), TROCR (Ramp), TROCA (Cargo), TROCS (JI), TROAA (ATOC), TROOM (Load Planning)]
 
 SUBJECT:  [Short, specific subject line — e.g., "Verbal Counseling of SSgt (Name) Regarding UTA Attendance, 12 July 2026"]
 
@@ -5489,10 +5490,10 @@ SUBJECT:  [Short, specific subject line — e.g., "Verbal Counseling of SSgt (Na
 5.  Questions may be directed to [Rank Full Name] at [email] or [phone].
 
 
-[YOUR NAME IN CAPS], [Rank], USAF
+[FULL NAME IN CAPS], [Rank], USAFR
 [Duty title]
-[Squadron], [Wing]
-[Base], [State abbrev].</div>
+39th Aerial Port Squadron, 302nd Airlift Wing
+Peterson Space Force Base, Colo.</div>
       </div>
       <div class="sc">
         <strong>Coaching notes</strong>
@@ -5632,10 +5633,10 @@ SUBJECT:  Letter of Appointment — [Duty Title, e.g. Flight Safety Representati
 4.  This appointment is effective until [date / rescinded in writing / PCS-gain-loss], whichever occurs first.
 
 
-[YOUR NAME IN CAPS], [Rank], USAF
+[FULL NAME IN CAPS], [Rank], USAFR
 [Duty title]
-[Squadron], [Wing]
-[Base], [State abbrev].</div>
+39th Aerial Port Squadron, 302nd Airlift Wing
+Peterson Space Force Base, Colo.</div>
       </div>
       <div class="sc"><strong>Coaching notes</strong>Keep the responsibilities list concrete — a vague appointment letter produces vague performance, and you have no standard to hold the Airman to later if you never wrote one down. Stating the time commitment up front is also a fairness/workload-management move, not just paperwork.</div>
     </div>
@@ -5681,10 +5682,10 @@ SUBJECT:  Request for Waiver — [specific waiver, e.g. Fitness Assessment Exten
 5.  POC for this request is [you], [phone/email].
 
 
-[YOUR NAME IN CAPS], [Rank], USAF
+[FULL NAME IN CAPS], [Rank], USAFR
 [Duty title]
-[Squadron], [Wing]
-[Base], [State abbrev].</div>
+39th Aerial Port Squadron, 302nd Airlift Wing
+Peterson Space Force Base, Colo.</div>
       </div>
       <div class="sc"><strong>Coaching notes</strong>Waivers get approved on specificity. A vague request ("can we push this back a bit") gets denied by default because there's nothing concrete to approve — always name the exact new date or exact alternate requirement you're asking for.</div>
     </div>
@@ -5713,10 +5714,10 @@ SUBJECT:  Sponsorship Appointment — [Incoming Member Name]
 3.  Report completion of initial contact to me by [date].
 
 
-[YOUR NAME IN CAPS], [Rank], USAF
+[FULL NAME IN CAPS], [Rank], USAFR
 [Duty title]
-[Squadron], [Wing]
-[Base], [State abbrev].
+39th Aerial Port Squadron, 302nd Airlift Wing
+Peterson Space Force Base, Colo.
 
 ---
 IN-PROCESSING CHECKLIST — [Incoming Member Name]  (no header — working checklist, not a memo)
@@ -5757,10 +5758,10 @@ SUBJECT:  Command Policy — Standards and Priorities, [Unit]
 5.  This policy is effective immediately and supersedes any prior policy letter on this subject.
 
 
-[YOUR NAME IN CAPS], CMSgt, USAF
+[FULL NAME IN CAPS], CMSgt, USAFR
 [Duty title]
-[Squadron], [Wing]
-[Base], [State abbrev].</div>
+39th Aerial Port Squadron, 302nd Airlift Wing
+Peterson Space Force Base, Colo.</div>
       </div>
       <div class="sc"><strong>Coaching notes</strong>This one isn't fill-in-the-blank — it's a personal statement, use the skeleton for structure only. Write it before the board result, not after — a package that shows you already think at this altitude is a real differentiator, and drafting it under deadline pressure after you pin on produces something generic. Boards and Airmen alike can tell a template from a real philosophy.</div>
     </div>
@@ -5788,9 +5789,9 @@ SUBJECT:  Appointment as Investigating Officer
 
 
 [COMMANDER'S NAME IN CAPS], [Rank], USAF
-Commander, [Squadron]
-[Wing]
-[Base], [State abbrev].
+Commander, 39th Aerial Port Squadron
+302nd Airlift Wing
+Peterson Space Force Base, Colo.
 
 
 PART B — IO REPORT SKELETON
@@ -5814,10 +5815,10 @@ SUBJECT:  Report of Investigation — [Subject/Case Reference]
 7.  RECOMMENDATIONS. [Only if your appointment memo specifically asks for them.]
 
 
-[YOUR NAME IN CAPS], [Rank], USAF
+[FULL NAME IN CAPS], [Rank], USAFR
 Investigating Officer
-[Squadron], [Wing]
-[Base], [State abbrev].</div>
+39th Aerial Port Squadron, 302nd Airlift Wing
+Peterson Space Force Base, Colo.</div>
       </div>
       <div class="sc"><strong>Coaching notes</strong>Keep Findings of Fact and Analysis in separate sections — findings are what happened, analysis is what it means. Mixing them together is the single most common reason an IO report gets challenged on appeal. Loop in legal early, not just at the end when the report's already written.</div>
     </div>
@@ -5842,10 +5843,10 @@ SUBJECT:  Senior Rater Input — [Member Name], [Board/Cycle]
 3.  Based on the above, I strongly recommend [Name] for [promotion/school/assignment], and rank [him/her] in the top [X]% of [rank] I have known in my career.
 
 
-[YOUR NAME IN CAPS], CMSgt, USAF
+[FULL NAME IN CAPS], CMSgt, USAFR
 [Duty title]
-[Squadron], [Wing]
-[Base], [State abbrev].</div>
+39th Aerial Port Squadron, 302nd Airlift Wing
+Peterson Space Force Base, Colo.</div>
       </div>
       <div class="sc"><strong>Coaching notes</strong>Boards read hundreds of these. Specific comparative language — "the top 1 of the 20 MSgts I've supervised in 20 years" — is what actually moves a package. Generic praise reads the same as every other memo in the stack and moves nothing.</div>
     </div>
@@ -5893,10 +5894,10 @@ SUBJECT:  Letter of Appreciation — Retirement of [Rank Name]
 3.  [Rank Name]'s dedication, professionalism, and leadership leave a lasting impact on this unit and the Airmen [he/she] mentored. We wish [him/her] and [his/her] family continued success in this next chapter.
 
 
-[YOUR NAME IN CAPS], CMSgt, USAF
+[FULL NAME IN CAPS], CMSgt, USAFR
 [Duty title]
-[Squadron], [Wing]
-[Base], [State abbrev].</div>
+39th Aerial Port Squadron, 302nd Airlift Wing
+Peterson Space Force Base, Colo.</div>
       </div>
       <div class="sc"><strong>Coaching notes</strong>This is one of the few documents here that's purely about the person, not the mission — make it specific to them, not a form letter. The extra ten minutes finding one real, specific memory is what makes it land.</div>
     </div>
@@ -5923,10 +5924,10 @@ SUBJECT:  Request for Unit Manning Document (UMD) Change — [Position/Unit]
 4.  Recommended effective date: [date].
 
 
-[YOUR NAME IN CAPS], [Rank], USAF
+[FULL NAME IN CAPS], [Rank], USAFR
 [Duty title]
-[Squadron], [Wing]
-[Base], [State abbrev].</div>
+39th Aerial Port Squadron, 302nd Airlift Wing
+Peterson Space Force Base, Colo.</div>
       </div>
       <div class="sc"><strong>Coaching notes</strong>Manpower changes move on data, not narrative — attach whatever workload or manning numbers you have. A UMD request with no supporting data is easy to defer indefinitely; one with numbers forces an actual decision.</div>
     </div>
@@ -5941,6 +5942,9 @@ SUBJECT:  Request for Unit Manning Document (UMD) Change — [Position/Unit]
 function tplSection(id, btn){
   document.querySelectorAll('#tab-templates .section').forEach(function(s){s.classList.remove('active');});
   document.getElementById(id).classList.add('active');
+  // The 'full review done' control only makes sense over the publications list.
+  document.getElementById('afdocHead').style.display = (id==='sec-pubs') ? 'flex' : 'none';
+  if(id==='sec-pubs') renderAfDocs();
   document.querySelectorAll('#tab-templates .topbtn').forEach(function(b){b.classList.remove('active');});
   btn.classList.add('active');
 }
