@@ -520,6 +520,7 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
 
     <div id="warnZone"></div>
     <div id="verifyZone"></div>
+    <div id="chainZone"></div>
 
     <div class="xnco-strip">
         <div><div class="xnco-label">Flight XNCO</div><div class="xnco-name" id="xncoFlight">—</div></div>
@@ -1050,6 +1051,7 @@ function renderManning(){
     oc.dataset.stamp=chartStamp();   // printed header for the PDF export
 
     renderVerifyPanel();
+    renderChains();
     renderDuties();
     populateTeamFilter();
 }
@@ -1329,6 +1331,128 @@ function saveVerifyNames(){
     renderManning();
     setSyncStatus('ok',renamed?`${renamed} name${renamed===1?'':'s'} corrected — pushing`:'Names confirmed — pushing');
     schedulePush('Manning');
+}
+
+// ═══════════════════════ RATING CHAINS
+// The wiring-diagram photo lists each section's people but never says who rates
+// whom, so the seeded chart hangs everyone off the senior supervisor. Dragging
+// ~100 boxes to fix that is the slow path; this is one dropdown per person.
+// Nothing here invents a rating relationship — 'Spread evenly' only fills the
+// dropdowns as a starting point and still has to be saved deliberately.
+let _chainOpen=false;
+function chainSupervisors(sec){
+    // 'short' is for the load summary. Taking the last word breaks on placeholder
+    // names like 'VACANT 1', which reduce to '1'.
+    return sec.tsgts.map((t,i)=>{
+        const vacant=isVacant(t.name);
+        const parts=String(t.name||'').trim().split(/\s+/);
+        return {i,label:`${t.rank||''} ${t.name}`.trim(),vacant,
+                short:vacant?'vacant':(parts[parts.length-1]||'—')};
+    });
+}
+function renderChains(){
+    const host=document.getElementById('chainZone');
+    if(!host)return;
+    if(isRollup()||!(manning.msgtLeads||[]).length){host.innerHTML='';return;}
+    let people=0, orphanVac=0;
+    const body=manning.msgtLeads.map((sec,si)=>{
+        const sups=chainSupervisors(sec);
+        if(!sups.length||!sec.tsgts.some(t=>t.subordinates.length))return '';
+        const counts={};
+        sec.tsgts.forEach((t,i)=>{counts[i]=t.subordinates.length;});
+        const rows=sec.tsgts.flatMap((t,ti)=>t.subordinates.map((x,xi)=>{
+            people++;
+            if(sups[ti]&&sups[ti].vacant&&!isVacant(x.name))orphanVac++;
+            return `<div style="display:grid;grid-template-columns:64px 1fr 220px;gap:8px;align-items:center;padding:2px 0">
+              <span style="font-size:11px;color:#ffd700">${esc(x.rank||'—')}</span>
+              <span style="font-size:12px;${isVacant(x.name)?'color:#777;font-style:italic':''}">${esc(x.name)}</span>
+              <select id="ch_${si}_${ti}_${xi}" data-sec="${si}" style="font-size:12px">
+                ${sups.map(s=>`<option value="${s.i}"${s.i===ti?' selected':''}${s.vacant?' data-vac="1"':''}>`
+                  +`${esc(s.label)}${s.vacant?' — VACANT':''}</option>`).join('')}
+              </select></div>`;}));
+        const load=sups.map(s=>`${esc(s.short)} ${counts[s.i]||0}`).join(' · ');
+        return `<details style="margin-bottom:8px"${_chainOpen?' open':''}>
+          <summary style="cursor:pointer;font-size:12px;color:#ffd700">${esc(sec.name)}
+            <span style="color:#707070;font-weight:400"> — ${rows.length} rated · ${esc(load)}</span></summary>
+          <div style="padding:6px 0 2px">${rows.join('')}</div></details>`;
+    }).join('');
+    if(!people){host.innerHTML='';return;}
+    host.innerHTML=`<div class="card" style="cursor:default">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+        <div><strong style="color:#ffd700">Rating chains — ${people} rated member${people===1?'':'s'}</strong>
+          <div style="font-size:11px;color:#808080;margin-top:2px">
+            Who rates whom is not on the wiring diagram, so everyone starts under the senior supervisor.
+            Set each person's rater here, or drag them on the chart.
+            ${orphanVac?`<span style="color:#ff9999"> ${orphanVac} currently rated by a VACANT billet.</span>`:''}</div></div>
+        <div style="display:flex;gap:6px">
+          <button class="btn-sm grey" onclick="spreadChains()">⇄ Spread evenly</button>
+          <button class="btn-sm" onclick="saveChains()">✓ Save chains</button>
+        </div>
+      </div>${body}</div>`;
+}
+/* Round-robin across the non-vacant supervisors — a starting point to correct,
+   not a claim about who actually rates whom. Fills the dropdowns only. */
+function spreadChains(){
+    _chainOpen=true;
+    manning.msgtLeads.forEach((sec,si)=>{
+        const open=chainSupervisors(sec).filter(s=>!s.vacant);
+        if(!open.length)return;
+        let n=0;
+        sec.tsgts.forEach((t,ti)=>t.subordinates.forEach((x,xi)=>{
+            const el=document.getElementById(`ch_${si}_${ti}_${xi}`);
+            if(el){el.value=String(open[n%open.length].i);n++;}
+        }));
+    });
+    setSyncStatus('','Spread evenly — review, then Save chains');
+}
+function saveChains(){
+    if(isRollup()){setSyncStatus('','ALL SQUADRON is read-only — pick a flight to edit');return;}
+    let moved=0;
+    manning.msgtLeads.forEach((sec,si)=>{
+        // Read every choice BEFORE mutating, then rebuild the team's subordinate
+        // lists in one go — moving people while walking the same arrays skips rows.
+        const plan=[];
+        sec.tsgts.forEach((t,ti)=>t.subordinates.forEach((x,xi)=>{
+            const el=document.getElementById(`ch_${si}_${ti}_${xi}`);
+            const to=el?parseInt(el.value,10):ti;
+            if(to!==ti)moved++;
+            plan.push({person:x,to:isNaN(to)?ti:to});
+        }));
+        if(!plan.length)return;
+        sec.tsgts.forEach(t=>{t.subordinates=[];});
+        plan.forEach(({person,to})=>{
+            (sec.tsgts[to]||sec.tsgts[0]).subordinates.push(person);
+        });
+    });
+    saveLS('afm_v4',manning);
+    _chainOpen=true;
+    renderManning();
+    setSyncStatus('ok',moved?`${moved} rating assignment${moved===1?'':'s'} changed — pushing`:'Rating chains unchanged');
+    if(moved)schedulePush('Manning');
+}
+
+/* One runnable check: the rebuild moves the right people and loses nobody. */
+function _selfCheckChains(){
+    const mk=n=>({rank:'SrA',name:n,skills:'',duties:{},certs:{},subordinates:[]});
+    const sec={name:'T',msgt:{rank:'MSgt',name:'Lead'},tsgts:[
+        {rank:'TSgt',name:'A',subordinates:[mk('one'),mk('two'),mk('three')]},
+        {rank:'TSgt',name:'B',subordinates:[]},
+        {rank:'TSgt',name:'VACANT',subordinates:[]}]};
+    const saved=manning; manning={msgtLeads:[sec]};
+    // emulate the dropdowns: send 'two' to B, leave the rest
+    const plan=[]; sec.tsgts.forEach((t,ti)=>t.subordinates.forEach(x=>
+        plan.push({person:x,to:x.name==='two'?1:ti})));
+    sec.tsgts.forEach(t=>{t.subordinates=[];});
+    plan.forEach(({person,to})=>sec.tsgts[to].subordinates.push(person));
+    const names=t=>sec.tsgts[t].subordinates.map(p=>p.name).join(',');
+    const total=sec.tsgts.reduce((n,t)=>n+t.subordinates.length,0);
+    const sups=chainSupervisors(sec);
+    const ok=[names(0)==='one,three', names(1)==='two', total===3,
+              sups.length===3, sups[2].vacant===true, sups[0].vacant===false,
+              sups[2].short==='vacant', sups[0].short==='A'].every(Boolean);
+    manning=saved;
+    console.log(ok?'✓ rating-chain self-check passed':'✕ rating-chain self-check FAILED');
+    return ok;
 }
 
 function cntDuties(d){return Object.entries(d||{}).filter(([id,v])=>(v==='P'||v==='A')&&!hiddenDuties().has(id)).length;}
