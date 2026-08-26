@@ -1718,9 +1718,19 @@ function syncSheets(){
                 appsGet('Templates').catch(()=>[]),
                 appsGet('Flow').catch(()=>[]),
             ]);
+            // Created on first write, so a squadron that has never filled a
+            // promotion form simply has no tab — not an error.
+            const pfRows=await appsGet('PromoForm').catch(()=>[]);
             if(trkRows.length){tracker=parseASTracker(trkRows);}
             if(kpiRows.length){mergeASKPIs(kpiRows);}
             if(proRows.length){promotions=proRows;}
+            if(pfRows.length){
+                const byName=new Map(pfRows.map(r=>[String(r.Name).trim().toLowerCase(),r]));
+                promotions.forEach(p=>{
+                    const f=byName.get(String(p.Name).trim().toLowerCase());
+                    if(f)PROMO_FORM_FIELDS.forEach(k=>{if(f[k])p[k]=f[k];});
+                });
+            }
             if(manRows.length){const m=parseASManning(manRows);if(m){manning=m;}}
             if(attRows.length){attendance=parseASAttendance(attRows);}
             if(tplRows.length){templates=tplRows.map(r=>({name:r.Name,url:r.URL})).filter(t=>t.name&&/^https?:\/\//i.test(t.url||''));}
@@ -3174,6 +3184,20 @@ function openPromoEdit(name){
         `<div class="promo-req-row"><input type="checkbox" id="pd_${i}" ${dmet.has(i)?'checked':''} onchange="updatePromoCount()"><label for="pd_${i}">${d}</label></div>`).join('');
     document.getElementById('promoNotes').value=p.Notes||'';
     document.getElementById('promoReason').value=p.NotReadyReason||'';
+    // Skill level and supervisor already live on the wiring diagram — pull them from
+    // Manning rather than making Greg retype what the chart already knows.
+    const mn=manningLookup(p.Name);
+    document.getElementById('promoDOR').value=p.DOR||'';
+    document.getElementById('promoETS').value=p.ETS||'';
+    document.getElementById('promoEPR').value=p.EPRDate||'';
+    document.getElementById('promoSkill').value=p.SkillLevel||mn.skill||'';
+    document.getElementById('promoUIF').value=p.UIF||'';
+    document.getElementById('promoPT').value=p.PTCurrent||'';
+    document.getElementById('promoPME').value=p.PME||'';
+    document.getElementById('promoSup').value=p.Supervisor||mn.supervisor||'';
+    document.getElementById('promoPkgMsg').textContent=
+        PROMO_FORMS[p.NextRank||NEXT_RANK[p.Rank]]
+          ? '' : `No AFRC form exists for ${p.Rank} → ${p.NextRank||NEXT_RANK[p.Rank]||'?'} — forms cover SSgt and TSgt only.`;
     updatePromoCount();
     setPromoRec(rec);
     document.getElementById('promoEditModal').classList.add('active');
@@ -3205,6 +3229,167 @@ function updatePromoCount(){
 }
 function closePromoEdit(){editingPromo=null;document.getElementById('promoEditModal').classList.remove('active');}
 
+// ═══════════════════════ PROMOTION RECOMMENDATION FORMS
+// The two AFRC forms are AcroForms, so they are filled and handed back still
+// fillable — every field Greg has to source elsewhere (DOR, ETS, EPR, UIF, PT,
+// PME) stays typeable in the PDF, and anything the tracker already knows is
+// pre-filled. Which form: the rank being promoted TO, not the current rank.
+// Columns the two AFRC forms need that the Promotions tab does not carry.
+const PROMO_FORM_FIELDS=['DOR','ETS','EPRDate','SkillLevel','UIF','PTCurrent','PME','Supervisor'];
+const PROMO_FORMS={
+  'SSgt':{file:'PROMO_REC_SSgt.pdf', name:'Rank/Name via Text2', endorsers:3},
+  'TSgt':{file:'PROMO_REC_TSgt.pdf', name:'Rank/Name via RankName', endorsers:2},
+};
+// The forms' own Section dropdown wording, which is not the tracker's flight naming.
+const PROMO_SECTION={'RAMP':'Ramp','ATOC':'ATOC','LOAD PLANNING':'Load Planning',
+  'PAX':'Passenger Services','AIR FREIGHT':null};   // Air Freight splits by team
+const PROMO_SECTION_TEAM={'Cargo':'Cargo','Joint Inspection':'Joint Inspection'};
+// NOTE: the forms' 'Recommendation', 'Inital' and 'Date' boxes are each ONE field
+// shared across every endorser row, so there is no way to fill the supervisor's
+// without also filling the Team Chief's and Flight Chief's. They are deliberately
+// left blank — an endorsement has to be made by the person making it.
+
+/* Pull skill level and supervisor off the wiring diagram for one person. */
+function manningLookup(name){
+    const hit={skill:'',supervisor:''};
+    (manning.msgtLeads||[]).forEach(sec=>{
+        const scan=(p,sup)=>{
+            if(String(p.name)!==String(name))return;
+            hit.skill=(String(p.skills||'').match(/\((\d)\)/)||[])[1]||'';
+            // A vacant billet is not a supervisor — printing 'VACANT — MSgt Billet'
+            // in the signature row of a promotion package is worse than leaving it blank.
+            hit.supervisor=(sup&&!isVacant(sup))?sup:'';
+        };
+        scan(sec.msgt,'');
+        sec.tsgts.forEach(t=>{
+            scan(t,sec.msgt.name);
+            t.subordinates.forEach(x=>scan(x,t.name));
+        });
+    });
+    return hit;
+}
+
+function promoSection(p){
+    const f=String(p.Flight||currentFlight).toUpperCase();
+    if(f==='AIR FREIGHT')return PROMO_SECTION_TEAM[p.Team]||'';
+    return PROMO_SECTION[f]||'';
+}
+
+/* Pure: a promotion row in, the field values for its form out. Kept separate from
+   the PDF write so it can be checked without a template. */
+function promoPlan(p){
+    const target=p.NextRank||NEXT_RANK[p.Rank]||'';
+    const form=PROMO_FORMS[target];
+    if(!form)throw new Error(`No AFRC form for ${p.Rank} → ${target||'?'} (SSgt and TSgt only).`);
+    const iso=d=>{const m=String(d||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                  return m?`${m[2]}/${m[3]}/${m[1]}`:'';};
+    const texts={}, choices={};
+    // The SSgt form leaves Rank/Name and Skill Level unnamed (Text2 / Text3);
+    // identified by widget position, top-of-form and beside the Section dropdown.
+    if(target==='SSgt'){ texts['Text2']=`${p.Rank||''} ${p.Name}`.trim(); texts['Text3']=p.SkillLevel||''; }
+    else { texts['RankName']=`${p.Rank||''} ${p.Name}`.trim(); texts['SKILL LEVEL']=p.SkillLevel||''; }
+    texts['Date of Rank_af_date']=iso(p.DOR);
+    texts['ETS Date_af_date']=iso(p.ETS);
+    texts['EPR Date_af_date']=iso(p.EPRDate);
+    texts['IMMEDIATE SUPERVISOR']=p.Supervisor||'';
+    texts['ADDITIONAL COMMENTSJUSTIFICATION']=p.Notes||p.NotReadyReason||'';
+    const sec=promoSection(p);         if(sec)choices['Dropdown1']=sec;
+    if(p.UIF)      choices['Dropdown7']=p.UIF;
+    if(p.PTCurrent)choices['PT Test']=p.PTCurrent;
+    if(p.PME)      choices['PME Complete']=p.PME;
+    return {form,texts,choices,target};
+}
+
+function promoFileName(p,target){
+    return `${String(p.Name).replace(/[^\w -]/g,'')} — Promotion Recommendation ${target}.pdf`;
+}
+
+async function generatePromoPackage(){
+    const msg=document.getElementById('promoPkgMsg');
+    const p=promotions.find(x=>String(x.Name)===String(editingPromo));
+    if(!p)return;
+    // Take what is on screen now, so the form matches the editor without a save first.
+    const gv=id=>document.getElementById(id).value.trim();
+    const live={...p,DOR:gv('promoDOR'),ETS:gv('promoETS'),EPRDate:gv('promoEPR'),
+        SkillLevel:gv('promoSkill'),UIF:gv('promoUIF'),PTCurrent:gv('promoPT'),
+        PME:gv('promoPME'),Supervisor:gv('promoSup'),Notes:gv('promoNotes'),
+        Recommendation:selectedPromoRec()};
+    msg.style.color='#808080'; msg.textContent='Building…';
+    try{
+        const plan=promoPlan(live);
+        const res=await fetch(plan.form.file);
+        if(!res.ok)throw new Error(`Form not found (${plan.form.file}, HTTP ${res.status})`);
+        const {PDFDocument,PDFName,PDFBool}=PDFLib;
+        const doc=await PDFDocument.load(await res.arrayBuffer());
+        const form=doc.getForm();
+        const byName={};
+        form.getFields().forEach(f=>{byName[f.getName()]=f;});
+        Object.entries(plan.texts).forEach(([n,v])=>{if(byName[n]&&v)byName[n].setText(v);});
+        Object.entries(plan.choices).forEach(([n,v])=>{
+            try{ byName[n]&&byName[n].select(v); }catch(e){ /* option list changed — leave blank */ }
+        });
+        // The form's fields are auto-sized, so a two-letter value renders three
+        // times the height of a date beside it. setFontSize() alone does not hold —
+        // select()/setText() rewrite the field DA and bake an appearance stream.
+        // Stamp the DA on the widget too and drop the baked stream so the viewer
+        // redraws at the size we asked for.
+        const {PDFString}=PDFLib;
+        [...Object.keys(plan.texts),...Object.keys(plan.choices)].forEach(n=>{
+            const f=byName[n]; if(!f)return;
+            const size=n==='ADDITIONAL COMMENTSJUSTIFICATION'?9:10;
+            const da=PDFString.of(`/Helv ${size} Tf 0 g`);
+            try{
+                f.acroField.dict.set(PDFName.of('DA'),da);
+                f.acroField.getWidgets().forEach(w=>{
+                    w.dict.set(PDFName.of('DA'),da);
+                    w.dict.delete(PDFName.of('AP'));
+                });
+            }catch(e){}
+        });
+        // Leave every field editable and let the viewer draw what we set.
+        form.acroForm.dict.set(PDFName.of('NeedAppearances'),PDFBool.True);
+        const url=URL.createObjectURL(new Blob([await doc.save()],{type:'application/pdf'}));
+        const a=document.createElement('a');
+        a.href=url; a.download=promoFileName(live,plan.target);
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),4000);
+        const blanks=['DOR','ETS','EPRDate','SkillLevel','UIF','PTCurrent','PME']
+            .filter(k=>!live[k]);
+        msg.style.color='#77dd99';
+        msg.textContent=`✓ Downloaded. Recommendation, initials and dates are left for `+
+            `each endorser to fill — they are one shared field per form, so filling one fills all.`+
+            (blanks.length?` No data yet for: ${blanks.join(', ')}.`:'');
+    }catch(e){ msg.style.color='#ff9999'; msg.textContent='✕ '+e.message; }
+}
+
+/* One runnable check: field mapping per form, the date reformat, and that an
+   unmade recommendation never prints as a made one. */
+function _selfCheckPromoForms(){
+    const base={Name:'Doe, Jane',Rank:'SrA',NextRank:'SSgt',Flight:'PAX',
+        DOR:'2024-03-01',ETS:'2028-06-30',EPRDate:'2026-01-15',SkillLevel:'5',
+        UIF:'No',PTCurrent:'Yes',PME:'Yes',Supervisor:'TSgt Smith',Recommendation:'ready'};
+    const a=promoPlan(base);
+    const b=promoPlan({...base,Rank:'SSgt',NextRank:'TSgt',Flight:'AIR FREIGHT',Team:'Cargo'});
+    const pend=promoPlan({...base,Recommendation:'pending'});
+    const ok=[
+        a.texts['Text2']==='SrA Doe, Jane', a.texts['Text3']==='5',      // SSgt form
+        b.texts['RankName']==='SSgt Doe, Jane', b.texts['SKILL LEVEL']==='5',
+        a.texts['Date of Rank_af_date']==='03/01/2024',
+        a.choices['Dropdown1']==='Passenger Services',
+        b.choices['Dropdown1']==='Cargo',
+        a.choices['Recommendation']===undefined,   // shared across endorser rows
+        pend.choices['Recommendation']===undefined,
+        a.texts['Date_af_date']===undefined,       // ditto — each endorser dates their own
+        a.form.file==='PROMO_REC_SSgt.pdf', b.form.file==='PROMO_REC_TSgt.pdf',
+    ].every(Boolean);
+    let rejected=0;
+    [{Rank:'MSgt',NextRank:'SMSgt'},{Rank:'TSgt',NextRank:'MSgt'}].forEach(bad=>{
+        try{promoPlan({...base,...bad});}catch(e){rejected++;}
+    });
+    console.log(ok&&rejected===2?'✓ promo forms self-check passed':'✕ promo forms self-check FAILED');
+    return ok&&rejected===2;
+}
+
 function savePromoEdit(){
     const p=promotions.find(x=>String(x.Name)===String(editingPromo));
     if(!p)return;
@@ -3222,6 +3407,10 @@ function savePromoEdit(){
         .map((b,i)=>b.checked?i:-1).filter(i=>i>=0).join(',');
     p.NotReadyReason=rec==='not_ready'?reason:'';
     p.Notes=document.getElementById('promoNotes').value.trim();
+    const gv=id=>document.getElementById(id).value.trim();
+    p.DOR=gv('promoDOR'); p.ETS=gv('promoETS'); p.EPRDate=gv('promoEPR');
+    p.SkillLevel=gv('promoSkill'); p.UIF=gv('promoUIF'); p.PTCurrent=gv('promoPT');
+    p.PME=gv('promoPME'); p.Supervisor=gv('promoSup');
     p.NextRank=p.NextRank||NEXT_RANK[p.Rank]||'';
     saveLS('afm_promos',promotions);
     closePromoEdit();
@@ -3340,6 +3529,11 @@ async function pushPromotionsToAS(){
     // the org chart appends a second card here and strands the old one. Only rows
     // for people no longer on this flight's roster get dropped.
     await appsPost({tab:'Promotions',action:'upsert',rows,keyFields:['Name']});
+    const formRows=promotions.filter(p=>PROMO_FORM_FIELDS.some(f=>p[f]))
+        .map(p=>Object.assign({Name:p.Name},
+             ...PROMO_FORM_FIELDS.map(f=>({[f]:p[f]||''}))));
+    if(formRows.length)await appsPost({tab:'PromoForm',action:'upsert',
+        rows:formRows,keyFields:['Name']}).catch(()=>{});
     if(!_promoRetires.length)return;
     const keep=new Set(rows.map(r=>String(r.Name||'').trim().toLowerCase()));
     const gone=_promoRetires.filter(n=>!keep.has(String(n).trim().toLowerCase()));
@@ -4350,9 +4544,26 @@ async function copyBrief(btn){
         <div id="promoDocsGrid" style="max-height:220px;overflow-y:auto;"></div>
     </div>
 
+
+    <div class="form-group">
+        <label>Promotion Package Data <span style="color:#808080;font-weight:400">— fills the AFRC promotion recommendation form</span></label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div><label style="font-size:10px">Date of Rank</label><input type="date" id="promoDOR"></div>
+            <div><label style="font-size:10px">ETS Date</label><input type="date" id="promoETS"></div>
+            <div><label style="font-size:10px">EPR / EPB Date</label><input type="date" id="promoEPR"></div>
+            <div><label style="font-size:10px">Skill Level</label><input id="promoSkill" placeholder="3 / 5 / 7"></div>
+            <div><label style="font-size:10px">UIF</label><select id="promoUIF"><option value="">—</option><option>No</option><option>Yes</option></select></div>
+            <div><label style="font-size:10px">PT current (2 consecutive passes)</label><select id="promoPT"><option value="">—</option><option>Yes</option><option>No</option></select></div>
+            <div><label style="font-size:10px">PME complete</label><select id="promoPME"><option value="">—</option><option>Yes</option><option>No</option></select></div>
+            <div><label style="font-size:10px">Immediate supervisor</label><input id="promoSup" placeholder="Rank Last name"></div>
+        </div>
+    </div>
+
     <div class="form-group"><label>Notes</label><input id="promoNotes" placeholder="Optional"></div>
+    <div id="promoPkgMsg" style="font-size:11px;color:#808080;margin:-6px 0 10px"></div>
 
     <div class="modal-btns">
+        <button class="btn" onclick="generatePromoPackage()">📄 Promotion Form</button>
         <button class="btn" onclick="savePromoEdit()">✓ Save</button>
         <button class="btn btn-red" onclick="closePromoEdit()">✕ Cancel</button>
     </div>
@@ -5027,6 +5238,18 @@ utaSelfCheck();
 <script>
 /* ═════════ AF DOCUMENT REFERENCE */
 const DOCS = [
+// ---------------- TRAINING ----------------
+// Hosted in this repo, not on e-Pubs: Greg supplied the current copy and the
+// e-Pubs path for CFETPs is not stable enough to link directly.
+{
+  cat: "Training",
+  num: "CFETP 2T2X1",
+  title: "Career Field Education and Training Plan — Air Transportation (2026)",
+  url: "CFETP_2T2X1_2026.pdf",
+  direct: true,
+  verified: "26 Aug 2026",
+  note: "Local copy, supplied 26 Aug 2026. The task list behind every 3/5/7-level upgrade, and the source for an Individual Training Plan — which the TSgt promotion package requires."
+},
 // ---------------- CARGO / AIR TRANSPORTATION OPS ----------------
 {
   cat: "Cargo / Air Transportation",
