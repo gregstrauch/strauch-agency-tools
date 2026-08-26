@@ -437,7 +437,7 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
     <div style="padding:6px 0 14px;font-size:12px;color:#a0a0a0;">Passenger Service Flight · sign in to load the roster</div>
     <div class="form-group">
       <label>Your name</label>
-      <!-- Options are generated from FLIGHT_USERS so the sign-in list cannot drift
+      <!-- Options are generated from USER_LABELS so the sign-in list cannot drift
            from the authorised list. Hardcoding them here once left a removed user
            still showing in the dropdown. -->
       <select id="loginUser"><option value="">— select —</option></select>
@@ -4621,15 +4621,17 @@ function jumpToFlight(f){
 // This page is served from a public URL, so the roster is protected by the PIN
 // and nothing else. The credential is never baked into the file — it is typed
 // here, checked against the backend, and kept only in this device's storage.
-const FLIGHT_USERS=['strauch','anthony','gray','mahan'];   // olson removed 10 Aug 2026
 // Rank shown for readability only; the value sent to the backend is the last name,
-// which is what AUTHORIZED_WRITERS checks.
-const USER_LABELS={strauch:'SMSgt Strauch',anthony:'MSgt Anthony',gray:'MSgt Gray',mahan:'MSgt Mahan'};
+// which is what AUTHORIZED_WRITERS checks. Flights are NOT set here — the backend
+// returns the granted list at login, so this only has to spell the names right.
+const USER_LABELS={strauch:'SMSgt Strauch',sears:'SMSgt Sears',wunderlich:'SMSgt Wunderlich',
+    buckley:'SMSgt Buckley',moore:'SMSgt Moore',
+    anthony:'MSgt Anthony',gray:'MSgt Gray',mahan:'MSgt Mahan'};   // olson removed 10 Aug 2026
 function renderLoginUsers(){
     const sel=document.getElementById('loginUser');
     if(!sel)return;
     sel.innerHTML='<option value="">— select —</option>'
-        +FLIGHT_USERS.map(u=>`<option value="${u}">${USER_LABELS[u]||u}</option>`).join('');
+        +Object.entries(USER_LABELS).map(([u,l])=>`<option value="${u}">${l}</option>`).join('');
 }
 renderLoginUsers();
 
