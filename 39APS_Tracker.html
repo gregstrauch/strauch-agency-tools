@@ -229,6 +229,17 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
 .brief-when{color:#777;font-size:11px;margin-left:8px;}
 .brief-clear{padding:10px 14px;color:#55ff99;font-size:13px;line-height:1.7;}
 @media print{
+    /* Chart-only print (the PDF export). Everything except the wiring diagram
+       is hidden, and the dark theme is flipped so it does not eat a toner cartridge. */
+    body.print-chart .container>*:not(.org){display:none!important;}
+    body.print-chart .org{overflow:visible!important;width:auto!important;}
+    body.print-chart .org::before{content:attr(data-stamp);display:block;font-weight:700;margin-bottom:12px;}
+    body.print-chart .onode{background:#fff!important;color:#000!important;border-color:#666!important;}
+    body.print-chart .oname,body.print-chart .otitle{color:#000!important;}
+    body.print-chart .node-actions{display:none!important;}
+    body.print-epb .container>*:not(#epbWrap){display:none!important;}
+    body.print-epb #epbWrap{overflow:visible!important;padding:0!important;}
+    @page{size:landscape;margin:10mm;}
     .tab-nav,.flight-nav,.page-header button,#briefPlain,#tab-brief details{display:none!important;}
     body{background:#fff!important;color:#000!important;}
     .brief-team,.stat-card{border-color:#999!important;}
@@ -439,6 +450,7 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
     <button class="tab-btn" onclick="switchTab('utarpt',this)">🎖 End-of-UTA Report</button>
     <button class="tab-btn" onclick="switchTab('afdocs',this)">📖 AF Documents</button>
     <button class="tab-btn" onclick="switchTab('templates',this)">📝 Military Templates</button>
+    <button class="tab-btn" onclick="switchTab('epb',this)">🔁 EPB Routing</button>
 </div>
 
 <!-- FLIGHT NAV — squadron scope. Separate class from .tab-btn on purpose:
@@ -520,6 +532,8 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
 
     <div class="btn-row" style="justify-content:center;margin-top:20px;">
         <button class="btn" onclick="addTeam()">➕ Add Team</button>
+        <button class="btn" onclick="exportChartPNG()">🖼 Diagram PNG</button>
+        <button class="btn" onclick="exportChartPDF()">📄 Diagram PDF</button>
         <button class="btn" onclick="exportCSV()">📥 Export CSV</button>
         <button class="btn" onclick="exportJSON()">💾 Backup</button>
         <button class="btn" onclick="importJSON()">📂 Restore</button>
@@ -793,16 +807,36 @@ const certList=()=>CERTS.filter(c=>!hiddenDuties().has(c.id));
 
 // Flight chief is per-flight — it used to be hardcoded to Strauch in the markup,
 // which was wrong the moment a second flight existed.
-const FLIGHT_COMMANDERS={'PAX':{rank:'1st Lt',name:'Damon Matlock'}};
+// OIC row of the wiring diagram (cao 06 Aug 2026). One OIC covers several
+// sections, so the same name legitimately repeats across flights.
+const FLIGHT_COMMANDERS={
+    'RAMP':            {rank:'Capt',name:'Haapapuro'},
+    'CARGO/SH':        {rank:'Lt',  name:'Matlock'},
+    'JOINT INSPECTION':{rank:'Lt',  name:'Matlock'},
+    'ATOC':            {rank:'',    name:'VACANT (coverage)'},
+    'LOAD PLANNING':   {rank:'',    name:'VACANT (coverage)'},
+    'PAX':             {rank:'',    name:'VACANT (coverage)'},
+};
 // An explicit {name:''} means "this flight has no commander" — distinct from
 // undefined, which means nobody has set one yet and the seed below applies.
 const flightCommander=()=>manning.commander?(manning.commander.name?manning.commander:null)
     :FLIGHT_COMMANDERS[String(currentFlight).toUpperCase()]||null;
 
 const FLIGHT_CHIEFS={
-    'PAX':        {rank:'SMSgt',name:'Gregory Strauch',skills:'9-Level'},
-    'AIR FREIGHT':{rank:'SMSgt',name:'Roy Wunderlich', skills:''},
+    'PAX':             {rank:'SMSgt',name:'Gregory Strauch',skills:'9-Level'},
+    'AIR FREIGHT':     {rank:'SMSgt',name:'Roy Wunderlich', skills:''},
+    'RAMP':            {rank:'SMSgt',name:'Sears',          skills:''},
+    'CARGO/SH':        {rank:'SMSgt',name:'Roy Wunderlich', skills:''},
+    'JOINT INSPECTION':{rank:'SMSgt',name:'Roy Wunderlich', skills:''},
+    'ATOC':            {rank:'SMSgt',name:'Buckley, A',     skills:''},
+    'LOAD PLANNING':   {rank:'SMSgt',name:'Buckley, A',     skills:''},
+    'PROGRAMS':        {rank:'SMSgt',name:'Moore',          skills:''},
+    'NEWCOMERS':       {rank:'TSgt', name:'Olson',          skills:''},
 };
+// Office symbol per section, straight off the wiring diagram's left column.
+const FLIGHT_SYMBOLS={'RAMP':'TROCR','CARGO/SH':'TROCA','JOINT INSPECTION':'TROCS',
+    'ATOC':'TROAA','LOAD PLANNING':'TROOM','PAX':'TROP','PROGRAMS':'TROX','NEWCOMERS':''};
+const flightSymbol=()=>FLIGHT_SYMBOLS[String(currentFlight).toUpperCase()]||'';
 const NO_CHIEF={rank:'',name:'— not assigned —',skills:''};
 const flightChief=()=>manning.chief?(manning.chief.name?manning.chief:NO_CHIEF)
     :FLIGHT_CHIEFS[String(currentFlight).toUpperCase()]||NO_CHIEF;
@@ -842,9 +876,15 @@ let flow=loadLS('afm_flow',[]);           // [{type:'GAIN'|'LOSS',rank,name,date
 // Squadron leadership sits above every flight, so it is stored once outside the
 // per-flight namespace — 'afm_squadron' is not in PER_FLIGHT_KEYS, which is also
 // what keeps it editable while the read-only ALL SQUADRON rollup is showing.
-const SQ_ROLES=[{id:'cc',title:'Squadron Commander'},{id:'sel',title:'Chief (SEL)'},{id:'shirt',title:'First Sergeant'}];
+const SQ_ROLES=[{id:'cc',title:'Squadron Commander'},{id:'sel',title:'APS Supt (TRM)'},{id:'shirt',title:'First Sergeant'},
+    {id:'do',title:'Director of Ops (TRO)'},{id:'apm',title:'APM (ART)'},{id:'aapm',title:'AAPM (ART)'},
+    {id:'res',title:'Flight Chief, Resources/Readiness'}];
+// Seeded from the wiring diagram; a saved edit always wins.
+const SQ_SEED={cc:{rank:'Major',name:'De La Fuente, Jr.'},sel:{rank:'CMSgt',name:'Gage'},
+    shirt:{rank:'MSgt',name:'VanZee (Temp)'},do:{rank:'Capt',name:'Engel'},
+    apm:{rank:'MSgt',name:'Hudson'},aapm:{rank:'TSgt',name:'Ruiter'},res:{rank:'SMSgt',name:'Moore'}};
 let squadron=loadLS('afm_squadron',{});
-const sqRole=id=>squadron[id]&&squadron[id].name?squadron[id]:null;
+const sqRole=id=>squadron[id]?(squadron[id].name?squadron[id]:null):(SQ_SEED[id]||null);
 let editTarget=null;
 let editingReqIdx=null;
 
@@ -892,6 +932,7 @@ function switchTab(name,btn){
     if(name==='brief') renderBrief();
     if(name==='utarpt') renderUtaReport();
     if(name==='afdocs') renderAfDocs();
+    if(name==='epb') renderEPB();
 }
 
 // ═══════════════════════ MANNING RENDER
@@ -950,8 +991,8 @@ function renderManning(){
         <div class="oname">${cmdr?`${cmdr.rank} ${cmdr.name}`.trim():'— click to assign —'}</div>
       </div>`}
       <ul><li>
-        ${roll?`<div class="sqrow">${sqNode(1)}${sqNode(2)}</div>`:`<div class="onode chief" onclick="openEdit('chief',-1,-1,-1)" title="Click to edit">
-          <div class="otitle">Flight Chief</div>
+        ${roll?`<div class="sqrow" style="flex-wrap:wrap;justify-content:center">${SQ_ROLES.slice(1).map((_,i)=>sqNode(i+1)).join('')}</div>`:`<div class="onode chief" onclick="openEdit('chief',-1,-1,-1)" title="Click to edit">
+          <div class="otitle">Flight Chief${flightSymbol()?` · ${flightSymbol()}`:''}</div>
           <div class="oname">${`${ch.rank} ${ch.name}`.trim()}</div>
           ${ch.skills?`<div class="badges"><span class="badge b-skill">${ch.skills}</span></div>`:''}
         </div>`}
@@ -997,9 +1038,230 @@ function renderManning(){
     // on screen, not scrolled off to the right.
     const oc=document.getElementById('hierContainer');
     oc.scrollLeft=(oc.scrollWidth-oc.clientWidth)/2;
+    oc.dataset.stamp=chartStamp();   // printed header for the PDF export
 
     renderDuties();
     populateTeamFilter();
+}
+
+// ═══════════════════════ WIRING DIAGRAM EXPORT
+// PNG via SVG <foreignObject>: the chart is HTML, so serialise it into an SVG,
+// let the browser rasterise it, and read the canvas back. No library, and no
+// tainted canvas because the page loads no external images or webfonts.
+// ponytail: relies on system fonts only — if a webfont is ever added it must be
+// inlined as a data: URI here or the export silently falls back to Helvetica.
+function chartTitle(){
+    const f=isRollup()?'39 APS Squadron':currentFlight;
+    const sym=isRollup()?'':flightSymbol();
+    return sym?`${f} (${sym})`:f;
+}
+function chartStamp(){
+    return `${chartTitle()} — Wiring Diagram · current as of ${new Date().toLocaleDateString()}`;
+}
+// One shared renderer: returns a detached, light-background copy of the chart
+// with a title bar, sized to its natural width so nothing is cropped.
+function chartSnapshot(){
+    const src=document.getElementById('hierContainer');
+    if(!src||!src.firstElementChild)return null;
+    const wrap=document.createElement('div');
+    wrap.className='org';
+    wrap.style.cssText="background:#0a1428;padding:24px;display:inline-block;overflow:visible;"+
+        "font-family:'Segoe UI',Tahoma,Helvetica,Arial,sans-serif;color:#e0e0e0;";
+    const head=document.createElement('div');
+    head.style.cssText='font:700 18px "Segoe UI",Tahoma,sans-serif;color:#ffd700;margin-bottom:16px;letter-spacing:1px;';
+    head.textContent=chartStamp();
+    wrap.appendChild(head);
+    const clone=src.firstElementChild.cloneNode(true);
+    // Hover-only controls would otherwise bake into the image.
+    clone.querySelectorAll('.node-actions').forEach(n=>n.remove());
+    wrap.appendChild(clone);
+    return {wrap,w:src.scrollWidth+48,h:src.scrollHeight+80};
+}
+async function exportChartPNG(){
+    const snap=chartSnapshot();
+    if(!snap)return alert('Nothing on the chart to export yet.');
+    const css=[...document.querySelectorAll('style')].map(t=>t.textContent).join('\n');
+    document.body.appendChild(snap.wrap);                 // measure at natural size
+    const w=Math.ceil(snap.wrap.scrollWidth),h=Math.ceil(snap.wrap.scrollHeight);
+    const html=new XMLSerializer().serializeToString(snap.wrap);
+    snap.wrap.remove();
+    const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">`+
+              `<foreignObject width="100%" height="100%">`+
+              `<div xmlns="http://www.w3.org/1999/xhtml"><style><![CDATA[${css}]]></style>${html}</div>`+
+              `</foreignObject></svg>`;
+    const img=new Image();
+    await new Promise((res,rej)=>{img.onload=res;img.onerror=()=>rej(new Error('render failed'));
+        img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);});
+    const SCALE=2;                                        // legible when pasted into Slack
+    const c=document.createElement('canvas');
+    c.width=w*SCALE;c.height=h*SCALE;
+    const ctx=c.getContext('2d');
+    ctx.fillStyle='#0a1428';ctx.fillRect(0,0,c.width,c.height);
+    ctx.scale(SCALE,SCALE);ctx.drawImage(img,0,0);
+    c.toBlob(b=>{
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(b);
+        a.download=`${chartTitle().replace(/[^\w -]/g,'')} Wiring Diagram ${new Date().toISOString().slice(0,10)}.png`;
+        a.click();URL.revokeObjectURL(a.href);
+    },'image/png');
+}
+// PDF is the browser's own print-to-PDF: vector text, real pagination, and the
+// wide squadron chart scales to the page. printChartOnly hides everything else.
+function exportChartPDF(){
+    document.body.classList.add('print-chart');
+    const done=()=>{document.body.classList.remove('print-chart');window.removeEventListener('afterprint',done);};
+    window.addEventListener('afterprint',done);
+    window.print();
+}
+
+// ═══════════════════════ EPB ROUTING FLOW
+// The routing on the November 2025 chart, as data. Editing this array is the
+// whole maintenance story when the process changes — the SVG is generated.
+const EPB_STEPS=[
+ {id:'rater',  title:'Rater initiates EPB in myEVAL', col:0,row:0, fill:'#dbe7f6', stroke:'#3d6fa8',
+  pre:['Check the dates.','Take out any additional "SIB".','Update SCOD errors (i.e., USIP to AFRC).',
+       'Higher Level Reviewer (HLR) is always the CC for all Ranks.'],
+  route:'Route to Ratee'},
+ {id:'ratee',  title:'Ratee Reviews EPB in myEVAL', col:1,row:0, fill:'#dff0dc', stroke:'#4c8c3f',
+  pre:['Review EPB for accuracy of what was written between you and your Rater.','Review the ACAs in your EPB, myEVAL.',
+       'Return to Rater if any errors or correction need to be made before routing to the Flight Lead.'],
+  route:'Route to Flight Lead'},
+ {id:'lead',   title:'Flight Lead reviews EPB in myEVAL', col:2,row:0, fill:'#fbe0d5', stroke:'#c05f33',
+  pre:['Review EPB for accuracy, ensuring statements are equal to rating given.',
+       'Review EPB ensuring all errors have been addressed and corrected in EPB SCOD.',
+       'Ensure Comment identifies the Rater for the 1st Sgt to return to.'],
+  route:'Route to 1st SGT'},
+ {id:'shirt',  title:'1st Sgt', col:0,row:1, fill:'#dff0dc', stroke:'#4c8c3f',
+  pre:['1st Sgt will complete the Quality Force Review.',
+       'It is not their responsibility to QC your content or correct your spelling or grammar errors.'],
+  route:'Route to Rater'},
+ {id:'rater2', title:'Rater Reviews EPB in myEVAL', col:1,row:1, fill:'#dbe7f6', stroke:'#3d6fa8',
+  pre:['Do a complete final review of the full EPB.','Look for changes or corrections. Look for any missed errors.',
+       'When routing to HR/CSS ensure you Comment specifically what you expect and request return to begin signature routing.'],
+  route:'Route to HR/CSS'},
+ {id:'css',    title:'HR/CSS Reviews EPB', col:2,row:1, fill:'#fdeec4', stroke:'#c39a1e',
+  pre:['CSS will review EPB and return to Rater to begin signing or make required corrections.'],
+  route:''},
+];
+// Every box carries the same standing instruction, so it lives once here rather
+// than repeated six times in the data.
+const EPB_NOTE='Before routing, ensure a detailed COMMENT is added. Add this Comment using the bottom "COMMENT" tab, NOT the comment section of the person you are routing to. Ensure you identify who the next person in the routing will be (By Name).';
+const EPB_SIG=[
+ {t:'Rater one finale review, Signs and Routes to the HLR (always the Commander)', fill:'#dbe7f6', stroke:'#3d6fa8'},
+ {t:'Once Reviewed and if approved, CC Signs and routes to Member for signature', fill:'#cfe0f2', stroke:'#2f5d92'},
+ {t:'Member Reviews and Signs. (Recommend doing a print preview copy for record)', fill:'#fdeec4', stroke:'#c39a1e'},
+ {t:'Once Mbr signs it auto routes', fill:'#fdeec4', stroke:'#c39a1e'},
+];
+const EPB_SIG_NOTE='SIGNATURE ROUTING: When directed by CSS to sign. (Remember, when routing, add your comments to the next person in line of what is expected, example, Major De La Fuente, I have completed EPB on Amn Snuffy, please review and advise of any required corrections, sign and route to member, thank you.)';
+
+// Word-wrap for SVG <text>, which has no wrapping of its own.
+function svgWrap(str,perLine){
+    const words=String(str).split(/\s+/),lines=[];let cur='';
+    words.forEach(w=>{
+        if((cur+' '+w).trim().length>perLine){lines.push(cur.trim());cur=w;}
+        else cur=(cur+' '+w).trim();
+    });
+    if(cur)lines.push(cur);
+    return lines;
+}
+function esc4svg(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function buildEPBSvg(){
+    const BW=280, GAPX=120, GAPY=56, X0=24, Y0=70;
+    const colX=c=>X0+c*(BW+GAPX);
+    // Box height is driven by its own text, so a long checklist never overflows.
+    const layout=EPB_STEPS.map(s=>{
+        const noteLines=svgWrap(EPB_NOTE,44);
+        const preLines=s.pre.map((p,i)=>svgWrap((i+1)+'. '+p,46)).flat();
+        const titleLines=svgWrap(s.title,30);
+        const hTop=14+titleLines.length*16+6+noteLines.length*10+12;
+        const hPre=30+preLines.length*11+8;
+        return {...s,titleLines,noteLines,preLines,hTop,hPre,h:hTop+8+hPre};
+    });
+    const rowY=[Y0,0];
+    rowY[1]=Y0+Math.max(...layout.filter(l=>l.row===0).map(l=>l.h))+GAPY+30;
+    const sigY=rowY[1]+Math.max(...layout.filter(l=>l.row===1).map(l=>l.h))+GAPY+34;
+    const W=colX(2)+BW+X0, H=sigY+150;
+
+    let g='';
+    layout.forEach(s=>{
+        const x=colX(s.col), y=rowY[s.row];
+        g+=`<rect x="${x}" y="${y}" width="${BW}" height="${s.hTop}" rx="4" fill="${s.fill}" stroke="${s.stroke}" stroke-width="1.5"/>`;
+        let ty=y+20;
+        s.titleLines.forEach(l=>{g+=`<text x="${x+10}" y="${ty}" font-family="Segoe UI,Tahoma,sans-serif" font-size="12.5" font-weight="700" fill="#12263f">${esc4svg(l)}</text>`;ty+=16;});
+        ty+=4;
+        s.noteLines.forEach(l=>{g+=`<text x="${x+10}" y="${ty}" font-family="Segoe UI,Tahoma,sans-serif" font-size="7.5" fill="#33475b">${esc4svg(l)}</text>`;ty+=10;});
+        // Checklist box, hung under its step.
+        const py=y+s.hTop+8;
+        g+=`<rect x="${x}" y="${py}" width="${BW}" height="${s.hPre}" rx="3" fill="#fff" stroke="${s.stroke}" stroke-width="1"/>`;
+        g+=`<text x="${x+10}" y="${py+13}" font-family="Segoe UI,Tahoma,sans-serif" font-size="9" font-weight="700" fill="#12263f">Before routing, ensure</text>`;
+        let py2=py+25;
+        s.preLines.forEach(l=>{g+=`<text x="${x+10}" y="${py2}" font-family="Segoe UI,Tahoma,sans-serif" font-size="8" fill="#33475b">${esc4svg(l)}</text>`;py2+=11;});
+        // Route arrow to the next step.
+        if(s.route){
+            const nxt=layout[layout.indexOf(s)+1];
+            const my=y+s.hTop/2;
+            if(nxt&&nxt.row===s.row){
+                const ax=x+BW, bx=colX(nxt.col);
+                g+=`<line x1="${ax}" y1="${my}" x2="${bx-8}" y2="${my}" stroke="${s.stroke}" stroke-width="2" marker-end="url(#epbArrow)"/>`;
+                g+=`<rect x="${ax+8}" y="${my-11}" width="${bx-ax-18}" height="18" rx="3" fill="${s.fill}" stroke="${s.stroke}"/>`;
+                g+=`<text x="${(ax+bx)/2-1}" y="${my+2}" text-anchor="middle" font-family="Segoe UI,Tahoma,sans-serif" font-size="9" font-weight="700" fill="#12263f">${esc4svg(s.route)}</text>`;
+            }else if(nxt){
+                // Wrap from the end of row 0 down to the start of row 1.
+                const ax=x+BW/2, ay=y+s.h+8, legY=rowY[1]-34, bx=colX(0);
+                g+=`<path d="M ${ax} ${ay} V ${legY} H ${bx+BW/2} V ${rowY[1]-8}" fill="none" stroke="${s.stroke}" stroke-width="2" marker-end="url(#epbArrow)"/>`;
+                const lx=(ax+bx+BW/2)/2;
+                g+=`<rect x="${lx-52}" y="${legY-10}" width="104" height="20" rx="3" fill="${s.fill}" stroke="${s.stroke}"/>`;
+                g+=`<text x="${lx}" y="${legY+4}" text-anchor="middle" font-family="Segoe UI,Tahoma,sans-serif" font-size="9" font-weight="700" fill="#12263f">${esc4svg(s.route)}</text>`;
+            }
+        }
+    });
+
+    // Signature routing strip.
+    svgWrap(EPB_SIG_NOTE,Math.floor(W/5.4)).forEach((l,i)=>{
+        g+=`<text x="${X0}" y="${sigY-16+i*12}" font-family="Segoe UI,Tahoma,sans-serif" font-size="9" font-weight="${i?400:700}" fill="${i?'#33475b':'#12263f'}">${esc4svg(l)}</text>`;
+    });
+    const SW=(W-X0*2-3*30)/4;
+    EPB_SIG.forEach((b,i)=>{
+        const x=X0+i*(SW+30), y=sigY+14, lines=svgWrap(b.t,Math.floor(SW/5.6));
+        const h=14+lines.length*13;
+        g+=`<rect x="${x}" y="${y}" width="${SW}" height="${h}" rx="4" fill="${b.fill}" stroke="${b.stroke}" stroke-width="1.5"/>`;
+        let ty=y+18;
+        lines.forEach(l=>{g+=`<text x="${x+8}" y="${ty}" font-family="Segoe UI,Tahoma,sans-serif" font-size="9.5" fill="#12263f">${esc4svg(l)}</text>`;ty+=13;});
+        if(i<3)g+=`<line x1="${x+SW}" y1="${y+h/2}" x2="${x+SW+22}" y2="${y+h/2}" stroke="${b.stroke}" stroke-width="2" marker-end="url(#epbArrow)"/>`;
+    });
+
+    return `<svg id="epbSvg" xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="background:#fff">
+      <defs><marker id="epbArrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+        <path d="M0,0 L7,3 L0,6 Z" fill="#33475b"/></marker></defs>
+      <text x="${X0}" y="34" font-family="Segoe UI,Tahoma,sans-serif" font-size="22" font-weight="700" fill="#2f6fb0">EPB Routing Flow</text>
+      <text x="${X0}" y="50" font-family="Segoe UI,Tahoma,sans-serif" font-size="10" fill="#7a8b9c">cao November 2025 · 39 APS</text>
+      ${g}</svg>`;
+}
+
+function renderEPB(){
+    const w=document.getElementById('epbWrap');
+    if(w)w.innerHTML=buildEPBSvg();
+}
+// Already an SVG, so export is a straight rasterise — no foreignObject needed.
+async function exportEPBPNG(){
+    const svg=document.getElementById('epbSvg');
+    if(!svg)return;
+    const w=+svg.getAttribute('width'),h=+svg.getAttribute('height');
+    const img=new Image();
+    await new Promise((res,rej)=>{img.onload=res;img.onerror=()=>rej(new Error('render failed'));
+        img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(svg));});
+    const c=document.createElement('canvas');c.width=w*2;c.height=h*2;
+    const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);
+    ctx.scale(2,2);ctx.drawImage(img,0,0);
+    c.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);
+        a.download='EPB Routing Flow - 39 APS.png';a.click();URL.revokeObjectURL(a.href);},'image/png');
+}
+function exportEPBPDF(){
+    document.body.classList.add('print-epb');
+    const done=()=>{document.body.classList.remove('print-epb');window.removeEventListener('afterprint',done);};
+    window.addEventListener('afterprint',done);
+    window.print();
 }
 
 function cntDuties(d){return Object.entries(d||{}).filter(([id,v])=>(v==='P'||v==='A')&&!hiddenDuties().has(id)).length;}
@@ -1259,12 +1521,18 @@ function saveScriptUrl(url){localStorage.setItem('afm_scripturl',url);}
 // is the 25-person roster already sitting in the Sheet. More via '+ Add'.
 // The five 39 APS flights. Merged in (not just defaulted) so an existing browser
 // that saved the older two-flight list still picks up the other three.
-const SQUADRON_FLIGHTS=['PAX','AIR FREIGHT','ATOC/LOAD PLANNING','RAMP'];
+// The wiring diagram's actual sections (cao 06 Aug 2026), in chart order.
+// 'AIR FREIGHT' and 'ATOC/LOAD PLANNING' are deliberately NOT here — they were
+// the old coarse split. Sheet rows still tagged with them re-add themselves via
+// scopeRows(), so nothing is lost while the roster migrates.
+const SQUADRON_FLIGHTS=['RAMP','CARGO/SH','JOINT INSPECTION','ATOC','LOAD PLANNING','PAX','PROGRAMS','NEWCOMERS'];
 // Authorized strength per flight (UMD), editable by clicking the Authorized stat.
 // Stored in ONE map under a non-per-flight key so the rollup can sum every flight
 // without tripping the per-flight read guard. Raising it adds VACANT billets;
 // lowering it never deletes anyone — the chart is allowed to exceed the UMD.
-const AUTH_DEFAULTS={'PAX':24,'AIR FREIGHT':31,'ATOC/LOAD PLANNING':20,'RAMP':24};
+const AUTH_DEFAULTS={'RAMP':24,'CARGO/SH':21,'JOINT INSPECTION':10,'ATOC':10,
+    'LOAD PLANNING':10,'PAX':24,'PROGRAMS':6,'NEWCOMERS':21,
+    'AIR FREIGHT':31,'ATOC/LOAD PLANNING':20};
 const authMap=()=>({...AUTH_DEFAULTS,...loadLS('afm_auth',{})});
 const authFor=f=>authMap()[f];
 let knownFlights=loadLS('afm_flights',SQUADRON_FLIGHTS.slice());
@@ -5046,6 +5314,31 @@ function renderAfDocs(){
 #tab-templates .sc ul{margin:0 0 0 16px;}
 #tab-templates .sc li{margin-bottom:6px;}
 </style>
+<!-- ═══════════════════════════════════ TAB: EPB ROUTING FLOW -->
+<!-- Drawn as inline SVG rather than divs: it exports to PNG and prints to PDF
+     with no layout surprises, and the whole chart is one node to serialise. -->
+<div class="tab-content" id="tab-epb">
+<div class="container">
+    <div style="padding-top:6px"></div>
+    <div class="page-header">
+        <div>
+            <div class="page-title">EPB Routing Flow</div>
+            <div class="page-sub">myEVAL routing order · cao November 2025</div>
+        </div>
+        <div class="btn-row">
+            <button class="btn" onclick="exportEPBPNG()">🖼 PNG</button>
+            <button class="btn" onclick="exportEPBPDF()">📄 PDF</button>
+        </div>
+    </div>
+    <div class="tpl-note" style="margin-bottom:14px;">
+        This routing begins <strong>after</strong> the Rater and Ratee have worked and prepared the EPB,
+        using whatever process they feel appropriate to get a final product ready (Word, ALQ Eval Preparation Document, etc.).
+    </div>
+    <div id="epbWrap" style="overflow-x:auto;background:#fff;border-radius:6px;padding:8px;"></div>
+    <div class="footer">Export the PNG for Slack, the PDF for email.</div>
+</div>
+</div>
+
 <div class="tab-content" id="tab-templates">
 <div class="container">
     <div style="padding-top:6px"></div>
