@@ -851,10 +851,14 @@ const NO_CHIEF={rank:'',name:'— not assigned —',skills:''};
 const flightChief=()=>manning.chief?(manning.chief.name?manning.chief:NO_CHIEF)
     :FLIGHT_CHIEFS[String(currentFlight).toUpperCase()]||NO_CHIEF;
 
-const FLIGHT_STAFF={
-    'PAX':{xnco:'MSgt Anthony',utaps:'MSgt Anthony',alt:'—'},
+// Read off the chart, not hardcoded. UTAPS and XNCOA are already duty codes on
+// every person, so the strip follows whoever actually holds them — a hardcoded
+// name here is the same drift that made the old seed rosters dangerous.
+const flightStaff=()=>{
+    const d=buildDutyMap(), pick=(id,k)=>((d[id]||{})[k]||[])[0]||'—';
+    return {xnco:pick('UTAPS','P'), utaps:pick('UTAPS','P'),
+            alt:pick('XNCOA','P')!=='—'?pick('XNCOA','P'):pick('UTAPS','A')};
 };
-const flightStaff=()=>FLIGHT_STAFF[String(currentFlight).toUpperCase()]||{xnco:'—',utaps:'—',alt:'—'};
 
 // ═══════════════════════ FLIGHT SCOPE
 // Declared before state because the localStorage keys below are flight-scoped.
@@ -5893,8 +5897,7 @@ function renderAfDocs(){
 #tplMain *{box-sizing:border-box;margin:0;padding:0;}
 #tab-templates #tplMain{background:var(--bg);color:var(--text);font-size:15px;line-height:1.7;}
 #tab-templates #tplMain{max-width:900px;padding:4px 0 60px;}
-#tab-templates .ps{font-family:var(--mono);font-size:10px;letter-spacing:.25em;color:var(--dim);text-transform:uppercase;margin-bottom:8px;}
-#tab-templates .pt{font-size:26px;font-weight:normal;letter-spacing:-.5px;color:#ffd700;margin-bottom:4px;}
+#tab-templates #tab-templates .pt{font-size:26px;font-weight:normal;letter-spacing:-.5px;color:#ffd700;margin-bottom:4px;}
 #tab-templates .pm{font-size:13px;color:var(--muted);font-style:italic;margin-bottom:24px;}
 #tab-templates .topnav{display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:4px;gap:4px;margin-bottom:28px;}
 #tab-templates .topbtn{flex:1;font-family:var(--mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;padding:13px 0;border:1px solid transparent;border-radius:6px;cursor:pointer;background:transparent;color:var(--dim);transition:all .15s;text-align:center;}
