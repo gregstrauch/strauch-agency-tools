@@ -1742,7 +1742,7 @@ function closeEdit(){document.getElementById('editModal').classList.remove('acti
 
 // ═══════════════════════ APPS SCRIPT SYNC
 // v14, deployed 10 Aug 2026 — stops the attendance duplicate-append. v13 archived same day.
-const DEFAULT_SCRIPT_URL='https://script.google.com/macros/s/AKfycbw93HH03FDYY7CwanVo2E1IwoprtPcGfauNJUWWRWuhsQGX5DHhX9NsQv1MxEf276eF7A/exec';
+const DEFAULT_SCRIPT_URL='https://script.google.com/macros/s/AKfycbwHCZZS728lKhk_LxwfLUxj0JScbtDbMvmjbPiJcpYwKnO7_br_QZIXIEuh1NZRORjyqQ/exec';
 // Who is signed in on THIS device. The credential used to be hardcoded to
 // 'strauch', so every edit from anyone was attributed to Greg. It now comes from
 // the login screen and rides on every read and write — the backend rejects both
@@ -1779,7 +1779,11 @@ let _pushPending={};
 // Settings would keep calling a dead URL and just show sync errors, so drop it and
 // fall through to the current DEFAULT_SCRIPT_URL.
 const DEAD_SCRIPT_IDS=['AKfycbztvwwj1Rz-adpC-LUoAW7qs4yX4sNRs-8onFNknoohUJ5mTLyUP_j-0jcdmvl2a36hIQ',
-                       'AKfycbzGDRBIzWwHXzHg7uNXaw3TCuFmL1q_wl6Ny5JXAtatLHSbZJjW2yutOit_X9RF1yezQg'];
+                       'AKfycbzGDRBIzWwHXzHg7uNXaw3TCuFmL1q_wl6Ny5JXAtatLHSbZJjW2yutOit_X9RF1yezQg',
+                       // v14 — superseded 26 Aug 2026 by v15 (the four other flight chiefs).
+                       // It has no sears/wunderlich/buckley/moore, so a device pinned to it
+                       // refuses them outright rather than degrading.
+                       'AKfycbw93HH03FDYY7CwanVo2E1IwoprtPcGfauNJUWWRWuhsQGX5DHhX9NsQv1MxEf276eF7A'];
 function loadScriptUrl(){
     const saved=localStorage.getItem('afm_scripturl');
     if(saved&&DEAD_SCRIPT_IDS.some(id=>saved.includes(id))){
