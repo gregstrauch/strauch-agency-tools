@@ -238,6 +238,13 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
     body.print-chart .oname,body.print-chart .otitle{color:#000!important;}
     body.print-chart .node-actions{display:none!important;}
     body.print-epb .container>*:not(#epbWrap){display:none!important;}
+    body.print-itp .container>*:not(#tplMain){display:none!important;}
+    body.print-itp #tplMain>*:not(.section){display:none!important;}
+    body.print-itp .section:not(#sec-itp){display:none!important;}
+    body.print-itp #sec-itp>*:not(#itpOut){display:none!important;}
+    body.print-itp .mc{color:#000!important;background:#fff!important;white-space:pre-wrap;}
+    body.print-itp .itp-tbl th{background:#eee!important;color:#000!important;}
+    body.print-itp .itp-tbl td{color:#000!important;}
     body.print-epb #epbWrap{overflow:visible!important;padding:0!important;}
     @page{size:landscape;margin:10mm;}
     .tab-nav,.flight-nav,.page-header button,#briefPlain,#tab-brief details{display:none!important;}
@@ -247,6 +254,11 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
     .brief-items li.u2{color:#000!important;text-decoration:underline;}
     .brief-clear{color:#000!important;}
 }
+.itp-tbl{width:100%;border-collapse:collapse;margin:6px 0 14px;font-size:11px;}
+.itp-tbl th{text-align:left;background:rgba(255,215,0,.10);color:#ffd700;padding:5px 7px;border:1px solid rgba(255,215,0,.25);font-weight:700;}
+.itp-tbl td{padding:5px 7px;border:1px solid rgba(255,255,255,.12);vertical-align:top;color:#d8d8d8;}
+.itp-tbl td:nth-child(1){white-space:nowrap;color:#ffd700;}
+.itp-tbl td:nth-child(4){min-width:120px;}
 .prog-bar{height:4px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:3px;}
 .prog-fill{height:100%;background:#55ff99;border-radius:2px;transition:width .3s;}
 .tracker-empty{text-align:center;padding:40px;color:#555;font-size:13px;}
@@ -3229,6 +3241,227 @@ function updatePromoCount(){
 }
 function closePromoEdit(){editingPromo=null;document.getElementById('promoEditModal').classList.remove('active');}
 
+// ═══════════════════════ INDIVIDUAL TRAINING PLAN (CFETP 2T2X1)
+// Task data extracted from CFETP 2T2X1, 6 March 2026, Attachment 2 — the per-UTC
+// tables on pages 55-60. Each task carries the skill levels it is required at,
+// read from the X/* marks by COLUMN POSITION, not by counting them: several rows
+// are blank at 3-level and marked at 5 and 7, which text extraction alone renders
+// indistinguishable from marks at 3 and 5. '*' rows are ARC-only additions.
+const CFETP_UTC = {"UFBAT":{"title":"AIR TERMINAL OPERATIONS CENTER (ATOC)","tasks":[{"n":"3.1.1.2","t":"Gather & disseminate aircraft load information from available sources (e.g., user, Command Post GDSS, SMS, GATES)","l":"57","s":""},{"n":"3.1.1.4","t":"Prioritize mission requirements to effectively manage air transportation workload","l":"57","s":""},{"n":"3.1.3.1","t":"Provide quality control on flight documentation. (Prepare consolidated flight package)","l":"57","s":""},{"n":"3.1.2.4","t":"Communicate with various agencies to provide mission overview (Brief aircrew/troop commander on load information)","l":"57","s":""},{"n":"3.1.2.4","t":"Communicate with various agencies to provide mission overview (Mission Load Report)","l":"57","s":""},{"n":"3.1.3.6","t":"Leverage data systems and source documents to generate timely and accurate schedules","l":"7","s":""},{"n":"3.1.4.1","t":"Monitor and provide all required coordination for airlift mission to include work unique requirements (coordinate mission requirements/Complete clearance requirements)","l":"7","s":""},{"n":"3.1.3.1","t":"Provide quality control on flight documentation UTC: UFBBR RAMP OPERATIONS Capable of on or off loading pallet position equivalents per hour during 12-hour shift Description: This UTC provides a four-person ramp operations capability; Load Team Chief, aircraft on/off Load Team, Material Handling Equipment (MHE) operators and Engine Run On/Offload (ERO) IAW applicable guidance or directives. Able to on/off load organic and/or commercial aircraft with applicable MHE. Utilize aircraft load plans and computer-based air transportation systems. When not performing UFBBR function, can augment following UTCs for these specific tasks: UFBCP (aircraft pallet build/break) and/or UFBML (passenger on/off load, baggage on/off load and/or baggage pallet build/break). STS Reference/Training Task 3-level 5-level 7-level","l":"57","s":""},{"n":"3.2.1.11","t":"Operate applicable MHE for mission requirements (10K Standard)","l":"357","s":""},{"n":"3.2.1.11","t":"Operate applicable MHE for mission requirements (10K Adverse Terrain forklift)","l":"357","s":""},{"n":"3.2.1.11","t":"Operate applicable MHE for mission requirements (Tow Vehicle)","l":"57","s":""},{"n":"3.2.1.11","t":"Operate applicable MHE for mission requirements (Halvorsen Loader)","l":"357","s":""},{"n":"3.2.2.9","t":"Select appropriate MHE for mission execution","l":"357","s":""},{"n":"3.2.2.2","t":"Sequence aircraft load","l":"357","s":""},{"n":"3.2.1.4","t":"Demonstrate effective cargo tie-down restraint","l":"357","s":""},{"n":"3.2.2.3","t":"Inspect cargo and documentation for loading/unloading","l":"357","s":""},{"n":"3.2.1.2","t":"Perform Onload/Offload procedures","l":"357","s":""},{"n":"3.2.2.8","t":"Calculate tie-down and shoring requirements","l":"57","s":""},{"n":"3.2.2.4","t":"Conduct Load Team Chief Duties","l":"7","s":""},{"n":"3.3.1.1","t":"Load/unload passengers and baggage","l":"357","s":"Crossflow"},{"n":"3.2.1.11","t":"Operate applicable MHE for mission requirements Tunner Loader (NOTE: A minimum 50% of personnel assigned to UTC must be trained)","l":"357","s":"ARC only"}]},"UFBCP":{"title":"AIR FREIGHT","tasks":[{"n":"3.2.1.11","t":"Operate applicable MHE for mission requirements (10K Standard)","l":"357","s":""},{"n":"3.2.1.11","t":"Operate applicable MHE for mission requirements (10K Adverse Terrain forklift)","l":"357","s":""},{"n":"3.2.1.7","t":"Process cargo/mail","l":"357","s":""},{"n":"3.2.3.4","t":"Process Special Cargo Expedited shipment (AMC MICAP, VVIP, Green sheet, etc.)","l":"57","s":""},{"n":"3.2.3.3","t":"Validate cargo for onward movement","l":"357","s":""},{"n":"3.2.2.10","t":"Identify and document cargo discrepancies","l":"3","s":""},{"n":"3.2.2.11","t":"Resolve cargo discrepancies","l":"57","s":""},{"n":"3.2.2.12","t":"Process frustrated cargo","l":"357","s":""},{"n":"3.2.1.9","t":"Inventory/Select/Build cargo for onward movement","l":"357","s":""},{"n":"3.2.1.9","t":"Inventory/Select/Build cargo for onward movement (Build multi- pallet train)","l":"357","s":""},{"n":"3.2.2.7","t":"Calculate cargo center of balance (Compute centers-of-balance for rolling stock, outsized cargo, and multi- pallet trains)","l":"357","s":""},{"n":"3.2.1.7","t":"Process cargo/mail","l":"357","s":""},{"n":"3.2.3.5.1","t":"Special Handling","l":"357","s":""},{"n":"3.2.1.2","t":"Perform Onload/Offload procedures","l":"357","s":"Crossflow"},{"n":"3.3.1.1","t":"Load/unload passengers and baggage UTC: UFBN2 FLEET SERVICES Capable of servicing aircraft latrine and potable water systems every hours during 12- hour shift This UTC provides a four-person fleet service capability; aircraft latrine and Description: potable water service vehicle operators IAW applicable guidance or directives. Able to service organic and/or commercial aircraft latrine systems, potable water systems, remove trash from aircraft IAW local guidance. Utilize computer-based air transportation systems. When not performing UFBN2 function, can augment following UTCs for these specific tasks: UFBBR (ramp operations - aircraft on/off load) and/or UFBCP (air freight - aircraft pallet build/break) and/or UFBML (passenger service - baggage pallet build/break). STS Reference/Training Task 3-level 5-level 7-level","l":"357","s":"Crossflow"},{"n":"5.5.1.2","t":"Operates applicable vehicles for mission requirements (Latrine service truck/cart)","l":"357","s":"Crossflow"},{"n":"5.5.1.5","t":"Prepare fleet service documents","l":"357","s":"Crossflow"},{"n":"5.5.1.8","t":"Service/clean Air Transportable Galley and Lavatories (ATGLs)","l":"357","s":"Crossflow"},{"n":"5.5.1.9","t":"Fill freshwater tanks and containers","l":"357","s":"Crossflow"},{"n":"5.5.1.12","t":"Service aircraft lavatory systems","l":"357","s":"Crossflow"},{"n":"5.5.1.13","t":"Remove/dispose of trash/waste materials from aircraft","l":"357","s":"Crossflow"},{"n":"3.2.1.2","t":"Perform Onload/Offload procedures","l":"357","s":"Crossflow"},{"n":"3.3.1.1","t":"Load/unload passengers and baggage","l":"357","s":"Crossflow"}]},"UFBML":{"title":"PASSENGER SERVICE","tasks":[{"n":"3.3.1.8","t":"Operate applicable MHE for mission requirements (10K Standard)","l":"357","s":""},{"n":"3.3.1.8","t":"Operate applicable MHE for mission requirements (10K Adverse Terrain forklift)","l":"357","s":""},{"n":"3.3.1.8","t":"Operate applicable MHE for mission requirements (Wide-body staircase)","l":"357","s":""},{"n":"3.3.1.3","t":"Gather & document passenger data documentation (Determine/verify travel eligibility/priorities)","l":"357","s":""},{"n":"3.3.3.1","t":"Account for accurate passenger source (Sign-up passengers)","l":"357","s":""},{"n":"3.3.3.4","t":"Ensure compliance with governing directives (Special Category passengers)","l":"357","s":""},{"n":"3.3.3.4","t":"Ensure compliance with governing directives (Brief passengers on flight information)","l":"357","s":""},{"n":"3.3.1.4","t":"Perform anti-hijacking procedures & basic security measures.","l":"357","s":""},{"n":"3.3.1.3","t":"Gather & document passenger data documentation (Select passengers)","l":"357","s":""},{"n":"3.3.1.3","t":"Gather & document passenger data documentation (Check-in passengers and baggage)","l":"357","s":""},{"n":"3.3.1.4","t":"Perform anti-hijacking procedures & basic security measures. (Gate passengers)","l":"357","s":""},{"n":"3.3.1.1","t":"Load/offload passenger and baggage","l":"357","s":""},{"n":"3.3.1.1","t":"Load/offload passenger and baggage (Build-up/breakdown baggage)","l":"357","s":""},{"n":"3.3.3.3","t":"Provide oversight of passenger operations and apply course of action (Process mishandled baggage)","l":"57","s":""},{"n":"3.3.2.1","t":"Communicate with applicable work-centers on emerging mission changes and requirements. (Dispatch -Set up flights)","l":"57","s":""},{"n":"3.3.2.1","t":"Communicate with applicable work-centers on emerging mission changes and requirements. (Dispatch - Prepare passenger manifests)","l":"57","s":""},{"n":"3.3.2.1","t":"Communicate with applicable work-centers on emerging mission changes and requirements. (Dispatch - Close out flights)","l":"57","s":""},{"n":"3.2.1.2","t":"Perform Onload/Offload procedures","l":"357","s":"Crossflow"}]},"UFBJT":{"title":"JOINT INSPECTION","tasks":[{"n":"3.2.2.5.3","t":"Joint Inspection","l":"57","s":""},{"n":"3.2.1.2","t":"Perform Onload/Offload procedures","l":"57","s":"Crossflow"},{"n":"3.3.1.1","t":"Load/unload passengers and baggage","l":"57","s":"Crossflow"},{"n":"3.2.1.7","t":"Process cargo/mail","l":"57","s":"ARC only"},{"n":"3.2.3.4","t":"Process Special Cargo - Expedited shipment (AMC MICAP, VVIP, Green sheet, etc.)","l":"57","s":"ARC only"},{"n":"3.2.3.3","t":"Validate cargo for onward movement","l":"57","s":"ARC only"},{"n":"3.2.2.12","t":"Process frustrated cargo","l":"57","s":"ARC only"},{"n":"3.2.1.9","t":"Inventory/Select/Build cargo for onward movement","l":"57","s":"ARC only"},{"n":"3.2.1.9","t":"Inventory/Select/Build cargo for onward movement (Build multi- pallet train)","l":"57","s":"ARC only"},{"n":"3.2.2.7","t":"Calculate cargo center of balance (Compute centers-of-balance for rolling stock, outsized cargo, and multi- pallet trains) UTC: UFBPL LOAD PLANNING Capable of completing x aircraft load plans every hours during 12-hour shift Description: This UTC provides a two-person load planning capability; select cargo for air movement, verify air worthiness, calculate aircraft weight/balance and cargo manifesting IAW applicable guidance or directives. Able to build organic aircraft load plans IAW applicable aircraft technical orders (to) and air force manual (AFMAN) 24-604 hazardous material compatibility chart and coordinate load sequence with commercial aircraft representatives. Utilize computer-based air transportation systems. When not performing UFBPL function, can augment following UTCs for these specific tasks: air terminal operations center (UFBAT - information control, airlift forecasting, in transit visibility), and/or UFBBR (ramp operations - aircraft on/off load) and/or UFBCP (air freight - aircraft pallet build/break) and/or UFBML (passenger service - baggage pallet build/break). STS Reference/Training Task 3-level 5-level 7-level","l":"57","s":"ARC only"},{"n":"3.2.3.5.2","t":"Load planning","l":"57","s":"ARC only"},{"n":"3.2.1.2","t":"Perform Onload/Offload procedures","l":"57","s":"Crossflow"},{"n":"3.3.1.1","t":"Load/unload passengers and baggage","l":"57","s":"Crossflow"},{"n":"3.1.1.2","t":"Gather & disseminate aircraft load information from available sources (e.g., user, Command Post GDSS, SMS, GATES)","l":"57","s":"Crossflow"},{"n":"3.1.1.4","t":"Prioritize mission requirements to effectively manage air transportation workload","l":"57","s":"Crossflow"},{"n":"3.1.3.1","t":"Provide quality control on flight documentation. (Prepare consolidated flight package)","l":"57","s":"Crossflow"},{"n":"3.1.2.4","t":"Communicate with various agencies to provide mission overview (Brief aircrew/troop commander on load information)","l":"57","s":"Crossflow"},{"n":"3.1.2.4","t":"Communicate with various agencies to provide mission overview (Mission Load Report)","l":"57","s":"Crossflow"}]},"UFBXS":{"title":"AIR TRANSPORTATION ADVISOR/TEAM LEAD","tasks":[{"n":"2.2.2.1","t":"Coordinate resource requirements to facilitate mission execution","l":"7","s":""},{"n":"2.2.2.3","t":"Establish procedures to manage and utilize available resources","l":"7","s":""},{"n":"2.2.2.4","t":"Identify/minimize impact of resource shortfalls","l":"7","s":""},{"n":"2.2.2.5","t":"Collaborate with outside agencies to execute the mission","l":"7","s":""},{"n":"2.2.2.6","t":"Describe the concepts of contracting","l":"7","s":""},{"n":"2.2.2.7","t":"Generate funding requests to meet mission requirements","l":"7","s":""},{"n":"2.2.2.8","t":"Gather data for justifications","l":"7","s":""},{"n":"2.2.2.9","t":"Identify and communicate readiness gaps to leadership","l":"7","s":""},{"n":"2.2.2.10","t":"Utilize applicable documents to align work center personnel UTC: UFBJE AIR TRANSPORTATION SUPERVISION (E-8) Capable of advising Joint Staff, Air Staff or serve as air transportation operations leader at all types of locations. UTC should be tasked when operations have at least 75+ air transportation personnel. Description: This UTC provides a one-person air transportation senior enlisted leader capability; knowledgeable of sustainment and contingency air transportation capabilities IAW applicable guidance or directives. Capable of directing air transportation operations at all levels and serving as expeditionary squadron senior enlisted air transportation leader and/or advisor at either an ELRS, EAMS, or EAPS. STS Reference/Training Task 9-level","l":"7","s":""},{"n":"2.2.3.1","t":"Review key components of manning documents","l":"7","s":""},{"n":"2.2.3.2","t":"Develop strategies to efficiently manage resources","l":"7","s":""},{"n":"2.2.3.3","t":"Forecast impacts of resource movements","l":"7","s":""},{"n":"2.2.3.4","t":"Establish prioritization plan","l":"7","s":""},{"n":"2.2.3.5","t":"Develop and manages funding and resources for budgets to execute mission requirements","l":"7","s":""},{"n":"2.2.4.2","t":"Elevate and explain potential impacts to HHQ or DAF priorities","l":"7","s":""},{"n":"2.2.4.3","t":"Analyze manning levels and impacts on total force capabilities within AF constraints","l":"7","s":""},{"n":"2.2.4.4","t":"Optimize procedures to manage and utilize available resources","l":"7","s":""},{"n":"2.2.4.5","t":"Justify manpower movements to appropriate stakeholders","l":"7","s":""},{"n":"2.2.4.6","t":"Secure manpower capabilities with authorized allocations","l":"7","s":""},{"n":"2.2.4.7","t":"Mitigate resource constraints to meet current and future demands","l":"7","s":""}]},"UFBBS":{"title":"APO AIR TRANSPORTATION FUNCTION","tasks":[{"n":"3.2.3.5.2","t":"Load planning","l":"7","s":""},{"n":"3.2.2.5.3","t":"Joint Inspection","l":"57","s":""},{"n":"3.3.1.8","t":"Operate applicable MHE for mission requirements (10K Standard)","l":"3","s":""},{"n":"3.3.1.8","t":"Operate applicable MHE for mission requirements (10K Adverse Terrain forklift)","l":"3","s":""},{"n":"3.3.1.8","t":"Operate applicable MHE for mission requirements (Wide-body staircase)","l":"3","s":""},{"n":"3.3.1.3","t":"Gather & document passenger data documentation (Determine/verify travel eligibility/priorities)","l":"3","s":""},{"n":"3.3.3.1","t":"Account for accurate passenger source (Sign-up passengers)","l":"3","s":""},{"n":"3.3.3.4","t":"Ensure compliance with governing directives (Special Category passengers)","l":"3","s":""},{"n":"3.3.3.4","t":"Ensure compliance with governing directives (Brief passengers on flight information)","l":"3","s":""},{"n":"3.3.1.4","t":"Perform anti-hijacking procedures & basic security measures.","l":"3","s":""},{"n":"3.3.1.3","t":"Gather & document passenger data documentation (Select passengers)","l":"3","s":""},{"n":"3.3.1.3","t":"Gather & document passenger data documentation (Check-in passengers and baggage)","l":"3","s":""},{"n":"3.3.1.4","t":"Perform anti-hijacking procedures & basic security measures. (Gate passengers)","l":"3","s":""},{"n":"3.3.1.1","t":"Load/offload passenger and baggage","l":"3","s":""},{"n":"3.3.1.1","t":"Load/offload passenger and baggage (Build-up/breakdown baggage)","l":"3","s":""},{"n":"3.2.1.11","t":"Operate applicable MHE for mission requirements (10K Standard)","l":"3","s":""},{"n":"3.2.1.11","t":"Operate applicable MHE for mission requirements (10K Adverse Terrain forklift)","l":"3","s":""},{"n":"3.2.1.11","t":"Operate applicable MHE for mission requirements (Tow Vehicle)","l":"3","s":""},{"n":"3.2.1.11","t":"Operate applicable MHE for mission requirements (Halvorsen Loader)","l":"3","s":""},{"n":"3.2.2.9","t":"Select appropriate MHE for mission execution","l":"3","s":""},{"n":"3.2.2.2","t":"Sequence aircraft load","l":"3","s":""},{"n":"3.2.1.4","t":"Demonstrate effective cargo tie-down restraint","l":"3","s":""},{"n":"3.2.2.3","t":"Inspect cargo and documentation for loading/unloading","l":"3","s":""},{"n":"3.2.1.2","t":"Perform Onload/Offload procedures","l":"3","s":""}]}};
+// The tracker's flights map onto the UTCs the squadron actually deploys.
+const FLIGHT_UTC = {'PAX':'UFBML','AIR FREIGHT':'UFBCP','RAMP':'UFBCP',
+                    'ATOC':'UFBAT','LOAD PLANNING':'UFBAT'};
+const TEAM_UTC   = {'Joint Inspection':'UFBJT','Cargo':'UFBCP'};
+
+const CFETP_REFS = [
+    'CFETP 2T2X1, Air Transportation Specialty, 6 March 2026 (Parts 1 and 2)',
+    'DAFI 36-2670, Total Force Development',
+    'AFMAN 24-604, Preparing Hazardous Materials for Military Air Shipments',
+    'DAFI 24-605V2, Air Transportation Operations',
+    'DTR 4500.9-R Part III, Mobility',
+    'AF Form 623, On-the-Job Training Record',
+];
+
+function itpUtcFor(flight, team){
+    return TEAM_UTC[team] || FLIGHT_UTC[String(flight||'').toUpperCase()] || 'UFBML';
+}
+function itpTasks(utc, level){
+    const u = CFETP_UTC[utc];
+    if(!u) return [];
+    return u.tasks.filter(t => t.l.indexOf(String(level)) >= 0);
+}
+/* Split the task list into phases across the plan length. Pure — no DOM, so the
+   phasing can be checked without rendering. */
+function itpPhases(tasks, weeks){
+    const P = [
+        {name:'Phase 1 — Orientation and core knowledge', share:.25,
+         method:'CDC volumes and QTP/TTG study, trainer-led walkthrough, observe qualified operator'},
+        {name:'Phase 2 — Supervised performance', share:.40,
+         method:'Perform under direct trainer supervision; trainer signs the AF Form 623 task entry when the trainee performs it correctly unaided'},
+        {name:'Phase 3 — Independent performance and evaluation', share:.35,
+         method:'Perform unsupervised on live missions; task evaluation and certification by a qualified certifier'},
+    ];
+    let i=0, wk=0, out=[];
+    P.forEach((ph,idx)=>{
+        const n = idx===P.length-1 ? tasks.length-i : Math.max(1,Math.round(tasks.length*ph.share));
+        const w = idx===P.length-1 ? weeks-wk : Math.max(1,Math.round(weeks*ph.share));
+        out.push({...ph, tasks:tasks.slice(i,i+n), startWk:wk, endWk:wk+w});
+        i+=n; wk+=w;
+    });
+    return out;
+}
+/* 'SMSgt Gregory Strauch' -> 'GREGORY STRAUCH, SMSgt' — the signature block puts the
+   name in caps and the rank after it, not the whole string shouted. */
+const RANKS=['AB','Amn','A1C','SrA','SSgt','TSgt','MSgt','SMSgt','CMSgt','Lt','1st Lt','2d Lt','Capt','Maj','Lt Col','Col'];
+function itpSigBlock(who){
+    const parts=String(who||'').trim().split(/\s+/);
+    let rank='';
+    for(const n of [2,1]){
+        const head=parts.slice(0,n).join(' ');
+        if(RANKS.some(r=>r.toLowerCase()===head.toLowerCase())){rank=head;parts.splice(0,n);break;}
+    }
+    const name=parts.join(' ').trim();
+    if(!name)return (rank||who||'[FULL NAME]').toUpperCase();
+    return name.toUpperCase()+(rank?`, ${rank}`:'');
+}
+function itpAddWeeks(iso, wks){
+    if(!iso) return '';
+    const d=new Date(iso+'T00:00:00'); d.setDate(d.getDate()+wks*7);
+    return d.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+}
+
+function itpFillSelectors(){
+    const sel=document.getElementById('itpUtc');
+    if(sel && !sel.options.length){
+        sel.innerHTML=Object.entries(CFETP_UTC)
+            .map(([k,v])=>`<option value="${k}">${k} — ${esc(v.title)}</option>`).join('');
+        sel.value=itpUtcFor(currentFlight,'');
+    }
+    const dl=document.getElementById('itpRoster');
+    if(dl){
+        const names=[];
+        (manning.msgtLeads||[]).forEach(sec=>{
+            const add=p=>{if(p&&p.name&&!isVacant(p.name))names.push(`${p.rank||''} ${p.name}`.trim());};
+            add(sec.msgt); sec.tsgts.forEach(t=>{add(t);t.subordinates.forEach(add);});
+        });
+        dl.innerHTML=names.map(n=>`<option value="${esc(n)}">`).join('');
+    }
+    const st=document.getElementById('itpStart');
+    if(st && !st.value) st.value=new Date().toISOString().slice(0,10);
+    const tr=document.getElementById('itpTrainer');
+    if(tr && !tr.value){const ch=flightChief(); tr.value=`${ch.rank||''} ${ch.name||''}`.trim();}
+}
+
+function renderITP(){
+    const v=id=>(document.getElementById(id).value||'').trim();
+    const trainee=v('itpTrainee')||'[Rank Last, First]';
+    const trainer=v('itpTrainer')||'[Rank Full Name]';
+    const utc=v('itpUtc'), level=v('itpLevel'), start=v('itpStart');
+    const weeks=parseInt(v('itpWeeks'),10)||52;
+    const tasks=itpTasks(utc,level);
+    const msg=document.getElementById('itpMsg');
+    if(!tasks.length){
+        msg.style.color='#ffaa66';
+        msg.textContent=`CFETP 2T2X1 lists no ${level}-level tasks for ${utc}. Pick a different UTC or level.`;
+        document.getElementById('itpOut').innerHTML=''; return;
+    }
+    const arc=tasks.filter(t=>t.s==='ARC only').length;
+    msg.style.color='#77dd99';
+    msg.textContent=`${tasks.length} CFETP task${tasks.length===1?'':'s'} for ${utc} at the ${level}-level`+
+        (arc?` · ${arc} are ARC-only additions`:'')+'.';
+    const sym=FLIGHT_SYMBOLS[String(currentFlight).toUpperCase()]||'TROP';
+    const phases=itpPhases(tasks,weeks);
+    const dt=w=>start?itpAddWeeks(start,w):`week ${w}`;
+    const head=`MEMORANDUM FOR RECORD
+
+FROM:  39 APS/${sym}
+
+SUBJECT:  Individual Training Plan — ${trainee}, Upgrade to the ${level}-Skill Level`;
+    let h=`<div class="mb"><div class="mm"><span class="mt">Individual Training Plan</span></div><div class="mc" id="itpText">`;
+    h+=esc(head)+`
+
+`;
+    h+=esc(`1.  This Individual Training Plan governs the upgrade of ${trainee} to the ${level}-skill level (2T2${level}1) in the ${CFETP_UTC[utc].title} function (UTC ${utc}). Training references are at paragraph 5. The trainer of record is ${trainer}.
+
+2.  Duration. Training begins ${start?itpAddWeeks(start,0):'[start date]'} and is programmed to complete not later than ${dt(weeks)} — ${Math.round(weeks/4.345)} months. AFI limits time in training to 24 months for active duty and 36 months for Reserve and Guard personnel.
+
+3.  Standard. The trainee is upgraded when every core task below is performed to CFETP standard without assistance, each entry is signed in the AF Form 623 training record, and all duty position tasks for the section are complete.
+
+4.  Phased plan.`)+`
+
+`;
+    phases.forEach((ph,i)=>{
+        h+=`<strong style="color:#ffd700">${esc(`4.${i+1}.  ${ph.name}`)}</strong>
+`;
+        h+=esc(`     Window: ${dt(ph.startWk)} to ${dt(ph.endWk)}  (${ph.endWk-ph.startWk} weeks, ${ph.tasks.length} tasks)
+     Method: ${ph.method}`)+`
+
+`;
+        h+=`<table class="itp-tbl"><tr><th>CFETP</th><th>Task</th><th>Target</th><th>Trainer initials / date</th></tr>`;
+        ph.tasks.forEach(t=>{
+            h+=`<tr><td>${esc(t.n)}</td><td>${esc(t.t)}${t.s==='ARC only'?' <em style="color:#ffaa66">(ARC only)</em>':t.s==='Crossflow'?' <em style="color:#8ab4ff">(crossflow)</em>':''}</td>`
+              +`<td>${esc(dt(ph.endWk))}</td><td></td></tr>`;
+        });
+        h+=`</table>
+`;
+    });
+    h+=esc(`5.  Training references.`)+`
+`;
+    CFETP_REFS.forEach(r=>{h+=esc(`     - ${r}`)+`
+`;});
+    h+=`
+`+esc(`6.  Evaluation. The trainer evaluates each task against the CFETP standard. A task is signed off only when performed unaided. Progress is reviewed with the trainee monthly and documented; a task not progressing is re-trained before the next review, and any shortfall that puts the completion date at risk is raised to the Flight Chief.
+
+7.  Questions may be directed to ${trainer}.`)+`
+
+
+`;
+    h+=esc(`${itpSigBlock(trainer)}, USAFR
+Trainer of Record
+39th Aerial Port Squadron, 302nd Airlift Wing
+Peterson Space Force Base, Colo.`);
+    h+=`</div></div>`;
+    document.getElementById('itpOut').innerHTML=h;
+}
+// The TSgt package asks for an ITP the candidate wrote, so this opens the drafter
+// with their section preselected — the trainee is left blank because it is one of
+// their Airmen (or a hypothetical one), not the candidate.
+function openITPFor(){
+    const p=promotions.find(x=>String(x.Name)===String(editingPromo));
+    closePromoEdit();
+    switchTab('templates');
+    const btn=[...document.querySelectorAll('#tab-templates .topbtn')]
+        .find(b=>b.textContent.indexOf('Individual Training Plan')>=0);
+    tplSection('sec-itp',btn);
+    itpFillSelectors();
+    if(p){
+        document.getElementById('itpUtc').value=itpUtcFor(p.Flight,p.Team);
+        document.getElementById('itpTrainer').value=`${p.Rank||''} ${p.Name}`.trim();
+        document.getElementById('itpLevel').value=(p.NextRank||NEXT_RANK[p.Rank])==='TSgt'?'7':'5';
+    }
+    document.getElementById('itpTrainee').focus();
+}
+function copyITP(){
+    const el=document.getElementById('itpText');
+    if(!el)return;
+    navigator.clipboard.writeText(el.innerText).then(()=>{
+        const m=document.getElementById('itpMsg');
+        m.style.color='#77dd99'; m.textContent='✓ Copied. Paste under the squadron letterhead.';
+    });
+}
+function printITP(){
+    if(!document.getElementById('itpText'))return renderITP();
+    document.body.classList.add('print-itp');
+    const done=()=>{document.body.classList.remove('print-itp');window.removeEventListener('afterprint',done);};
+    window.addEventListener('afterprint',done);
+    window.print();
+}
+
+/* One runnable check: level filtering, UTC routing, and the phase split. */
+function _selfCheckITP(){
+    const ml=itpTasks('UFBML','5'), jt5=itpTasks('UFBJT','5'), jt3=itpTasks('UFBJT','3');
+    const xs5=itpTasks('UFBXS','5'), xs7=itpTasks('UFBXS','7');
+    const ph=itpPhases(ml,52);
+    const ok=[
+        ml.length>0, jt5.length>0,
+        jt3.length===0,                       // JI has nothing at 3-level — the column-position case
+        xs5.length===0 && xs7.length>0,       // advisor UTC is 7-level only
+        itpUtcFor('PAX','')==='UFBML',
+        itpUtcFor('AIR FREIGHT','Joint Inspection')==='UFBJT',
+        itpUtcFor('AIR FREIGHT','Cargo')==='UFBCP',
+        ph.length===3,
+        ph.reduce((n,p)=>n+p.tasks.length,0)===ml.length,   // every task lands in exactly one phase
+        ph[2].endWk===52,                                   // phases span the whole window
+        itpAddWeeks('2026-01-01',0)==='1 January 2026',
+        itpSigBlock('SMSgt Gregory Strauch')==='GREGORY STRAUCH, SMSgt',
+        itpSigBlock('TSgt Jane A Doe')==='JANE A DOE, TSgt',
+        itpSigBlock('Lt Col Sam Reed')==='SAM REED, Lt Col',
+        itpSigBlock('')==='[FULL NAME]',
+    ].every(Boolean);
+    console.log(ok?'✓ ITP self-check passed':'✕ ITP self-check FAILED');
+    return ok;
+}
+
 // ═══════════════════════ PROMOTION RECOMMENDATION FORMS
 // The two AFRC forms are AcroForms, so they are filled and handed back still
 // fillable — every field Greg has to source elsewhere (DOR, ETS, EPR, UIF, PT,
@@ -4564,6 +4797,7 @@ async function copyBrief(btn){
 
     <div class="modal-btns">
         <button class="btn" onclick="generatePromoPackage()">📄 Promotion Form</button>
+        <button class="btn" onclick="openITPFor()">📋 Draft ITP</button>
         <button class="btn" onclick="savePromoEdit()">✓ Save</button>
         <button class="btn btn-red" onclick="closePromoEdit()">✕ Cancel</button>
     </div>
@@ -5548,6 +5782,7 @@ function renderAfDocs(){
   <div class="topnav">
     <button class="topbtn active" onclick="tplSection('sec-pubs',this)">AF Publications</button>
     <button class="topbtn" onclick="tplSection('sec-admin',this)">LOC / LOR / MFR</button>
+    <button class="topbtn" onclick="tplSection('sec-itp',this)">Individual Training Plan</button>
     <button class="topbtn" onclick="tplSection('sec-career',this)">Career Templates (SMSgt / CMSgt)</button>
   </div>
 
@@ -5565,6 +5800,41 @@ function renderAfDocs(){
            style="width:100%;padding:10px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,215,0,.15);border-radius:3px;color:#e0e0e0;font-size:13px;">
     <div id="afdocCats" style="display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 16px"></div>
     <div id="afdocList"></div>
+  </div>
+
+
+  <!-- ============ SECTION: INDIVIDUAL TRAINING PLAN ============ -->
+  <div id="sec-itp" class="section">
+    <div class="intro">
+      Drafts the Individual Training Plan the <strong>TSgt promotion package</strong> asks for — a plan to take one
+      Airman to their 5- or 7-skill level. Tasks come straight out of <strong>CFETP 2T2X1 (6 March 2026)</strong>,
+      Attachment 2, filtered to the UTC the member actually works and the level being upgraded to. Nothing here is
+      invented: if a task is not in the CFETP for that UTC and level, it does not appear.
+      <div style="font-size:11px;color:#808080;margin-top:6px">
+        The plan is a starting point, not a finished product. Set real dates, and replace the method column
+        where your section trains it differently.
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div><label style="font-size:10px">Trainee</label>
+           <input id="itpTrainee" list="itpRoster" placeholder="Rank Last, First — or a hypothetical Airman"></div>
+      <datalist id="itpRoster"></datalist>
+      <div><label style="font-size:10px">Trainer / plan author</label><input id="itpTrainer" placeholder="Rank Full Name"></div>
+      <div><label style="font-size:10px">UTC / duty section</label><select id="itpUtc"></select></div>
+      <div><label style="font-size:10px">Upgrading to</label>
+           <select id="itpLevel"><option value="5">5-skill level (2T251)</option><option value="7">7-skill level (2T271)</option></select></div>
+      <div><label style="font-size:10px">Start date</label><input type="date" id="itpStart"></div>
+      <div><label style="font-size:10px">Length</label>
+           <select id="itpWeeks"><option value="26">6 months</option><option value="52" selected>12 months</option>
+           <option value="78">18 months</option><option value="156">36 months (ARC max)</option></select></div>
+    </div>
+    <div class="btn-row" style="margin-bottom:12px">
+      <button class="btn" onclick="renderITP()">📋 Draft the plan</button>
+      <button class="btn" onclick="copyITP()">⧉ Copy as text</button>
+      <button class="btn" onclick="printITP()">📄 PDF</button>
+    </div>
+    <div id="itpMsg" style="font-size:11px;color:#808080;margin-bottom:8px"></div>
+    <div id="itpOut"></div>
   </div>
 
   <!-- ============ SECTION: LOC / LOR / MFR ============ -->
@@ -6188,6 +6458,7 @@ function tplSection(id, btn){
   // The 'full review done' control only makes sense over the publications list.
   document.getElementById('afdocHead').style.display = (id==='sec-pubs') ? 'flex' : 'none';
   if(id==='sec-pubs') renderAfDocs();
+  if(id==='sec-itp') itpFillSelectors();
   document.querySelectorAll('#tab-templates .topbtn').forEach(function(b){b.classList.remove('active');});
   btn.classList.add('active');
 }

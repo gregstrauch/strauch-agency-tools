@@ -1,0 +1,1157 @@
+{
+ "UFBAT": {
+  "code": "UFBAT",
+  "title": "AIR TERMINAL OPERATIONS CENTER (ATOC)",
+  "desc": "Capable of supporting 1 x aircraft per hour during 12-hour shift Description: This UTC provides a two-person air terminal operations center (ATOC) capability; senior controller, information control, ramp control, in transit visibility (ITV), airlift forecasting and records keeping IAW applicable guidance or directives. ATOC is the operational focal point and exercises command and control of air transportation work centers. Coordinates unit move requirements, utilizes computer-based air transportation systems, briefs cargo and passenger information to departing aircrews and/or collects transpor",
+  "tasks": [
+   {
+    "num": "3.1.1.2",
+    "text": "Gather & disseminate aircraft load information from available sources (e.g., user, Command Post GDSS, SMS, GATES)",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.1.1.4",
+    "text": "Prioritize mission requirements to effectively manage air transportation workload",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.1.3.1",
+    "text": "Provide quality control on flight documentation. (Prepare consolidated flight package)",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.1.2.4",
+    "text": "Communicate with various agencies to provide mission overview (Brief aircrew/troop commander on load information)",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.1.2.4",
+    "text": "Communicate with various agencies to provide mission overview (Mission Load Report)",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.1.3.6",
+    "text": "Leverage data systems and source documents to generate timely and accurate schedules",
+    "levels": [
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.1.4.1",
+    "text": "Monitor and provide all required coordination for airlift mission to include work unique requirements (coordinate mission requirements/Complete clearance requirements)",
+    "levels": [
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.1.3.1",
+    "text": "Provide quality control on flight documentation UTC: UFBBR RAMP OPERATIONS Capable of on or off loading pallet position equivalents per hour during 12-hour shift Description: This UTC provides a four-person ramp operations capability; Load Team Chief, aircraft on/off Load Team, Material Handling Equipment (MHE) operators and Engine Run On/Offload (ERO) IAW applicable guidance or directives. Able to on/off load organic and/or commercial aircraft with applicable MHE. Utilize aircraft load plans and computer-based air transportation systems. When not performing UFBBR function, can augment following UTCs for these specific tasks: UFBCP (aircraft pallet build/break) and/or UFBML (passenger on/off load, baggage on/off load and/or baggage pallet build/break). STS Reference/Training Task 3-level 5-level 7-level",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.1.11",
+    "text": "Operate applicable MHE for mission requirements (10K Standard)",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.1.11",
+    "text": "Operate applicable MHE for mission requirements (10K Adverse Terrain forklift)",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.1.11",
+    "text": "Operate applicable MHE for mission requirements (Tow Vehicle)",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.1.11",
+    "text": "Operate applicable MHE for mission requirements (Halvorsen Loader)",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.2.9",
+    "text": "Select appropriate MHE for mission execution",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.2.2",
+    "text": "Sequence aircraft load",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.1.4",
+    "text": "Demonstrate effective cargo tie-down restraint",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.2.3",
+    "text": "Inspect cargo and documentation for loading/unloading",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.1.2",
+    "text": "Perform Onload/Offload procedures",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.2.8",
+    "text": "Calculate tie-down and shoring requirements",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.2.4",
+    "text": "Conduct Load Team Chief Duties",
+    "levels": [
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.1.1",
+    "text": "Load/unload passengers and baggage",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": "Crossflow"
+   },
+   {
+    "num": "3.2.1.11",
+    "text": "Operate applicable MHE for mission requirements Tunner Loader (NOTE: A minimum 50% of personnel assigned to UTC must be trained)",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": "ARC only"
+   }
+  ]
+ },
+ "UFBCP": {
+  "code": "UFBCP",
+  "title": "AIR FREIGHT",
+  "desc": "Capable of building or breaking 1x pallet position equivalent every 3 hours during 12-hour shift Description: This UTC provides a three-person air freight capability; receive/in-check general/hazardous /special handling cargo, pallet build-up, break bulk, in transit visibility (ITV) and forklift operator IAW applicable guidance or directives. Able to review cargo documentation, build aircraft pallets and/or provide break bulk support. Utilize computer- based air transportation systems. When not performing UFBCP function, can augment following UTCs for these specific tasks: UFBBR (aircraft on/o",
+  "tasks": [
+   {
+    "num": "3.2.1.11",
+    "text": "Operate applicable MHE for mission requirements (10K Standard)",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.1.11",
+    "text": "Operate applicable MHE for mission requirements (10K Adverse Terrain forklift)",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.1.7",
+    "text": "Process cargo/mail",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.3.4",
+    "text": "Process Special Cargo Expedited shipment (AMC MICAP, VVIP, Green sheet, etc.)",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.3.3",
+    "text": "Validate cargo for onward movement",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.2.10",
+    "text": "Identify and document cargo discrepancies",
+    "levels": [
+     "3"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.2.11",
+    "text": "Resolve cargo discrepancies",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.2.12",
+    "text": "Process frustrated cargo",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.1.9",
+    "text": "Inventory/Select/Build cargo for onward movement",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.1.9",
+    "text": "Inventory/Select/Build cargo for onward movement (Build multi- pallet train)",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.2.7",
+    "text": "Calculate cargo center of balance (Compute centers-of-balance for rolling stock, outsized cargo, and multi- pallet trains)",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.1.7",
+    "text": "Process cargo/mail",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.3.5.1",
+    "text": "Special Handling",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.1.2",
+    "text": "Perform Onload/Offload procedures",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": "Crossflow"
+   },
+   {
+    "num": "3.3.1.1",
+    "text": "Load/unload passengers and baggage UTC: UFBN2 FLEET SERVICES Capable of servicing aircraft latrine and potable water systems every hours during 12- hour shift This UTC provides a four-person fleet service capability; aircraft latrine and Description: potable water service vehicle operators IAW applicable guidance or directives. Able to service organic and/or commercial aircraft latrine systems, potable water systems, remove trash from aircraft IAW local guidance. Utilize computer-based air transportation systems. When not performing UFBN2 function, can augment following UTCs for these specific tasks: UFBBR (ramp operations - aircraft on/off load) and/or UFBCP (air freight - aircraft pallet build/break) and/or UFBML (passenger service - baggage pallet build/break). STS Reference/Training Task 3-level 5-level 7-level",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": "Crossflow"
+   },
+   {
+    "num": "5.5.1.2",
+    "text": "Operates applicable vehicles for mission requirements (Latrine service truck/cart)",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": "Crossflow"
+   },
+   {
+    "num": "5.5.1.5",
+    "text": "Prepare fleet service documents",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": "Crossflow"
+   },
+   {
+    "num": "5.5.1.8",
+    "text": "Service/clean Air Transportable Galley and Lavatories (ATGLs)",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": "Crossflow"
+   },
+   {
+    "num": "5.5.1.9",
+    "text": "Fill freshwater tanks and containers",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": "Crossflow"
+   },
+   {
+    "num": "5.5.1.12",
+    "text": "Service aircraft lavatory systems",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": "Crossflow"
+   },
+   {
+    "num": "5.5.1.13",
+    "text": "Remove/dispose of trash/waste materials from aircraft",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": "Crossflow"
+   },
+   {
+    "num": "3.2.1.2",
+    "text": "Perform Onload/Offload procedures",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": "Crossflow"
+   },
+   {
+    "num": "3.3.1.1",
+    "text": "Load/unload passengers and baggage",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": "Crossflow"
+   }
+  ]
+ },
+ "UFBML": {
+  "code": "UFBML",
+  "title": "PASSENGER SERVICE",
+  "desc": "Capable of on or offloading 23 passengers and associated baggage per hour during 12-hour shift or capable of on or off loading 150 passengers and associated baggage per hour during 12-hour shift during contingency ops Description: This UTC provides a four-person passenger service capability; passenger processing, baggage pallet build/break, baggage on/off load, in transit visibility (ITV), staircase truck and material handling equipment (MHE) operator IAW applicable guidance or directives. Able to validate travel documentation, manifest, on/off load passengers, build/break baggage pallets and,",
+  "tasks": [
+   {
+    "num": "3.3.1.8",
+    "text": "Operate applicable MHE for mission requirements (10K Standard)",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.1.8",
+    "text": "Operate applicable MHE for mission requirements (10K Adverse Terrain forklift)",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.1.8",
+    "text": "Operate applicable MHE for mission requirements (Wide-body staircase)",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.1.3",
+    "text": "Gather & document passenger data documentation (Determine/verify travel eligibility/priorities)",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.3.1",
+    "text": "Account for accurate passenger source (Sign-up passengers)",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.3.4",
+    "text": "Ensure compliance with governing directives (Special Category passengers)",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.3.4",
+    "text": "Ensure compliance with governing directives (Brief passengers on flight information)",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.1.4",
+    "text": "Perform anti-hijacking procedures & basic security measures.",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.1.3",
+    "text": "Gather & document passenger data documentation (Select passengers)",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.1.3",
+    "text": "Gather & document passenger data documentation (Check-in passengers and baggage)",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.1.4",
+    "text": "Perform anti-hijacking procedures & basic security measures. (Gate passengers)",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.1.1",
+    "text": "Load/offload passenger and baggage",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.1.1",
+    "text": "Load/offload passenger and baggage (Build-up/breakdown baggage)",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.3.3",
+    "text": "Provide oversight of passenger operations and apply course of action (Process mishandled baggage)",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.2.1",
+    "text": "Communicate with applicable work-centers on emerging mission changes and requirements. (Dispatch -Set up flights)",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.2.1",
+    "text": "Communicate with applicable work-centers on emerging mission changes and requirements. (Dispatch - Prepare passenger manifests)",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.2.1",
+    "text": "Communicate with applicable work-centers on emerging mission changes and requirements. (Dispatch - Close out flights)",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.1.2",
+    "text": "Perform Onload/Offload procedures",
+    "levels": [
+     "3",
+     "5",
+     "7"
+    ],
+    "section": "Crossflow"
+   }
+  ]
+ },
+ "UFBJT": {
+  "code": "UFBJT",
+  "title": "JOINT INSPECTION",
+  "desc": "Capable of inspecting 21 pallet position equivalents (PPE) every 3 hours during 12-hour shift Description: This UTC provides a two-person joint inspection (JI) capability; inspect/verify airworthiness, validate load plan weights/dimensions and verify in transit visibility (ITV) IAW applicable guidance or directives. Able to JI unit move cargo and equipment compliance IAW defense transportation regulation (DTR) and air force manual (AFMAN) 24-604. Utilize computer-based air transportation systems. When not performing UFBJT function, can augment following UTCs for these specific tasks: UFBBR (ra",
+  "tasks": [
+   {
+    "num": "3.2.2.5.3",
+    "text": "Joint Inspection",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.1.2",
+    "text": "Perform Onload/Offload procedures",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": "Crossflow"
+   },
+   {
+    "num": "3.3.1.1",
+    "text": "Load/unload passengers and baggage",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": "Crossflow"
+   },
+   {
+    "num": "3.2.1.7",
+    "text": "Process cargo/mail",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": "ARC only"
+   },
+   {
+    "num": "3.2.3.4",
+    "text": "Process Special Cargo - Expedited shipment (AMC MICAP, VVIP, Green sheet, etc.)",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": "ARC only"
+   },
+   {
+    "num": "3.2.3.3",
+    "text": "Validate cargo for onward movement",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": "ARC only"
+   },
+   {
+    "num": "3.2.2.12",
+    "text": "Process frustrated cargo",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": "ARC only"
+   },
+   {
+    "num": "3.2.1.9",
+    "text": "Inventory/Select/Build cargo for onward movement",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": "ARC only"
+   },
+   {
+    "num": "3.2.1.9",
+    "text": "Inventory/Select/Build cargo for onward movement (Build multi- pallet train)",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": "ARC only"
+   },
+   {
+    "num": "3.2.2.7",
+    "text": "Calculate cargo center of balance (Compute centers-of-balance for rolling stock, outsized cargo, and multi- pallet trains) UTC: UFBPL LOAD PLANNING Capable of completing x aircraft load plans every hours during 12-hour shift Description: This UTC provides a two-person load planning capability; select cargo for air movement, verify air worthiness, calculate aircraft weight/balance and cargo manifesting IAW applicable guidance or directives. Able to build organic aircraft load plans IAW applicable aircraft technical orders (to) and air force manual (AFMAN) 24-604 hazardous material compatibility chart and coordinate load sequence with commercial aircraft representatives. Utilize computer-based air transportation systems. When not performing UFBPL function, can augment following UTCs for these specific tasks: air terminal operations center (UFBAT - information control, airlift forecasting, in transit visibility), and/or UFBBR (ramp operations - aircraft on/off load) and/or UFBCP (air freight - aircraft pallet build/break) and/or UFBML (passenger service - baggage pallet build/break). STS Reference/Training Task 3-level 5-level 7-level",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": "ARC only"
+   },
+   {
+    "num": "3.2.3.5.2",
+    "text": "Load planning",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": "ARC only"
+   },
+   {
+    "num": "3.2.1.2",
+    "text": "Perform Onload/Offload procedures",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": "Crossflow"
+   },
+   {
+    "num": "3.3.1.1",
+    "text": "Load/unload passengers and baggage",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": "Crossflow"
+   },
+   {
+    "num": "3.1.1.2",
+    "text": "Gather & disseminate aircraft load information from available sources (e.g., user, Command Post GDSS, SMS, GATES)",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": "Crossflow"
+   },
+   {
+    "num": "3.1.1.4",
+    "text": "Prioritize mission requirements to effectively manage air transportation workload",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": "Crossflow"
+   },
+   {
+    "num": "3.1.3.1",
+    "text": "Provide quality control on flight documentation. (Prepare consolidated flight package)",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": "Crossflow"
+   },
+   {
+    "num": "3.1.2.4",
+    "text": "Communicate with various agencies to provide mission overview (Brief aircrew/troop commander on load information)",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": "Crossflow"
+   },
+   {
+    "num": "3.1.2.4",
+    "text": "Communicate with various agencies to provide mission overview (Mission Load Report)",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": "Crossflow"
+   }
+  ]
+ },
+ "UFBXS": {
+  "code": "UFBXS",
+  "title": "AIR TRANSPORTATION ADVISOR/TEAM LEAD",
+  "desc": "Capable of supporting joint staff, air staff, theater staff operations, serving as a mobility airlift advisor or supervising other combinations of air transportation UTCs. Description: This UTC provides a one-person air transportation technical advisor capability; that possesses a wide general knowledge of air transportation systems and mobility operations to include hub and spoke dynamics, air transportation organizational constructs and passenger and cargo movement procedures thru defense transportation system. UTC will perform and/or supervise other UTCs performing air transportation functi",
+  "tasks": [
+   {
+    "num": "2.2.2.1",
+    "text": "Coordinate resource requirements to facilitate mission execution",
+    "levels": [
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "2.2.2.3",
+    "text": "Establish procedures to manage and utilize available resources",
+    "levels": [
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "2.2.2.4",
+    "text": "Identify/minimize impact of resource shortfalls",
+    "levels": [
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "2.2.2.5",
+    "text": "Collaborate with outside agencies to execute the mission",
+    "levels": [
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "2.2.2.6",
+    "text": "Describe the concepts of contracting",
+    "levels": [
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "2.2.2.7",
+    "text": "Generate funding requests to meet mission requirements",
+    "levels": [
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "2.2.2.8",
+    "text": "Gather data for justifications",
+    "levels": [
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "2.2.2.9",
+    "text": "Identify and communicate readiness gaps to leadership",
+    "levels": [
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "2.2.2.10",
+    "text": "Utilize applicable documents to align work center personnel UTC: UFBJE AIR TRANSPORTATION SUPERVISION (E-8) Capable of advising Joint Staff, Air Staff or serve as air transportation operations leader at all types of locations. UTC should be tasked when operations have at least 75+ air transportation personnel. Description: This UTC provides a one-person air transportation senior enlisted leader capability; knowledgeable of sustainment and contingency air transportation capabilities IAW applicable guidance or directives. Capable of directing air transportation operations at all levels and serving as expeditionary squadron senior enlisted air transportation leader and/or advisor at either an ELRS, EAMS, or EAPS. STS Reference/Training Task 9-level",
+    "levels": [
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "2.2.3.1",
+    "text": "Review key components of manning documents",
+    "levels": [
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "2.2.3.2",
+    "text": "Develop strategies to efficiently manage resources",
+    "levels": [
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "2.2.3.3",
+    "text": "Forecast impacts of resource movements",
+    "levels": [
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "2.2.3.4",
+    "text": "Establish prioritization plan",
+    "levels": [
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "2.2.3.5",
+    "text": "Develop and manages funding and resources for budgets to execute mission requirements",
+    "levels": [
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "2.2.4.2",
+    "text": "Elevate and explain potential impacts to HHQ or DAF priorities",
+    "levels": [
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "2.2.4.3",
+    "text": "Analyze manning levels and impacts on total force capabilities within AF constraints",
+    "levels": [
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "2.2.4.4",
+    "text": "Optimize procedures to manage and utilize available resources",
+    "levels": [
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "2.2.4.5",
+    "text": "Justify manpower movements to appropriate stakeholders",
+    "levels": [
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "2.2.4.6",
+    "text": "Secure manpower capabilities with authorized allocations",
+    "levels": [
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "2.2.4.7",
+    "text": "Mitigate resource constraints to meet current and future demands",
+    "levels": [
+     "7"
+    ],
+    "section": ""
+   }
+  ]
+ },
+ "UFBBS": {
+  "code": "UFBBS",
+  "title": "APO AIR TRANSPORTATION FUNCTION",
+  "desc": "Capable of establishing Wing Operations with small air transportation function capabilities. Capable of operation at MOB, FOB, and FOS locations. Description: This UTC provides a four-person air transportation function capability that possess a wide general knowledge of air transportation systems and mobility operations to include Wing deployments, aircraft loading/unloading, joint inspection, passenger service and load planning IAW applicable guidance and directives. This UTC will perform Wing operations and/or serve as liaison to the arriving Demand Force Teams (DFT) if required. 3.2.3.5.2. ",
+  "tasks": [
+   {
+    "num": "3.2.3.5.2",
+    "text": "Load planning",
+    "levels": [
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.2.5.3",
+    "text": "Joint Inspection",
+    "levels": [
+     "5",
+     "7"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.1.8",
+    "text": "Operate applicable MHE for mission requirements (10K Standard)",
+    "levels": [
+     "3"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.1.8",
+    "text": "Operate applicable MHE for mission requirements (10K Adverse Terrain forklift)",
+    "levels": [
+     "3"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.1.8",
+    "text": "Operate applicable MHE for mission requirements (Wide-body staircase)",
+    "levels": [
+     "3"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.1.3",
+    "text": "Gather & document passenger data documentation (Determine/verify travel eligibility/priorities)",
+    "levels": [
+     "3"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.3.1",
+    "text": "Account for accurate passenger source (Sign-up passengers)",
+    "levels": [
+     "3"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.3.4",
+    "text": "Ensure compliance with governing directives (Special Category passengers)",
+    "levels": [
+     "3"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.3.4",
+    "text": "Ensure compliance with governing directives (Brief passengers on flight information)",
+    "levels": [
+     "3"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.1.4",
+    "text": "Perform anti-hijacking procedures & basic security measures.",
+    "levels": [
+     "3"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.1.3",
+    "text": "Gather & document passenger data documentation (Select passengers)",
+    "levels": [
+     "3"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.1.3",
+    "text": "Gather & document passenger data documentation (Check-in passengers and baggage)",
+    "levels": [
+     "3"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.1.4",
+    "text": "Perform anti-hijacking procedures & basic security measures. (Gate passengers)",
+    "levels": [
+     "3"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.1.1",
+    "text": "Load/offload passenger and baggage",
+    "levels": [
+     "3"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.3.1.1",
+    "text": "Load/offload passenger and baggage (Build-up/breakdown baggage)",
+    "levels": [
+     "3"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.1.11",
+    "text": "Operate applicable MHE for mission requirements (10K Standard)",
+    "levels": [
+     "3"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.1.11",
+    "text": "Operate applicable MHE for mission requirements (10K Adverse Terrain forklift)",
+    "levels": [
+     "3"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.1.11",
+    "text": "Operate applicable MHE for mission requirements (Tow Vehicle)",
+    "levels": [
+     "3"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.1.11",
+    "text": "Operate applicable MHE for mission requirements (Halvorsen Loader)",
+    "levels": [
+     "3"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.2.9",
+    "text": "Select appropriate MHE for mission execution",
+    "levels": [
+     "3"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.2.2",
+    "text": "Sequence aircraft load",
+    "levels": [
+     "3"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.1.4",
+    "text": "Demonstrate effective cargo tie-down restraint",
+    "levels": [
+     "3"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.2.3",
+    "text": "Inspect cargo and documentation for loading/unloading",
+    "levels": [
+     "3"
+    ],
+    "section": ""
+   },
+   {
+    "num": "3.2.1.2",
+    "text": "Perform Onload/Offload procedures",
+    "levels": [
+     "3"
+    ],
+    "section": ""
+   }
+  ]
+ }
+}
