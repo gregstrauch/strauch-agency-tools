@@ -5,128 +5,143 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>39 APS Tracker</title>
 <style>
+:root,.tokens{
+  /* Slate & Ink — light, document-like. One deep blue accent.
+     Every color in this file resolves here; change a token, not a rule. */
+  --bg:#f3f5f8; --bg2:#e9edf2; --surface:#ffffff; --well:#eef1f5;
+  --ink-rgb:22,32,43;                      /* overlay channel (was white-on-dark) */
+  --acc:#1f4e79; --acc-rgb:31,78,121; --acc-mut:#4a7194; --on-acc:#ffffff;
+  --good:#2e7d5b; --good-rgb:46,125,91;
+  --bad:#a33a3a;  --bad-rgb:163,58,58;
+  --warn:#8f6414; --warn-rgb:143,100,20;
+  --info:#2f6ea8; --info-rgb:47,110,168;
+  --alt:#6b4fa3;  --alt-rgb:107,79,163;
+  --t-hi:#16202b; --t-mid:#47535f; --t-mid2:#5a6875;
+  --t-lo:#6b7885; --t-faint:#8b96a2; --t-faint2:#b4bec8;   /* solved for 4.5:1 / 3:1 on white */
+  --line:#d9dfe6; --line2:#e7ecf1;
+}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Segoe UI',Tahoma,sans-serif;background:linear-gradient(135deg,#0a1428 0%,#1a2a4a 100%);color:#e0e0e0;min-height:100vh;}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);color:var(--t-hi);min-height:100vh;}
 
 /* ── TABS ── */
-.tab-nav{display:flex;gap:0;border-bottom:2px solid #ffd700;background:rgba(0,0,0,0.3);padding:0 20px;}
-.tab-btn{padding:14px 24px;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border:none;background:transparent;color:#606060;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all 0.2s;}
-.tab-btn:hover{color:#a0a0a0;}
-.tab-btn.active{color:#ffd700;border-bottom-color:#ffd700;}
-.flight-nav{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:8px 20px;background:rgba(0,0,0,0.18);border-bottom:1px solid #2a2a3e;}
-.flight-nav-label{font-size:9px;color:#505050;text-transform:uppercase;letter-spacing:1.5px;margin-right:4px;}
-.flight-btn{padding:5px 13px;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;border:1px solid #2a2a3e;border-radius:4px;background:#12121e;color:#707070;font-family:inherit;transition:all .15s;}
-.flight-btn:hover{color:#a0a0a0;border-color:#3a3a52;}
-.flight-btn.active{color:#0d0d14;background:#ffd700;border-color:#ffd700;}
-.flight-btn.all{color:#7fc4ff;border-color:#2a4a66;}
-.flight-btn.all.active{color:#0d0d14;background:#7fc4ff;border-color:#7fc4ff;}
-.flight-btn.add{color:#505050;border-style:dashed;}
+.tab-nav{display:flex;gap:0;border-bottom:2px solid var(--acc);background:var(--surface);padding:0 20px;}
+.tab-btn{padding:14px 24px;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border:none;background:transparent;color:var(--t-faint);border-bottom:3px solid transparent;margin-bottom:-2px;transition:all 0.2s;}
+.tab-btn:hover{color:var(--t-mid2);}
+.tab-btn.active{color:var(--acc);border-bottom-color:var(--acc);}
+.flight-nav{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:8px 20px;background:var(--bg2);border-bottom:1px solid var(--line);}
+.flight-nav-label{font-size:9px;color:var(--t-faint2);text-transform:uppercase;letter-spacing:1.5px;margin-right:4px;}
+.flight-btn{padding:5px 13px;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--t-faint);font-family:inherit;transition:all .15s;}
+.flight-btn:hover{color:var(--t-mid2);border-color:var(--line);}
+.flight-btn.active{color:var(--on-acc);background:var(--acc);border-color:var(--acc);}
+.flight-btn.all{color:var(--info);border-color:var(--info);}
+.flight-btn.all.active{color:var(--on-acc);background:var(--info);border-color:var(--info);}
+.flight-btn.add{color:var(--t-faint2);border-style:dashed;}
 .tab-content{display:none;padding:20px;}
 .tab-content.active{display:block;}
 
 /* ── SHARED ── */
 .container{max-width:1600px;margin:0 auto;}
-.page-header{border-bottom:2px solid rgba(255,215,0,0.3);padding-bottom:14px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
-.page-title{font-size:18px;font-weight:700;color:#ffd700;letter-spacing:1px;}
-.page-sub{font-size:11px;color:#606060;text-transform:uppercase;margin-top:3px;}
+.page-header{border-bottom:2px solid rgba(var(--acc-rgb),0.3);padding-bottom:14px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+.page-title{font-size:18px;font-weight:700;color:var(--acc);letter-spacing:1px;}
+.page-sub{font-size:11px;color:var(--t-faint);text-transform:uppercase;margin-top:3px;}
 
-.card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,215,0,0.15);padding:16px;border-radius:4px;margin-bottom:14px;}
-.section-label{font-size:10px;color:#ffd700;text-transform:uppercase;letter-spacing:1.5px;margin:16px 0 8px;padding-bottom:4px;border-bottom:1px solid rgba(255,215,0,0.15);}
+.card{background:rgba(var(--ink-rgb),0.04);border:1px solid rgba(var(--acc-rgb),0.15);padding:16px;border-radius:4px;margin-bottom:14px;}
+.section-label{font-size:10px;color:var(--acc);text-transform:uppercase;letter-spacing:1.5px;margin:16px 0 8px;padding-bottom:4px;border-bottom:1px solid rgba(var(--acc-rgb),0.15);}
 
-.btn{padding:8px 18px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:3px;cursor:pointer;transition:all 0.2s;border:1px solid #ffd700;background:rgba(255,215,0,0.1);color:#ffd700;}
-.btn:hover{background:rgba(255,215,0,0.22);}
+.btn{padding:8px 18px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:3px;cursor:pointer;transition:all 0.2s;border:1px solid var(--acc);background:rgba(var(--acc-rgb),0.1);color:var(--acc);}
+.btn:hover{background:rgba(var(--acc-rgb),0.22);}
 .btn:disabled{opacity:0.4;cursor:not-allowed;}
-.btn-red{border-color:#ff9999;color:#ff9999;background:rgba(255,100,100,0.08);}
-.btn-red:hover{background:rgba(255,100,100,0.18);}
-.btn-green{border-color:#55ff99;color:#55ff99;background:rgba(0,200,80,0.08);}
-.btn-green:hover{background:rgba(0,200,80,0.18);}
+.btn-red{border-color:var(--bad);color:var(--bad);background:rgba(var(--bad-rgb),0.08);}
+.btn-red:hover{background:rgba(var(--bad-rgb),0.18);}
+.btn-green{border-color:var(--good);color:var(--good);background:rgba(var(--good-rgb),0.08);}
+.btn-green:hover{background:rgba(var(--good-rgb),0.18);}
 .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
 
-input,select,textarea{background:rgba(0,0,0,0.4);border:1px solid rgba(255,215,0,0.28);color:#fff;padding:8px 10px;border-radius:3px;font-family:inherit;font-size:13px;width:100%;}
-input:focus,select:focus,textarea:focus{outline:none;border-color:#ffd700;box-shadow:0 0 8px rgba(255,215,0,0.18);}
-select option{background:#0d1c35;}
-label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+input,select,textarea{background:var(--surface);border:1px solid rgba(var(--acc-rgb),0.28);color:var(--t-hi);padding:8px 10px;border-radius:3px;font-family:inherit;font-size:13px;width:100%;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc);box-shadow:0 0 8px rgba(var(--acc-rgb),0.18);}
+select option{background:var(--surface);}
+label{display:block;font-size:10px;color:var(--t-mid2);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
 .form-group{margin-bottom:12px;}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 
 /* ── STATS ── */
 .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;}
-.stat-card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,215,0,0.22);padding:14px 16px;border-radius:4px;}
-.stat-label{font-size:10px;color:#a0a0a0;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
-.stat-value{font-size:22px;font-weight:700;color:#ffd700;}
-.stat-sub{font-size:10px;color:#555;margin-top:2px;}
+.stat-card{background:rgba(var(--ink-rgb),0.05);border:1px solid rgba(var(--acc-rgb),0.22);padding:14px 16px;border-radius:4px;}
+.stat-label{font-size:10px;color:var(--t-mid2);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+.stat-value{font-size:22px;font-weight:700;color:var(--acc);}
+.stat-sub{font-size:10px;color:var(--t-faint2);margin-top:2px;}
 /* ── Overview ── */
 .ov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
-.ov-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,215,0,.18);border-left:3px solid #ffd700;border-radius:4px;padding:14px 16px;cursor:pointer;transition:background .15s,border-color .15s;}
-.ov-card:hover{background:rgba(255,255,255,.08);border-color:rgba(255,215,0,.55);}
-.ov-card.empty{border-left-color:#444;opacity:.6;}
-.ov-name{font-size:14px;font-weight:700;color:#fff;letter-spacing:.5px;}
-.ov-chief{font-size:10px;color:#808080;margin-bottom:10px;}
-.ov-row{display:flex;justify-content:space-between;font-size:11px;color:#a0a0a0;padding:3px 0;}
-.ov-row b{color:#e0e0e0;font-weight:600;}
-.ov-bar{height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;margin-top:8px;}
-.ov-fill{height:100%;background:#44cc77;}
-.ov-alert{background:rgba(255,68,68,.07);border:1px solid rgba(255,68,68,.3);border-radius:4px;padding:12px 14px;margin-bottom:16px;}
-.ov-alert.warn{background:rgba(255,170,0,.07);border-color:rgba(255,170,0,.3);}
-.ov-alert-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#ff6666;margin-bottom:8px;}
-.ov-alert.warn .ov-alert-title{color:#ffaa00;}
-.ov-item{display:grid;grid-template-columns:110px 1fr auto;gap:10px;align-items:baseline;padding:5px 0;border-top:1px solid rgba(255,255,255,.06);font-size:12px;}
+.ov-card{background:rgba(var(--ink-rgb),.04);border:1px solid rgba(var(--acc-rgb),.18);border-left:3px solid var(--acc);border-radius:4px;padding:14px 16px;cursor:pointer;transition:background .15s,border-color .15s;}
+.ov-card:hover{background:rgba(var(--ink-rgb),.08);border-color:rgba(var(--acc-rgb),.55);}
+.ov-card.empty{border-left-color:var(--t-faint2);opacity:.6;}
+.ov-name{font-size:14px;font-weight:700;color:var(--t-hi);letter-spacing:.5px;}
+.ov-chief{font-size:10px;color:var(--t-lo);margin-bottom:10px;}
+.ov-row{display:flex;justify-content:space-between;font-size:11px;color:var(--t-mid2);padding:3px 0;}
+.ov-row b{color:var(--t-hi);font-weight:600;}
+.ov-bar{height:5px;background:rgba(var(--ink-rgb),.08);border-radius:3px;overflow:hidden;margin-top:8px;}
+.ov-fill{height:100%;background:var(--good);}
+.ov-alert{background:rgba(var(--bad-rgb),.07);border:1px solid rgba(var(--bad-rgb),.3);border-radius:4px;padding:12px 14px;margin-bottom:16px;}
+.ov-alert.warn{background:rgba(var(--warn-rgb),.07);border-color:rgba(var(--warn-rgb),.3);}
+.ov-alert-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--bad);margin-bottom:8px;}
+.ov-alert.warn .ov-alert-title{color:var(--warn);}
+.ov-item{display:grid;grid-template-columns:110px 1fr auto;gap:10px;align-items:baseline;padding:5px 0;border-top:1px solid rgba(var(--ink-rgb),.06);font-size:12px;}
 .ov-item:first-of-type{border-top:none;}
-.ov-flag{font-size:9px;font-weight:700;letter-spacing:.5px;color:#ffd700;text-transform:uppercase;}
-.ov-who{font-size:11px;color:#909090;}
-.ov-count{font-size:11px;font-weight:700;color:#ff6666;white-space:nowrap;}
-.ov-alert.warn .ov-count{color:#ffaa00;}
+.ov-flag{font-size:9px;font-weight:700;letter-spacing:.5px;color:var(--acc);text-transform:uppercase;}
+.ov-who{font-size:11px;color:var(--t-lo);}
+.ov-count{font-size:11px;font-weight:700;color:var(--bad);white-space:nowrap;}
+.ov-alert.warn .ov-count{color:var(--warn);}
 /* ── Overview chart ── */
-.ch-wrap{background:rgba(255,255,255,.03);border:1px solid rgba(255,215,0,.15);border-radius:4px;padding:14px 16px;margin-bottom:16px;}
+.ch-wrap{background:rgba(var(--ink-rgb),.03);border:1px solid rgba(var(--acc-rgb),.15);border-radius:4px;padding:14px 16px;margin-bottom:16px;}
 .ch-row{display:grid;grid-template-columns:120px 1fr 90px;gap:12px;align-items:center;margin-bottom:7px;}
-.ch-label{font-size:11px;color:#c0c0c0;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.ch-track{display:flex;height:20px;border-radius:3px;overflow:hidden;background:rgba(255,255,255,.05);}
+.ch-label{font-size:11px;color:var(--t-mid);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ch-track{display:flex;height:20px;border-radius:3px;overflow:hidden;background:rgba(var(--ink-rgb),.05);}
 .ch-seg{height:100%;cursor:pointer;transition:filter .12s;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:rgba(0,0,0,.65);min-width:0;}
 .ch-seg:hover{filter:brightness(1.35);}
-.ch-seg.sel{outline:2px solid #fff;outline-offset:-2px;}
-.ch-total{font-size:10px;color:#808080;}
-.ch-legend{display:flex;gap:14px;margin-top:10px;font-size:10px;color:#808080;text-transform:uppercase;letter-spacing:.5px;}
+.ch-seg.sel{outline:2px solid var(--t-hi);outline-offset:-2px;}
+.ch-total{font-size:10px;color:var(--t-lo);}
+.ch-legend{display:flex;gap:14px;margin-top:10px;font-size:10px;color:var(--t-lo);text-transform:uppercase;letter-spacing:.5px;}
 .ch-key{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:5px;vertical-align:-1px;}
-.ch-hint{font-size:10px;color:#606060;font-style:italic;margin-top:6px;}
-.ch-detail{background:rgba(255,215,0,.05);border:1px solid rgba(255,215,0,.3);border-radius:4px;padding:12px 14px;margin-top:12px;}
+.ch-hint{font-size:10px;color:var(--t-faint);font-style:italic;margin-top:6px;}
+.ch-detail{background:rgba(var(--acc-rgb),.05);border:1px solid rgba(var(--acc-rgb),.3);border-radius:4px;padding:12px 14px;margin-top:12px;}
 .ch-detail-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
-.ch-detail-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#ffd700;}
-.ch-close{background:none;border:none;color:#808080;cursor:pointer;font-size:15px;line-height:1;padding:0 4px;}
-.ch-close:hover{color:#fff;}
+.ch-detail-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--acc);}
+.ch-close{background:none;border:none;color:var(--t-lo);cursor:pointer;font-size:15px;line-height:1;padding:0 4px;}
+.ch-close:hover{color:var(--t-hi);}
 
 /* ── SYNC BAR ── */
-.sync-bar{display:flex;align-items:center;gap:10px;padding:9px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,215,0,0.15);border-radius:4px;margin-bottom:16px;flex-wrap:wrap;}
-.sync-dot{width:8px;height:8px;border-radius:50%;background:#444;display:inline-block;margin-right:4px;flex-shrink:0;}
-.sync-dot.ok{background:#44ff88;box-shadow:0 0 5px #44ff88;}
-.sync-dot.err{background:#ff4444;box-shadow:0 0 5px #ff4444;}
-.sync-dot.spin{background:#ffd700;animation:blink 1s infinite;}
+.sync-bar{display:flex;align-items:center;gap:10px;padding:9px 14px;background:rgba(var(--ink-rgb),0.03);border:1px solid rgba(var(--acc-rgb),0.15);border-radius:4px;margin-bottom:16px;flex-wrap:wrap;}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--t-faint2);display:inline-block;margin-right:4px;flex-shrink:0;}
+.sync-dot.ok{background:var(--good);box-shadow:0 0 5px var(--good);}
+.sync-dot.err{background:var(--bad);box-shadow:0 0 5px var(--bad);}
+.sync-dot.spin{background:var(--acc);animation:blink 1s infinite;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 .sync-status{font-size:11px;flex:1;}
-.btn-sm{padding:5px 12px;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;border-radius:3px;cursor:pointer;border:1px solid #ffd700;background:rgba(255,215,0,0.08);color:#ffd700;transition:all .2s;white-space:nowrap;}
-.btn-sm:hover{background:rgba(255,215,0,0.2);}
-.btn-sm.grey{border-color:#666;color:#888;background:rgba(255,255,255,0.04);}
-.btn-sm.grey:hover{background:rgba(255,255,255,0.08);}
+.btn-sm{padding:5px 12px;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;border-radius:3px;cursor:pointer;border:1px solid var(--acc);background:rgba(var(--acc-rgb),0.08);color:var(--acc);transition:all .2s;white-space:nowrap;}
+.btn-sm:hover{background:rgba(var(--acc-rgb),0.2);}
+.btn-sm.grey{border-color:var(--t-faint);color:var(--t-lo);background:rgba(var(--ink-rgb),0.04);}
+.btn-sm.grey:hover{background:rgba(var(--ink-rgb),0.08);}
 
 /* ── BADGES ── */
 .badges{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;}
 .badge{display:inline-block;padding:1px 6px;border-radius:2px;font-size:9px;font-weight:700;letter-spacing:.4px;}
-.b-skill{background:rgba(255,215,0,.12);color:#ffd700;border:1px solid rgba(255,215,0,.28);}
-.b-prim{background:rgba(0,210,100,.14);color:#55ff99;border:1px solid rgba(0,210,100,.3);}
-.b-alt{background:rgba(80,140,255,.14);color:#99bbff;border:1px solid rgba(80,140,255,.3);}
-.b-cert{background:rgba(255,140,0,.14);color:#ffaa44;border:1px solid rgba(255,140,0,.3);}
-.b-vacant{background:rgba(255,80,80,.14);color:#ff9999;border:1px solid rgba(255,80,80,.3);}
+.b-skill{background:rgba(var(--acc-rgb),.12);color:var(--acc);border:1px solid rgba(var(--acc-rgb),.28);}
+.b-prim{background:rgba(var(--good-rgb),.14);color:var(--good);border:1px solid rgba(var(--good-rgb),.3);}
+.b-alt{background:rgba(var(--info-rgb),.14);color:var(--info);border:1px solid rgba(var(--info-rgb),.3);}
+.b-cert{background:rgba(var(--warn-rgb),.14);color:var(--warn);border:1px solid rgba(var(--warn-rgb),.3);}
+.b-vacant{background:rgba(var(--bad-rgb),.14);color:var(--bad);border:1px solid rgba(var(--bad-rgb),.3);}
 
 /* ── HIERARCHY ── */
-.xnco-strip{display:flex;gap:20px;padding:10px 16px;background:rgba(255,215,0,0.05);border:1px solid rgba(255,215,0,.18);border-radius:4px;margin-bottom:16px;flex-wrap:wrap;}
-.xnco-label{font-size:10px;color:#ffd700;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;}
-.xnco-name{font-size:13px;font-weight:600;color:#fff;}
-.acting-banner{font-size:10px;color:#ff9999;background:rgba(255,100,100,.08);border-radius:3px;padding:3px 6px;margin-top:5px;}
+.xnco-strip{display:flex;gap:20px;padding:10px 16px;background:rgba(var(--acc-rgb),0.05);border:1px solid rgba(var(--acc-rgb),.18);border-radius:4px;margin-bottom:16px;flex-wrap:wrap;}
+.xnco-label{font-size:10px;color:var(--acc);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;}
+.xnco-name{font-size:13px;font-weight:600;color:var(--t-hi);}
+.acting-banner{font-size:10px;color:var(--bad);background:rgba(var(--bad-rgb),.08);border-radius:3px;padding:3px 6px;margin-top:5px;}
 /* ── Org chart ───────────────────────────────────────────────────────────────
    Top-down boxes and lines. Each <li> draws the half-bar to its own side plus
    the drop into its box; :only-child skips the bar and drops straight down.
    Nested <ul> draws the drop out of the parent. Pure CSS — the tree is just a
    nested list, so drag/drop and the click-to-edit handlers are untouched. */
-.org{--line:rgba(255,215,0,.4);overflow-x:auto;padding:4px 0 8px;}
+.org{--line:rgba(var(--acc-rgb),.4);overflow-x:auto;padding:4px 0 8px;}
 .org ul{display:flex;justify-content:center;position:relative;padding-top:26px;list-style:none;margin:0;}
 .org li{position:relative;padding:26px 6px 0;display:flex;flex-direction:column;align-items:center;list-style:none;}
 .org li::before,.org li::after{content:'';position:absolute;top:0;right:50%;width:50%;height:26px;border-top:2px solid var(--line);}
@@ -156,85 +171,85 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
 .org ul.omembers .onode{min-width:190px;text-align:left;}
 .org ul.omembers .onode .badges,.org ul.omembers .onode .node-actions{justify-content:flex-start;}
 /* nodes */
-.onode{position:relative;background:rgba(255,255,255,.03);border:1px solid rgba(255,215,0,.2);border-radius:4px;padding:9px 11px;min-width:158px;max-width:210px;text-align:center;cursor:pointer;transition:all .15s;}
-.onode:hover{background:rgba(255,255,255,.07);border-color:#ffd700;}
-.onode .otitle{font-size:9px;color:#ffd700;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;}
-.onode .oname{font-size:12px;font-weight:600;color:#e8e8e8;line-height:1.3;}
+.onode{position:relative;background:rgba(var(--ink-rgb),.03);border:1px solid rgba(var(--acc-rgb),.2);border-radius:4px;padding:9px 11px;min-width:158px;max-width:210px;text-align:center;cursor:pointer;transition:all .15s;}
+.onode:hover{background:rgba(var(--ink-rgb),.07);border-color:var(--acc);}
+.onode .otitle{font-size:9px;color:var(--acc);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;}
+.onode .oname{font-size:12px;font-weight:600;color:var(--t-hi);line-height:1.3;}
 .onode .badges{justify-content:center;margin-top:4px;}
-.onode.cmdr,.onode.chief{background:linear-gradient(135deg,rgba(255,215,0,.14),rgba(255,215,0,.03));border:2px solid #ffd700;min-width:230px;}
-.onode.cmdr .oname,.onode.chief .oname{font-size:15px;font-weight:700;color:#fff;}
-.onode.team{background:linear-gradient(135deg,rgba(255,215,0,.08),rgba(255,215,0,.02));border:2px solid rgba(255,215,0,.3);}
-.onode.team .oname{color:#ffd700;font-size:13px;font-weight:700;}
-.onode.vacant{background:rgba(255,100,100,.07);border-color:rgba(255,100,100,.4);}
-.onode.vacant .oname{color:#ff9999;font-style:italic;}
+.onode.cmdr,.onode.chief{background:linear-gradient(135deg,rgba(var(--acc-rgb),.14),rgba(var(--acc-rgb),.03));border:2px solid var(--acc);min-width:230px;}
+.onode.cmdr .oname,.onode.chief .oname{font-size:15px;font-weight:700;color:var(--t-hi);}
+.onode.team{background:linear-gradient(135deg,rgba(var(--acc-rgb),.08),rgba(var(--acc-rgb),.02));border:2px solid rgba(var(--acc-rgb),.3);}
+.onode.team .oname{color:var(--acc);font-size:13px;font-weight:700;}
+.onode.vacant{background:rgba(var(--bad-rgb),.07);border-color:rgba(var(--bad-rgb),.4);}
+.onode.vacant .oname{color:var(--bad);font-style:italic;}
 .onode .node-actions{justify-content:center;margin-top:6px;}
 .node-actions{display:flex;gap:5px;flex-wrap:wrap;}
-.node-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,215,0,.25);color:#ffd700;font-size:9px;font-weight:700;letter-spacing:.5px;padding:2px 6px;border-radius:3px;cursor:pointer;font-family:inherit;}
-.node-btn:hover{background:rgba(255,215,0,.2);}
-.node-btn.rm{border-color:rgba(255,100,100,.35);color:#ff9999;}
-.node-btn.rm:hover{background:rgba(255,100,100,.2);}
-.warn-bar{padding:9px 13px;border-radius:4px;margin-bottom:14px;font-size:12px;background:rgba(255,100,100,.11);border:1px solid rgba(255,100,100,.3);color:#ff9999;}
-.duties-summary{margin-top:22px;background:rgba(255,255,255,.02);border:1px solid rgba(255,215,0,.16);padding:16px;border-radius:4px;}
-.duties-summary h2{font-size:12px;color:#ffd700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;padding-bottom:7px;border-bottom:1px solid rgba(255,215,0,.16);}
+.node-btn{background:rgba(var(--ink-rgb),.06);border:1px solid rgba(var(--acc-rgb),.25);color:var(--acc);font-size:9px;font-weight:700;letter-spacing:.5px;padding:2px 6px;border-radius:3px;cursor:pointer;font-family:inherit;}
+.node-btn:hover{background:rgba(var(--acc-rgb),.2);}
+.node-btn.rm{border-color:rgba(var(--bad-rgb),.35);color:var(--bad);}
+.node-btn.rm:hover{background:rgba(var(--bad-rgb),.2);}
+.warn-bar{padding:9px 13px;border-radius:4px;margin-bottom:14px;font-size:12px;background:rgba(var(--bad-rgb),.11);border:1px solid rgba(var(--bad-rgb),.3);color:var(--bad);}
+.duties-summary{margin-top:22px;background:rgba(var(--ink-rgb),.02);border:1px solid rgba(var(--acc-rgb),.16);padding:16px;border-radius:4px;}
+.duties-summary h2{font-size:12px;color:var(--acc);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;padding-bottom:7px;border-bottom:1px solid rgba(var(--acc-rgb),.16);}
 .duties-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:9px;}
-.duty-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,215,0,.1);padding:10px 11px;border-radius:3px;}
-.duty-card-title{font-size:10px;color:#ffd700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.duty-card{background:rgba(var(--ink-rgb),.03);border:1px solid rgba(var(--acc-rgb),.1);padding:10px 11px;border-radius:3px;}
+.duty-card-title{font-size:10px;color:var(--acc);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
 .duty-row{display:flex;align-items:center;gap:7px;padding:2px 0;font-size:11px;}
-.duty-none{color:#444;font-style:italic;font-size:11px;}
+.duty-none{color:var(--t-faint2);font-style:italic;font-size:11px;}
 
 /* ── BULLETIN ── */
-.ai-note{font-size:11px;color:#a0a0a0;line-height:1.7;background:rgba(255,255,255,.04);padding:10px 13px;border-radius:3px;border-left:2px solid rgba(255,215,0,.3);margin-bottom:14px;}
+.ai-note{font-size:11px;color:var(--t-mid2);line-height:1.7;background:rgba(var(--ink-rgb),.04);padding:10px 13px;border-radius:3px;border-left:2px solid rgba(var(--acc-rgb),.3);margin-bottom:14px;}
 .req-list{display:flex;flex-direction:column;gap:8px;}
-.req-item{background:rgba(255,255,255,.04);border:1px solid rgba(255,215,0,.12);padding:12px 14px;border-radius:3px;display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;cursor:pointer;}
-.req-item:hover{border-color:rgba(255,215,0,.4);background:rgba(255,255,255,.07);}
-.req-title{font-size:13px;font-weight:600;color:#fff;}
-.req-meta{font-size:10px;color:#a0a0a0;margin-top:3px;}
-.req-badge{font-size:10px;padding:2px 8px;border-radius:2px;border:1px solid rgba(255,215,0,.3);color:#ffd700;white-space:nowrap;}
+.req-item{background:rgba(var(--ink-rgb),.04);border:1px solid rgba(var(--acc-rgb),.12);padding:12px 14px;border-radius:3px;display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;cursor:pointer;}
+.req-item:hover{border-color:rgba(var(--acc-rgb),.4);background:rgba(var(--ink-rgb),.07);}
+.req-title{font-size:13px;font-weight:600;color:var(--t-hi);}
+.req-meta{font-size:10px;color:var(--t-mid2);margin-top:3px;}
+.req-badge{font-size:10px;padding:2px 8px;border-radius:2px;border:1px solid rgba(var(--acc-rgb),.3);color:var(--acc);white-space:nowrap;}
 .req-actions{display:flex;gap:6px;}
-.icon-btn{background:none;border:none;color:#606060;cursor:pointer;font-size:14px;padding:2px 5px;border-radius:2px;transition:color .2s;}
-.icon-btn:hover{color:#ffd700;}
-.ai-thinking{display:none;text-align:center;padding:20px;color:#ffd700;font-size:13px;}
+.icon-btn{background:none;border:none;color:var(--t-faint);cursor:pointer;font-size:14px;padding:2px 5px;border-radius:2px;transition:color .2s;}
+.icon-btn:hover{color:var(--acc);}
+.ai-thinking{display:none;text-align:center;padding:20px;color:var(--acc);font-size:13px;}
 .ai-thinking.visible{display:block;}
-.spinner{display:inline-block;width:20px;height:20px;border:2px solid rgba(255,215,0,.3);border-top-color:#ffd700;border-radius:50%;animation:spin 1s linear infinite;margin-right:10px;vertical-align:middle;}
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid rgba(var(--acc-rgb),.3);border-top-color:var(--acc);border-radius:50%;animation:spin 1s linear infinite;margin-right:10px;vertical-align:middle;}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* ── TRACKER ── */
 .tracker-controls{display:flex;gap:10px;margin-bottom:14px;align-items:center;flex-wrap:wrap;}
-.tracker-filter{padding:6px 10px;font-size:11px;background:rgba(0,0,0,.3);border:1px solid rgba(255,215,0,.25);color:#e0e0e0;border-radius:3px;cursor:pointer;}
+.tracker-filter{padding:6px 10px;font-size:11px;background:var(--surface);border:1px solid rgba(var(--acc-rgb),.25);color:var(--t-hi);border-radius:3px;cursor:pointer;}
 .tracker-wrap{overflow-x:auto;}
 .tracker-table{border-collapse:collapse;min-width:100%;font-size:12px;}
-.tracker-table th{background:rgba(255,215,0,.12);color:#ffd700;font-size:10px;text-transform:uppercase;letter-spacing:.8px;padding:8px 10px;text-align:left;white-space:nowrap;border:1px solid rgba(255,215,0,.1);}
-.tracker-table td{padding:7px 10px;border:1px solid rgba(255,255,255,.06);vertical-align:middle;white-space:nowrap;}
-.tracker-table tr:hover td{background:rgba(255,255,255,.03);}
+.tracker-table th{background:rgba(var(--acc-rgb),.12);color:var(--acc);font-size:10px;text-transform:uppercase;letter-spacing:.8px;padding:8px 10px;text-align:left;white-space:nowrap;border:1px solid rgba(var(--acc-rgb),.1);}
+.tracker-table td{padding:7px 10px;border:1px solid rgba(var(--ink-rgb),.06);vertical-align:middle;white-space:nowrap;}
+.tracker-table tr:hover td{background:rgba(var(--ink-rgb),.03);}
 /* 22 people = a 2251px grid in a 1600px pane. Without pinning column 1 you scroll
    right to reach Ibalio and can no longer see which requirement you are clicking. */
-.tracker-table th:first-child,.tracker-table td:first-child{position:sticky;left:0;z-index:2;background:#141c2e;}
-.tracker-table th:first-child{z-index:3;background:#2a2a1a;}
-.req-name-cell{max-width:220px;white-space:normal;font-weight:600;color:#e0e0e0;}
-.req-apply{font-size:9px;color:#888;margin-top:2px;}
+.tracker-table th:first-child,.tracker-table td:first-child{position:sticky;left:0;z-index:2;background:var(--well);}
+.tracker-table th:first-child{z-index:3;background:rgba(var(--warn-rgb),.10);}
+.req-name-cell{max-width:220px;white-space:normal;font-weight:600;color:var(--t-hi);}
+.req-apply{font-size:9px;color:var(--t-lo);margin-top:2px;}
 .status-btn{padding:3px 9px;border-radius:2px;font-size:10px;font-weight:700;cursor:pointer;border:none;letter-spacing:.5px;transition:all .15s;min-width:70px;}
-.status-DUE{background:rgba(255,180,0,.18);color:#ffd700;border:1px solid rgba(255,180,0,.35);}
-.status-DONE{background:rgba(0,200,80,.18);color:#55ff99;border:1px solid rgba(0,200,80,.35);}
-.status-EXEMPT{background:rgba(100,100,100,.18);color:#888;border:1px solid rgba(100,100,100,.35);}
-.status-NA{background:rgba(255,255,255,.04);color:#444;border:1px solid rgba(255,255,255,.08);}
+.status-DUE{background:rgba(var(--warn-rgb),.18);color:var(--acc);border:1px solid rgba(var(--warn-rgb),.35);}
+.status-DONE{background:rgba(var(--good-rgb),.18);color:var(--good);border:1px solid rgba(var(--good-rgb),.35);}
+.status-EXEMPT{background:rgba(var(--ink-rgb),.18);color:var(--t-lo);border:1px solid rgba(var(--ink-rgb),.35);}
+.status-NA{background:rgba(var(--ink-rgb),.04);color:var(--t-faint2);border:1px solid rgba(var(--ink-rgb),.08);}
 /* Morning brief — sized to be read off a phone at arm's length, not skimmed. */
-.brief-team{border:1px solid rgba(255,215,0,.22);border-radius:4px;margin-bottom:16px;overflow:hidden;}
-.brief-team-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(255,215,0,.08);padding:10px 14px;font-weight:700;color:#ffd700;letter-spacing:1px;text-transform:uppercase;font-size:12px;}
-.brief-person{padding:10px 14px;border-top:1px solid rgba(255,255,255,.06);}
+.brief-team{border:1px solid rgba(var(--acc-rgb),.22);border-radius:4px;margin-bottom:16px;overflow:hidden;}
+.brief-team-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(var(--acc-rgb),.08);padding:10px 14px;font-weight:700;color:var(--acc);letter-spacing:1px;text-transform:uppercase;font-size:12px;}
+.brief-person{padding:10px 14px;border-top:1px solid rgba(var(--ink-rgb),.06);}
 .brief-name{font-weight:700;font-size:14px;margin-bottom:4px;}
 .brief-items{margin:0;padding-left:20px;}
 .brief-items li{font-size:13px;line-height:1.7;}
-.brief-items li.u1{color:#ffd700;}
-.brief-items li.u2{color:#ff6666;font-weight:700;}
-.brief-when{color:#777;font-size:11px;margin-left:8px;}
-.brief-clear{padding:10px 14px;color:#55ff99;font-size:13px;line-height:1.7;}
+.brief-items li.u1{color:var(--acc);}
+.brief-items li.u2{color:var(--bad);font-weight:700;}
+.brief-when{color:var(--t-faint);font-size:11px;margin-left:8px;}
+.brief-clear{padding:10px 14px;color:var(--good);font-size:13px;line-height:1.7;}
 @media print{
     /* Chart-only print (the PDF export). Everything except the wiring diagram
-       is hidden, and the dark theme is flipped so it does not eat a toner cartridge. */
+       is hidden, and every surface is forced to white paper / black ink. */
     body.print-chart .container>*:not(.org){display:none!important;}
     body.print-chart .org{overflow:visible!important;width:auto!important;}
     body.print-chart .org::before{content:attr(data-stamp);display:block;font-weight:700;margin-bottom:12px;}
-    body.print-chart .onode{background:#fff!important;color:#000!important;border-color:#666!important;}
+    body.print-chart .onode{background:#ffffff!important;color:#000!important;border-color:var(--t-faint)!important;}
     body.print-chart .oname,body.print-chart .otitle{color:#000!important;}
     body.print-chart .node-actions{display:none!important;}
     body.print-epb .container>*:not(#epbWrap){display:none!important;}
@@ -242,159 +257,159 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
     body.print-itp #tplMain>*:not(.section){display:none!important;}
     body.print-itp .section:not(#sec-itp){display:none!important;}
     body.print-itp #sec-itp>*:not(#itpOut){display:none!important;}
-    body.print-itp .mc{color:#000!important;background:#fff!important;white-space:pre-wrap;}
-    body.print-itp .itp-tbl th{background:#eee!important;color:#000!important;}
+    body.print-itp .mc{color:#000!important;background:#ffffff!important;white-space:pre-wrap;}
+    body.print-itp .itp-tbl th{background:#ffffff!important;color:#000!important;}
     body.print-itp .itp-tbl td{color:#000!important;}
     body.print-epb #epbWrap{overflow:visible!important;padding:0!important;}
     @page{size:landscape;margin:10mm;}
     .tab-nav,.flight-nav,.page-header button,#briefPlain,#tab-brief details{display:none!important;}
-    body{background:#fff!important;color:#000!important;}
-    .brief-team,.stat-card{border-color:#999!important;}
-    .brief-team-head,.page-title,.brief-items li.u1{color:#000!important;background:#eee!important;}
+    body{background:#ffffff!important;color:#000!important;}
+    .brief-team,.stat-card{border-color:var(--t-lo)!important;}
+    .brief-team-head,.page-title,.brief-items li.u1{color:#000!important;background:#ffffff!important;}
     .brief-items li.u2{color:#000!important;text-decoration:underline;}
     .brief-clear{color:#000!important;}
 }
 .itp-tbl{width:100%;border-collapse:collapse;margin:6px 0 14px;font-size:11px;}
-.itp-tbl th{text-align:left;background:rgba(255,215,0,.10);color:#ffd700;padding:5px 7px;border:1px solid rgba(255,215,0,.25);font-weight:700;}
-.itp-tbl td{padding:5px 7px;border:1px solid rgba(255,255,255,.12);vertical-align:top;color:#d8d8d8;}
-.itp-tbl td:nth-child(1){white-space:nowrap;color:#ffd700;}
+.itp-tbl th{text-align:left;background:rgba(var(--acc-rgb),.10);color:var(--acc);padding:5px 7px;border:1px solid rgba(var(--acc-rgb),.25);font-weight:700;}
+.itp-tbl td{padding:5px 7px;border:1px solid rgba(var(--ink-rgb),.12);vertical-align:top;color:var(--t-mid);}
+.itp-tbl td:nth-child(1){white-space:nowrap;color:var(--acc);}
 .itp-tbl td:nth-child(4){min-width:120px;}
-.prog-bar{height:4px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:3px;}
-.prog-fill{height:100%;background:#55ff99;border-radius:2px;transition:width .3s;}
-.tracker-empty{text-align:center;padding:40px;color:#555;font-size:13px;}
-.pct-label{font-size:10px;color:#888;margin-top:2px;}
+.prog-bar{height:4px;background:rgba(var(--ink-rgb),.08);border-radius:2px;margin-top:3px;}
+.prog-fill{height:100%;background:var(--good);border-radius:2px;transition:width .3s;}
+.tracker-empty{text-align:center;padding:40px;color:var(--t-faint2);font-size:13px;}
+.pct-label{font-size:10px;color:var(--t-lo);margin-top:2px;}
 
 /* ── MODALS ── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:1000;justify-content:center;align-items:center;padding:20px;}
 .modal-overlay.active{display:flex;}
-.modal-box{background:#0d1c35;border:2px solid #ffd700;padding:24px;border-radius:4px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;}
-.modal-box h3{color:#ffd700;margin-bottom:16px;text-transform:uppercase;letter-spacing:1px;font-size:13px;padding-bottom:9px;border-bottom:1px solid rgba(255,215,0,.18);}
+.modal-box{background:var(--surface);border:2px solid var(--acc);padding:24px;border-radius:4px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;}
+.modal-box h3{color:var(--acc);margin-bottom:16px;text-transform:uppercase;letter-spacing:1px;font-size:13px;padding-bottom:9px;border-bottom:1px solid rgba(var(--acc-rgb),.18);}
 .modal-btns{display:flex;gap:10px;margin-top:16px;}
 .modal-btns .btn{flex:1;}
 .duties-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
-.duty-form-row{display:flex;align-items:center;gap:8px;padding:5px 8px;background:rgba(255,255,255,.03);border-radius:3px;border:1px solid rgba(255,215,0,.07);}
-.duty-form-name{font-size:11px;color:#c0c0c0;flex:1;}
+.duty-form-row{display:flex;align-items:center;gap:8px;padding:5px 8px;background:rgba(var(--ink-rgb),.03);border-radius:3px;border:1px solid rgba(var(--acc-rgb),.07);}
+.duty-form-name{font-size:11px;color:var(--t-mid);flex:1;}
 .duty-form-sel{padding:2px 5px!important;font-size:11px!important;width:72px!important;flex-shrink:0;}
 
 /* footer */
-.footer{text-align:center;padding:16px 0;font-size:10px;color:#444;}
+.footer{text-align:center;padding:16px 0;font-size:10px;color:var(--t-faint2);}
 /* ── KPI TAB ── */
-.kpi-period-bar{display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,215,0,.15);border-radius:4px;margin-bottom:18px;flex-wrap:wrap;}
-.kpi-period-sel{padding:6px 10px;font-size:12px;background:rgba(0,0,0,.4);border:1px solid rgba(255,215,0,.3);color:#fff;border-radius:3px;cursor:pointer;}
+.kpi-period-bar{display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(var(--ink-rgb),.03);border:1px solid rgba(var(--acc-rgb),.15);border-radius:4px;margin-bottom:18px;flex-wrap:wrap;}
+.kpi-period-sel{padding:6px 10px;font-size:12px;background:var(--surface);border:1px solid rgba(var(--acc-rgb),.3);color:var(--t-hi);border-radius:3px;cursor:pointer;}
 .kpi-owner-section{margin-bottom:22px;}
-.kpi-owner-header{display:flex;align-items:center;gap:10px;padding:8px 14px;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.2);border-radius:4px 4px 0 0;border-bottom:2px solid rgba(255,215,0,.3);}
-.kpi-owner-name{font-size:13px;font-weight:700;color:#ffd700;text-transform:uppercase;letter-spacing:.8px;}
-.kpi-owner-role{font-size:11px;color:#a0a0a0;margin-left:auto;}
-.kpi-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;padding:12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,215,0,.1);border-top:none;border-radius:0 0 4px 4px;}
-.kpi-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:3px;padding:12px 14px;cursor:pointer;transition:all .15s;position:relative;}
-.kpi-card:hover{background:rgba(255,255,255,.08);border-color:rgba(255,215,0,.3);}
-.kpi-card.rag-G{border-left:3px solid #44cc77;}
-.kpi-card.rag-A{border-left:3px solid #ffaa00;}
-.kpi-card.rag-R{border-left:3px solid #ff4444;}
-.kpi-card.rag-N{border-left:3px solid #555;}
-.kpi-card-title{font-size:11px;color:#a0a0a0;margin-bottom:6px;line-height:1.4;}
-.kpi-card-value{font-size:22px;font-weight:700;color:#fff;margin-bottom:2px;}
-.kpi-card-value.pct::after{content:'%';font-size:14px;color:#a0a0a0;margin-left:2px;}
-.kpi-card-target{font-size:10px;color:#555;margin-bottom:4px;}
-.kpi-card-meta{font-size:11px;color:#c0c0c0;margin-top:4px;font-style:italic;}
+.kpi-owner-header{display:flex;align-items:center;gap:10px;padding:8px 14px;background:rgba(var(--acc-rgb),.08);border:1px solid rgba(var(--acc-rgb),.2);border-radius:4px 4px 0 0;border-bottom:2px solid rgba(var(--acc-rgb),.3);}
+.kpi-owner-name{font-size:13px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.8px;}
+.kpi-owner-role{font-size:11px;color:var(--t-mid2);margin-left:auto;}
+.kpi-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;padding:12px;background:rgba(var(--ink-rgb),.02);border:1px solid rgba(var(--acc-rgb),.1);border-top:none;border-radius:0 0 4px 4px;}
+.kpi-card{background:rgba(var(--ink-rgb),.04);border:1px solid rgba(var(--ink-rgb),.08);border-radius:3px;padding:12px 14px;cursor:pointer;transition:all .15s;position:relative;}
+.kpi-card:hover{background:rgba(var(--ink-rgb),.08);border-color:rgba(var(--acc-rgb),.3);}
+.kpi-card.rag-G{border-left:3px solid var(--good);}
+.kpi-card.rag-A{border-left:3px solid var(--warn);}
+.kpi-card.rag-R{border-left:3px solid var(--bad);}
+.kpi-card.rag-N{border-left:3px solid var(--t-faint2);}
+.kpi-card-title{font-size:11px;color:var(--t-mid2);margin-bottom:6px;line-height:1.4;}
+.kpi-card-value{font-size:22px;font-weight:700;color:var(--t-hi);margin-bottom:2px;}
+.kpi-card-value.pct::after{content:'%';font-size:14px;color:var(--t-mid2);margin-left:2px;}
+.kpi-card-target{font-size:10px;color:var(--t-faint2);margin-bottom:4px;}
+.kpi-card-meta{font-size:11px;color:var(--t-mid);margin-top:4px;font-style:italic;}
 .kpi-trend{position:absolute;top:10px;right:10px;font-size:14px;}
-.kpi-autocalc{background:linear-gradient(135deg,rgba(255,215,0,.08),rgba(255,215,0,.02));border:2px solid rgba(255,215,0,.25);border-radius:4px;padding:14px;margin-bottom:18px;}
-.kpi-autocalc-title{font-size:10px;color:#ffd700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;}
+.kpi-autocalc{background:linear-gradient(135deg,rgba(var(--acc-rgb),.08),rgba(var(--acc-rgb),.02));border:2px solid rgba(var(--acc-rgb),.25);border-radius:4px;padding:14px;margin-bottom:18px;}
+.kpi-autocalc-title{font-size:10px;color:var(--acc);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;}
 .kpi-autocalc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;}
-.autocalc-item{background:rgba(255,255,255,.04);padding:10px 12px;border-radius:3px;border-left:3px solid rgba(255,215,0,.3);}
-.autocalc-label{font-size:10px;color:#a0a0a0;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;}
-.autocalc-value{font-size:20px;font-weight:700;color:#ffd700;}
-.autocalc-sub{font-size:10px;color:#555;margin-top:2px;}
+.autocalc-item{background:rgba(var(--ink-rgb),.04);padding:10px 12px;border-radius:3px;border-left:3px solid rgba(var(--acc-rgb),.3);}
+.autocalc-label{font-size:10px;color:var(--t-mid2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;}
+.autocalc-value{font-size:20px;font-weight:700;color:var(--acc);}
+.autocalc-sub{font-size:10px;color:var(--t-faint2);margin-top:2px;}
 /* KPI Entry Modal */
 .kpi-entry-grid{display:flex;flex-direction:column;gap:10px;}
-.kpi-entry-field{background:rgba(255,255,255,.03);border:1px solid rgba(255,215,0,.1);border-radius:3px;padding:10px 12px;}
-.kpi-entry-label{font-size:10px;color:#ffd700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;}
+.kpi-entry-field{background:rgba(var(--ink-rgb),.03);border:1px solid rgba(var(--acc-rgb),.1);border-radius:3px;padding:10px 12px;}
+.kpi-entry-label{font-size:10px;color:var(--acc);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;}
 /* ── DRAG & DROP ── */
 .onode[draggable]{cursor:grab;}
 .onode[draggable]:active{cursor:grabbing;}
-.drag-over{border-color:#ffd700!important;background:rgba(255,215,0,.15)!important;transform:scale(1.02);}
+.drag-over{border-color:var(--acc)!important;background:rgba(var(--acc-rgb),.15)!important;transform:scale(1.02);}
 .drag-source{opacity:.35;}
 /* ── PERSON VIEW ── */
 .view-toggle{display:flex;gap:8px;margin-bottom:14px;}
-.view-btn{padding:7px 16px;font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;border-radius:3px;cursor:pointer;border:1px solid rgba(255,215,0,.3);background:transparent;color:#606060;transition:all .2s;}
-.view-btn.active{border-color:#ffd700;color:#ffd700;background:rgba(255,215,0,.1);}
-.person-selector{padding:8px 12px;font-size:12px;background:rgba(0,0,0,.4);border:1px solid rgba(255,215,0,.3);color:#fff;border-radius:3px;min-width:220px;}
+.view-btn{padding:7px 16px;font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;border-radius:3px;cursor:pointer;border:1px solid rgba(var(--acc-rgb),.3);background:transparent;color:var(--t-faint);transition:all .2s;}
+.view-btn.active{border-color:var(--acc);color:var(--acc);background:rgba(var(--acc-rgb),.1);}
+.person-selector{padding:8px 12px;font-size:12px;background:var(--surface);border:1px solid rgba(var(--acc-rgb),.3);color:var(--t-hi);border-radius:3px;min-width:220px;}
 .person-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-top:14px;}
-.person-req-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:4px;padding:12px 14px;border-left:3px solid #555;}
-.person-req-card.sDONE{border-left-color:#44cc77;}
-.person-req-card.sDUE{border-left-color:#ffd700;}
-.person-req-card.sEXEMPT{border-left-color:#555;}
-.person-req-title{font-size:13px;font-weight:600;color:#e0e0e0;margin-bottom:4px;}
-.person-req-meta{font-size:10px;color:#808080;margin-bottom:8px;}
-.person-summary{display:flex;gap:16px;padding:12px 16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,215,0,.15);border-radius:4px;margin-bottom:14px;font-size:12px;flex-wrap:wrap;}
+.person-req-card{background:rgba(var(--ink-rgb),.04);border:1px solid rgba(var(--ink-rgb),.08);border-radius:4px;padding:12px 14px;border-left:3px solid var(--t-faint2);}
+.person-req-card.sDONE{border-left-color:var(--good);}
+.person-req-card.sDUE{border-left-color:var(--acc);}
+.person-req-card.sEXEMPT{border-left-color:var(--t-faint2);}
+.person-req-title{font-size:13px;font-weight:600;color:var(--t-hi);margin-bottom:4px;}
+.person-req-meta{font-size:10px;color:var(--t-lo);margin-bottom:8px;}
+.person-summary{display:flex;gap:16px;padding:12px 16px;background:rgba(var(--ink-rgb),.03);border:1px solid rgba(var(--acc-rgb),.15);border-radius:4px;margin-bottom:14px;font-size:12px;flex-wrap:wrap;}
 .person-summary-item{display:flex;flex-direction:column;gap:2px;}
 .person-summary-val{font-size:20px;font-weight:700;}
 /* ── KPI MANAGE ── */
-.kpi-edit-btn{background:none;border:none;color:#606060;cursor:pointer;font-size:12px;padding:2px 6px;border-radius:2px;transition:color .2s;margin-left:4px;}
-.kpi-edit-btn:hover{color:#ffd700;}
-.kpi-del-btn{background:none;border:none;color:#444;cursor:pointer;font-size:11px;padding:2px 5px;border-radius:2px;transition:color .2s;position:absolute;top:6px;right:6px;}
-.kpi-del-btn:hover{color:#ff6666;}
+.kpi-edit-btn{background:none;border:none;color:var(--t-faint);cursor:pointer;font-size:12px;padding:2px 6px;border-radius:2px;transition:color .2s;margin-left:4px;}
+.kpi-edit-btn:hover{color:var(--acc);}
+.kpi-del-btn{background:none;border:none;color:var(--t-faint2);cursor:pointer;font-size:11px;padding:2px 5px;border-radius:2px;transition:color .2s;position:absolute;top:6px;right:6px;}
+.kpi-del-btn:hover{color:var(--bad);}
 .kpi-add-row{display:flex;justify-content:center;padding:8px;grid-column:1/-1;}
 /* ── PROMOTIONS ── */
 .promo-team-section{margin-bottom:20px;}
-.promo-team-header{font-size:11px;color:#ffd700;text-transform:uppercase;letter-spacing:1.5px;padding:7px 14px;background:rgba(255,215,0,.07);border:1px solid rgba(255,215,0,.2);border-radius:4px 4px 0 0;}
-.promo-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;padding:10px;background:rgba(255,255,255,.02);border:1px solid rgba(255,215,0,.1);border-top:none;border-radius:0 0 4px 4px;}
-.promo-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-left:3px solid #555;border-radius:3px;padding:10px 12px;cursor:pointer;transition:border-color .15s,background .15s;}
-.promo-card:hover{background:rgba(255,255,255,.08);border-color:rgba(255,215,0,.4);}
-.promo-req-row{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;color:#c0c0c0;border-bottom:1px solid rgba(255,255,255,.05);}
+.promo-team-header{font-size:11px;color:var(--acc);text-transform:uppercase;letter-spacing:1.5px;padding:7px 14px;background:rgba(var(--acc-rgb),.07);border:1px solid rgba(var(--acc-rgb),.2);border-radius:4px 4px 0 0;}
+.promo-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;padding:10px;background:rgba(var(--ink-rgb),.02);border:1px solid rgba(var(--acc-rgb),.1);border-top:none;border-radius:0 0 4px 4px;}
+.promo-card{background:rgba(var(--ink-rgb),.04);border:1px solid rgba(var(--ink-rgb),.07);border-left:3px solid var(--t-faint2);border-radius:3px;padding:10px 12px;cursor:pointer;transition:border-color .15s,background .15s;}
+.promo-card:hover{background:rgba(var(--ink-rgb),.08);border-color:rgba(var(--acc-rgb),.4);}
+.promo-req-row{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;color:var(--t-mid);border-bottom:1px solid rgba(var(--ink-rgb),.05);}
 .promo-req-row input{width:auto;flex-shrink:0;cursor:pointer;}
-.promo-req-row label{margin:0;font-size:12px;color:#c0c0c0;text-transform:none;letter-spacing:0;cursor:pointer;}
+.promo-req-row label{margin:0;font-size:12px;color:var(--t-mid);text-transform:none;letter-spacing:0;cursor:pointer;}
 .rec-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px;}
-.rec-opt{padding:6px 12px;border-radius:2px;font-size:10px;font-weight:700;cursor:pointer;border:1px solid rgba(255,255,255,.12);background:transparent;color:#606060;text-transform:uppercase;letter-spacing:.5px;transition:all .15s;}
-.rec-opt:hover{color:#a0a0a0;border-color:rgba(255,255,255,.25);}
-.rec-opt.sel-ready{border-color:#44cc77;color:#44cc77;background:rgba(68,204,119,.14);}
-.rec-opt.sel-not_ready{border-color:#ff4444;color:#ff6666;background:rgba(255,68,68,.14);}
-.rec-opt.sel-not_eligible{border-color:#777;color:#999;background:rgba(120,120,120,.14);}
-.rec-opt.sel-pending{border-color:#ffd700;color:#ffd700;background:rgba(255,215,0,.14);}
-.promo-card-name{font-size:13px;font-weight:600;color:#e0e0e0;margin-bottom:2px;}
-.promo-card-rank{font-size:10px;color:#808080;margin-bottom:5px;letter-spacing:.5px;}
+.rec-opt{padding:6px 12px;border-radius:2px;font-size:10px;font-weight:700;cursor:pointer;border:1px solid rgba(var(--ink-rgb),.12);background:transparent;color:var(--t-faint);text-transform:uppercase;letter-spacing:.5px;transition:all .15s;}
+.rec-opt:hover{color:var(--t-mid2);border-color:rgba(var(--ink-rgb),.25);}
+.rec-opt.sel-ready{border-color:var(--good);color:var(--good);background:rgba(var(--good-rgb),.14);}
+.rec-opt.sel-not_ready{border-color:var(--bad);color:var(--bad);background:rgba(var(--bad-rgb),.14);}
+.rec-opt.sel-not_eligible{border-color:var(--t-faint);color:var(--t-lo);background:rgba(var(--ink-rgb),.14);}
+.rec-opt.sel-pending{border-color:var(--acc);color:var(--acc);background:rgba(var(--acc-rgb),.14);}
+.promo-card-name{font-size:13px;font-weight:600;color:var(--t-hi);margin-bottom:2px;}
+.promo-card-rank{font-size:10px;color:var(--t-lo);margin-bottom:5px;letter-spacing:.5px;}
 .promo-card-status{font-size:11px;font-weight:700;letter-spacing:.8px;margin-bottom:5px;}
-.promo-req-bar{height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:2px;}
+.promo-req-bar{height:3px;background:rgba(var(--ink-rgb),.08);border-radius:2px;margin-top:2px;}
 .promo-req-fill{height:100%;border-radius:2px;transition:width .3s;}
-.promo-reason{font-size:10px;color:#ff9999;background:rgba(255,80,80,.08);border-left:2px solid rgba(255,80,80,.4);padding:4px 8px;border-radius:2px;margin-top:6px;}
+.promo-reason{font-size:10px;color:var(--bad);background:rgba(var(--bad-rgb),.08);border-left:2px solid rgba(var(--bad-rgb),.4);padding:4px 8px;border-radius:2px;margin-top:6px;}
 
 /* ── ATTENDANCE ── */
-.att-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,215,0,.15);border-radius:4px;margin-bottom:16px;flex-wrap:wrap;}
+.att-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(var(--ink-rgb),.03);border:1px solid rgba(var(--acc-rgb),.15);border-radius:4px;margin-bottom:16px;flex-wrap:wrap;}
 .att-team{margin-bottom:16px;}
-.att-team-head{font-size:11px;color:#ffd700;text-transform:uppercase;letter-spacing:1.5px;padding:7px 14px;background:rgba(255,215,0,.07);border:1px solid rgba(255,215,0,.2);border-radius:4px 4px 0 0;}
-.att-rows{border:1px solid rgba(255,215,0,.1);border-top:none;border-radius:0 0 4px 4px;background:rgba(255,255,255,.02);}
-.att-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-top:1px solid rgba(255,255,255,.05);flex-wrap:wrap;}
+.att-team-head{font-size:11px;color:var(--acc);text-transform:uppercase;letter-spacing:1.5px;padding:7px 14px;background:rgba(var(--acc-rgb),.07);border:1px solid rgba(var(--acc-rgb),.2);border-radius:4px 4px 0 0;}
+.att-rows{border:1px solid rgba(var(--acc-rgb),.1);border-top:none;border-radius:0 0 4px 4px;background:rgba(var(--ink-rgb),.02);}
+.att-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-top:1px solid rgba(var(--ink-rgb),.05);flex-wrap:wrap;}
 .att-row:first-child{border-top:none;}
-.att-who{flex:1;min-width:140px;font-size:13px;color:#e0e0e0;}
-.att-who span{font-size:10px;color:#ffd700;font-weight:700;letter-spacing:.5px;margin-right:6px;}
+.att-who{flex:1;min-width:140px;font-size:13px;color:var(--t-hi);}
+.att-who span{font-size:10px;color:var(--acc);font-weight:700;letter-spacing:.5px;margin-right:6px;}
 /* 44px tall — thumb-sized so this is usable one-handed on a phone at the counter. */
-.att-btn{min-height:38px;min-width:104px;padding:8px 14px;border-radius:3px;font-size:11px;font-weight:700;letter-spacing:.8px;cursor:pointer;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:#808080;transition:all .15s;}
-.att-PRESENT{background:rgba(0,200,80,.18);color:#55ff99;border-color:rgba(0,200,80,.4);}
-.att-ABSENT{background:rgba(255,68,68,.18);color:#ff8888;border-color:rgba(255,68,68,.4);}
-.att-EXCUSED{background:rgba(255,180,0,.18);color:#ffd700;border-color:rgba(255,180,0,.4);}
-.att-RST{background:rgba(80,140,255,.18);color:#99bbff;border-color:rgba(80,140,255,.4);}
-.att-TDY{background:rgba(180,120,255,.18);color:#c9a4ff;border-color:rgba(180,120,255,.4);}
-.att-LEAVE{background:rgba(120,120,120,.2);color:#aaa;border-color:rgba(140,140,140,.4);}
+.att-btn{min-height:38px;min-width:104px;padding:8px 14px;border-radius:3px;font-size:11px;font-weight:700;letter-spacing:.8px;cursor:pointer;border:1px solid rgba(var(--ink-rgb),.12);background:rgba(var(--ink-rgb),.04);color:var(--t-lo);transition:all .15s;}
+.att-PRESENT{background:rgba(var(--good-rgb),.18);color:var(--good);border-color:rgba(var(--good-rgb),.4);}
+.att-ABSENT{background:rgba(var(--bad-rgb),.18);color:var(--bad);border-color:rgba(var(--bad-rgb),.4);}
+.att-EXCUSED{background:rgba(var(--warn-rgb),.18);color:var(--acc);border-color:rgba(var(--warn-rgb),.4);}
+.att-RST{background:rgba(var(--info-rgb),.18);color:var(--info);border-color:rgba(var(--info-rgb),.4);}
+.att-TDY{background:rgba(var(--alt-rgb),.18);color:var(--alt);border-color:rgba(var(--alt-rgb),.4);}
+.att-LEAVE{background:rgba(var(--ink-rgb),.2);color:var(--t-mid2);border-color:rgba(var(--ink-rgb),.4);}
 
 /* ── TEMPLATE LIBRARY ── */
 .tpl-list{display:flex;flex-direction:column;gap:6px;}
-.tpl-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,215,0,.12);border-radius:3px;}
-.tpl-link{flex:1;min-width:0;color:#7fc4ff;font-size:13px;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.tpl-link:hover{color:#a9d9ff;text-decoration:underline;}
-.tpl-note{font-size:10px;color:#666;}
+.tpl-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(var(--ink-rgb),.04);border:1px solid rgba(var(--acc-rgb),.12);border-radius:3px;}
+.tpl-link{flex:1;min-width:0;color:var(--info);font-size:13px;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tpl-link:hover{color:var(--info);text-decoration:underline;}
+.tpl-note{font-size:10px;color:var(--t-faint);}
 
 /* ── REFERENCE LINKS (top strip, every tab) ── */
 
 /* ── PROJECTED GAINS & LOSSES ── */
 .flow-table{width:100%;border-collapse:collapse;font-size:12px;}
-.flow-table th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#808080;padding:6px 8px;border-bottom:1px solid rgba(255,215,0,.15);}
-.flow-table td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.05);color:#d0d0d0;}
+.flow-table th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--t-lo);padding:6px 8px;border-bottom:1px solid rgba(var(--acc-rgb),.15);}
+.flow-table td{padding:7px 8px;border-bottom:1px solid rgba(var(--ink-rgb),.05);color:var(--t-mid);}
 .flow-tag{font-size:10px;font-weight:700;letter-spacing:1px;padding:2px 7px;border-radius:3px;}
-.flow-GAIN{background:rgba(0,210,100,.15);color:#55ff99;border:1px solid rgba(0,210,100,.35);}
-.flow-LOSS{background:rgba(255,70,70,.15);color:#ff8888;border:1px solid rgba(255,70,70,.35);}
-.flow-soon{color:#ffd700;font-weight:700;}
-.flow-act{background:none;border:none;color:#666;cursor:pointer;font-size:13px;padding:0 4px;}
-.flow-act:hover{color:#ffd700;}
+.flow-GAIN{background:rgba(var(--good-rgb),.15);color:var(--good);border:1px solid rgba(var(--good-rgb),.35);}
+.flow-LOSS{background:rgba(var(--bad-rgb),.15);color:var(--bad);border:1px solid rgba(var(--bad-rgb),.35);}
+.flow-soon{color:var(--acc);font-weight:700;}
+.flow-act{background:none;border:none;color:var(--t-faint);cursor:pointer;font-size:13px;padding:0 4px;}
+.flow-act:hover{color:var(--acc);}
 
 /* ── PHONE / TABLET ──
    The tracker grid is inherently wide (people × requirements) so it keeps its
@@ -434,7 +449,7 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
 <div class="modal-overlay" id="loginGate" style="z-index:2000">
   <div class="modal" style="max-width:380px">
     <div class="modal-header"><div class="modal-title">39 APS Tracker</div></div>
-    <div style="padding:6px 0 14px;font-size:12px;color:#a0a0a0;">Passenger Service Flight · sign in to load the roster</div>
+    <div style="padding:6px 0 14px;font-size:12px;color:var(--t-mid2);">Passenger Service Flight · sign in to load the roster</div>
     <div class="form-group">
       <label>Your name</label>
       <!-- Options are generated from USER_LABELS so the sign-in list cannot drift
@@ -443,9 +458,9 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
       <select id="loginUser"><option value="">— select —</option></select>
     </div>
     <div class="form-group"><label>PIN</label><input id="loginPin" type="password" inputmode="numeric" placeholder="••••"></div>
-    <div id="loginErr" style="font-size:12px;color:#ff6b6b;min-height:18px;"></div>
+    <div id="loginErr" style="font-size:12px;color:var(--bad);min-height:18px;"></div>
     <div class="modal-actions"><button class="btn" onclick="doLogin()">Sign in</button></div>
-    <div style="font-size:11px;color:#666;margin-top:10px;">Stays signed in on this device until you sign out.</div>
+    <div style="font-size:11px;color:var(--t-faint);margin-top:10px;">Stays signed in on this device until you sign out.</div>
   </div>
 </div>
 
@@ -493,10 +508,10 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
     <div style="padding-top:6px"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
         <div>
-            <div style="font-size:22px;font-weight:700;color:#fff;letter-spacing:1px;">39 APS Tracker</div>
-            <div style="font-size:10px;color:#606060;text-transform:uppercase;letter-spacing:1.5px;margin-top:2px;">Manning & Special Duties Dashboard</div>
+            <div style="font-size:22px;font-weight:700;color:var(--t-hi);letter-spacing:1px;">39 APS Tracker</div>
+            <div style="font-size:10px;color:var(--t-faint);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px;">Manning & Special Duties Dashboard</div>
         </div>
-        <div style="font-size:11px;color:#444;">Saved: <span id="lastSaved">—</span></div>
+        <div style="font-size:11px;color:var(--t-faint2);">Saved: <span id="lastSaved">—</span></div>
     </div>
 
     <div class="sync-bar">
@@ -505,7 +520,7 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
         <button class="btn-sm" onclick="syncSheets()">⟳ Sync</button>
         <button class="btn-sm" onclick="pushAllToSheet()">⇧ Push to Sheet</button>
         <button class="btn-sm grey" onclick="openSettings()">⚙ Sheet Settings</button>
-        <span style="margin-left:auto;font-size:11px;color:#a0a0a0;">Signed in: <strong id="whoami" style="color:#ffd700"></strong></span>
+        <span style="margin-left:auto;font-size:11px;color:var(--t-mid2);">Signed in: <strong id="whoami" style="color:var(--acc)"></strong></span>
         <button class="btn-sm grey" onclick="signOut()">Sign out</button>
     </div>
 
@@ -567,19 +582,19 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
     </div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
-        <div class="card" style="border-color:rgba(0,210,100,.25);cursor:default;">
-            <div style="font-size:12px;color:#55ff99;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">⚡ Option 1 — Auto-Parse</div>
-            <div style="font-size:12px;color:#a0a0a0;line-height:1.6;">Paste your bulletin below and click <strong style="color:#fff">Auto-Parse</strong>. Runs locally — no internet, no keys. Scans for bullet points, requirements, deadlines, and rank applicability automatically.</div>
+        <div class="card" style="border-color:rgba(var(--good-rgb),.25);cursor:default;">
+            <div style="font-size:12px;color:var(--good);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">⚡ Option 1 — Auto-Parse</div>
+            <div style="font-size:12px;color:var(--t-mid2);line-height:1.6;">Paste your bulletin below and click <strong style="color:var(--t-hi)">Auto-Parse</strong>. Runs locally — no internet, no keys. Scans for bullet points, requirements, deadlines, and rank applicability automatically.</div>
         </div>
-        <div class="card" style="border-color:rgba(255,215,0,.25);cursor:default;">
-            <div style="font-size:12px;color:#ffd700;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">📋 Option 2 — Import from Claude Chat</div>
-            <div style="font-size:12px;color:#a0a0a0;line-height:1.6;">Paste your bulletin into <strong style="color:#fff">this Claude chat window</strong> and ask it to extract requirements as JSON. Copy the result, click <strong style="color:#fff">Import from Claude</strong> and paste. Uses your existing Claude Pro — no extra cost.</div>
+        <div class="card" style="border-color:rgba(var(--acc-rgb),.25);cursor:default;">
+            <div style="font-size:12px;color:var(--acc);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">📋 Option 2 — Import from Claude Chat</div>
+            <div style="font-size:12px;color:var(--t-mid2);line-height:1.6;">Paste your bulletin into <strong style="color:var(--t-hi)">this Claude chat window</strong> and ask it to extract requirements as JSON. Copy the result, click <strong style="color:var(--t-hi)">Import from Claude</strong> and paste. Uses your existing Claude Pro — no extra cost.</div>
         </div>
     </div>
 
     <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
-            <div style="font-size:12px;color:#ffd700;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Bulletin Text</div>
+            <div style="font-size:12px;color:var(--acc);font-weight:600;text-transform:uppercase;letter-spacing:1px;">Bulletin Text</div>
             <button class="btn-sm" onclick="document.getElementById('bulletinFile').click()">📁 Upload .txt</button>
         </div>
         <input type="file" id="bulletinFile" accept=".txt" style="display:none" onchange="loadBulletin(event)">
@@ -597,7 +612,7 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
     </div>
 
     <div id="reqSection" style="display:none;">
-        <div class="section-label">Requirements (<span id="reqCount">0</span>) — Click any to edit · <span style="color:#a0a0a0;font-weight:400;text-transform:none;letter-spacing:0">Review carefully, especially applicability</span></div>
+        <div class="section-label">Requirements (<span id="reqCount">0</span>) — Click any to edit · <span style="color:var(--t-mid2);font-weight:400;text-transform:none;letter-spacing:0">Review carefully, especially applicability</span></div>
         <div class="req-list" id="reqList"></div>
     </div>
 </div>
@@ -703,7 +718,7 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
         <div class="form-group"><label>Name</label><input id="flowName" placeholder="Name, or TBD"></div>
     </div>
     <div class="form-group"><label>Note</label><input id="flowNote" placeholder="Reason / gaining unit / source — optional"></div>
-    <div id="flowMsg" style="font-size:12px;color:#ff9999;min-height:16px;"></div>
+    <div id="flowMsg" style="font-size:12px;color:var(--bad);min-height:16px;"></div>
     <div class="modal-btns">
         <button class="btn" onclick="saveFlow()">✓ Save</button>
         <button class="btn btn-red" onclick="closeFlowEdit()">✕ Cancel</button>
@@ -717,7 +732,7 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
     <h3 id="tplModalTitle">Add Template</h3>
     <div class="form-group"><label>Name</label><input id="tplName" placeholder="e.g. SrA→SSgt Individual Training Plan"></div>
     <div class="form-group"><label>Link (Google Doc, Drive, SharePoint…)</label><input id="tplUrl" placeholder="https://…"></div>
-    <div id="tplMsg" style="font-size:12px;color:#ff9999;min-height:16px;"></div>
+    <div id="tplMsg" style="font-size:12px;color:var(--bad);min-height:16px;"></div>
     <div class="modal-btns">
         <button class="btn" onclick="saveTpl()">✓ Save</button>
         <button class="btn btn-red" onclick="closeTplEdit()">✕ Cancel</button>
@@ -1074,17 +1089,21 @@ function chartTitle(){
 function chartStamp(){
     return `${chartTitle()} — Wiring Diagram · current as of ${new Date().toLocaleDateString()}`;
 }
+// Canvas 2D cannot read a CSS custom property: assigning 'var(--bg)' to fillStyle
+// is silently ignored and the export fills black. Resolve the token to a value first.
+const cssVar=(n,fallback)=>
+    getComputedStyle(document.documentElement).getPropertyValue(n).trim()||fallback;
 // One shared renderer: returns a detached, light-background copy of the chart
 // with a title bar, sized to its natural width so nothing is cropped.
 function chartSnapshot(){
     const src=document.getElementById('hierContainer');
     if(!src||!src.firstElementChild)return null;
     const wrap=document.createElement('div');
-    wrap.className='org';
-    wrap.style.cssText="background:#0a1428;padding:24px;display:inline-block;overflow:visible;"+
-        "font-family:'Segoe UI',Tahoma,Helvetica,Arial,sans-serif;color:#e0e0e0;";
+    wrap.className='org tokens';   // tokens ride along: no :root inside the export SVG
+    wrap.style.cssText="background:var(--bg);padding:24px;display:inline-block;overflow:visible;"+
+        "font-family:'Segoe UI',Tahoma,Helvetica,Arial,sans-serif;color:var(--t-hi);";
     const head=document.createElement('div');
-    head.style.cssText='font:700 18px "Segoe UI",Tahoma,sans-serif;color:#ffd700;margin-bottom:16px;letter-spacing:1px;';
+    head.style.cssText='font:700 18px "Segoe UI",Tahoma,sans-serif;color:var(--acc);margin-bottom:16px;letter-spacing:1px;';
     head.textContent=chartStamp();
     wrap.appendChild(head);
     const clone=src.firstElementChild.cloneNode(true);
@@ -1112,7 +1131,7 @@ async function exportChartPNG(){
     const c=document.createElement('canvas');
     c.width=w*SCALE;c.height=h*SCALE;
     const ctx=c.getContext('2d');
-    ctx.fillStyle='#0a1428';ctx.fillRect(0,0,c.width,c.height);
+    ctx.fillStyle=cssVar('--bg','#f3f5f8');ctx.fillRect(0,0,c.width,c.height);
     ctx.scale(SCALE,SCALE);ctx.drawImage(img,0,0);
     c.toBlob(b=>{
         const a=document.createElement('a');
@@ -1209,7 +1228,7 @@ function buildEPBSvg(){
         s.noteLines.forEach(l=>{g+=`<text x="${x+10}" y="${ty}" font-family="Segoe UI,Tahoma,sans-serif" font-size="7.5" fill="#33475b">${esc4svg(l)}</text>`;ty+=10;});
         // Checklist box, hung under its step.
         const py=y+s.hTop+8;
-        g+=`<rect x="${x}" y="${py}" width="${BW}" height="${s.hPre}" rx="3" fill="#fff" stroke="${s.stroke}" stroke-width="1"/>`;
+        g+=`<rect x="${x}" y="${py}" width="${BW}" height="${s.hPre}" rx="3" fill="#ffffff" stroke="${s.stroke}" stroke-width="1"/>`;
         g+=`<text x="${x+10}" y="${py+13}" font-family="Segoe UI,Tahoma,sans-serif" font-size="9" font-weight="700" fill="#12263f">Before routing, ensure</text>`;
         let py2=py+25;
         s.preLines.forEach(l=>{g+=`<text x="${x+10}" y="${py2}" font-family="Segoe UI,Tahoma,sans-serif" font-size="8" fill="#33475b">${esc4svg(l)}</text>`;py2+=11;});
@@ -1247,7 +1266,7 @@ function buildEPBSvg(){
         if(i<3)g+=`<line x1="${x+SW}" y1="${y+h/2}" x2="${x+SW+22}" y2="${y+h/2}" stroke="${b.stroke}" stroke-width="2" marker-end="url(#epbArrow)"/>`;
     });
 
-    return `<svg id="epbSvg" xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="background:#fff">
+    return `<svg id="epbSvg" xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="background:#ffffff">
       <defs><marker id="epbArrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
         <path d="M0,0 L7,3 L0,6 Z" fill="#33475b"/></marker></defs>
       <text x="${X0}" y="34" font-family="Segoe UI,Tahoma,sans-serif" font-size="22" font-weight="700" fill="#2f6fb0">EPB Routing Flow</text>
@@ -1268,7 +1287,7 @@ async function exportEPBPNG(){
     await new Promise((res,rej)=>{img.onload=res;img.onerror=()=>rej(new Error('render failed'));
         img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(svg));});
     const c=document.createElement('canvas');c.width=w*2;c.height=h*2;
-    const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);
+    const ctx=c.getContext('2d');ctx.fillStyle='#ffffff';ctx.fillRect(0,0,c.width,c.height);
     ctx.scale(2,2);ctx.drawImage(img,0,0);
     c.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);
         a.download='EPB Routing Flow - 39 APS.png';a.click();URL.revokeObjectURL(a.href);},'image/png');
@@ -1303,19 +1322,19 @@ function renderVerifyPanel(){
     if(isVerify(ch))_verifyRefs.push({p:ch,where:'Flight Chief',top:'chief'});
     if(cm&&isVerify(cm))_verifyRefs.push({p:cm,where:'Flight Commander',top:'cmdr'});
     if(!_verifyRefs.length){host.innerHTML='';return;}
-    host.innerHTML=`<div class="card" style="cursor:default;border-color:rgba(255,170,102,.45)">
+    host.innerHTML=`<div class="card" style="cursor:default;border-color:rgba(var(--warn-rgb),.45)">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-        <div><strong style="color:#ffaa66">⚠ ${_verifyRefs.length} name${_verifyRefs.length===1?'':'s'} to verify</strong>
-          <div style="font-size:11px;color:#808080;margin-top:2px">
+        <div><strong style="color:var(--warn)">⚠ ${_verifyRefs.length} name${_verifyRefs.length===1?'':'s'} to verify</strong>
+          <div style="font-size:11px;color:var(--t-lo);margin-top:2px">
             Read off the wiring-diagram photo and not fully legible. Correct the spelling, or leave it and press Confirm.
             Anything still flagged shows a badge on the chart.</div></div>
         <button class="btn-sm" onclick="saveVerifyNames()">✓ Save all</button>
       </div>
       <div style="display:grid;gap:6px">${_verifyRefs.map((r,i)=>`
         <div style="display:grid;grid-template-columns:78px 1fr 150px;gap:8px;align-items:center">
-          <span style="font-size:11px;color:#ffd700">${esc(r.p.rank||'—')}</span>
+          <span style="font-size:11px;color:var(--acc)">${esc(r.p.rank||'—')}</span>
           <input id="vf_${i}" value="${esc(r.p.name)}" style="font-size:13px">
-          <span style="font-size:10px;color:#707070">${esc(r.where)}</span>
+          <span style="font-size:10px;color:var(--t-faint)">${esc(r.where)}</span>
         </div>`).join('')}</div>
     </div>`;
 }
@@ -1368,26 +1387,26 @@ function renderChains(){
             people++;
             if(sups[ti]&&sups[ti].vacant&&!isVacant(x.name))orphanVac++;
             return `<div style="display:grid;grid-template-columns:64px 1fr 220px;gap:8px;align-items:center;padding:2px 0">
-              <span style="font-size:11px;color:#ffd700">${esc(x.rank||'—')}</span>
-              <span style="font-size:12px;${isVacant(x.name)?'color:#777;font-style:italic':''}">${esc(x.name)}</span>
+              <span style="font-size:11px;color:var(--acc)">${esc(x.rank||'—')}</span>
+              <span style="font-size:12px;${isVacant(x.name)?'color:var(--t-faint);font-style:italic':''}">${esc(x.name)}</span>
               <select id="ch_${si}_${ti}_${xi}" data-sec="${si}" style="font-size:12px">
                 ${sups.map(s=>`<option value="${s.i}"${s.i===ti?' selected':''}${s.vacant?' data-vac="1"':''}>`
                   +`${esc(s.label)}${s.vacant?' — VACANT':''}</option>`).join('')}
               </select></div>`;}));
         const load=sups.map(s=>`${esc(s.short)} ${counts[s.i]||0}`).join(' · ');
         return `<details style="margin-bottom:8px"${_chainOpen?' open':''}>
-          <summary style="cursor:pointer;font-size:12px;color:#ffd700">${esc(sec.name)}
-            <span style="color:#707070;font-weight:400"> — ${rows.length} rated · ${esc(load)}</span></summary>
+          <summary style="cursor:pointer;font-size:12px;color:var(--acc)">${esc(sec.name)}
+            <span style="color:var(--t-faint);font-weight:400"> — ${rows.length} rated · ${esc(load)}</span></summary>
           <div style="padding:6px 0 2px">${rows.join('')}</div></details>`;
     }).join('');
     if(!people){host.innerHTML='';return;}
     host.innerHTML=`<div class="card" style="cursor:default">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-        <div><strong style="color:#ffd700">Rating chains — ${people} rated member${people===1?'':'s'}</strong>
-          <div style="font-size:11px;color:#808080;margin-top:2px">
+        <div><strong style="color:var(--acc)">Rating chains — ${people} rated member${people===1?'':'s'}</strong>
+          <div style="font-size:11px;color:var(--t-lo);margin-top:2px">
             Who rates whom is not on the wiring diagram, so everyone starts under the senior supervisor.
             Set each person's rater here, or drag them on the chart.
-            ${orphanVac?`<span style="color:#ff9999"> ${orphanVac} currently rated by a VACANT billet.</span>`:''}</div></div>
+            ${orphanVac?`<span style="color:var(--bad)"> ${orphanVac} currently rated by a VACANT billet.</span>`:''}</div></div>
         <div style="display:flex;gap:6px">
           <button class="btn-sm grey" onclick="spreadChains()">⇄ Spread evenly</button>
           <button class="btn-sm" onclick="saveChains()">✓ Save chains</button>
@@ -1467,14 +1486,14 @@ function renderDuties(){
     dutyList().forEach(d=>{
         const P=dl[d.id]?.P||[],A=dl[d.id]?.A||[];
         h+=`<div class="duty-card"><div class="duty-card-title">${d.label}</div>
-        ${P.map(n=>`<div class="duty-row"><span style="color:#55ff99;font-size:9px;font-weight:700;width:16px">P</span>${n}</div>`).join('')}
-        ${A.map(n=>`<div class="duty-row"><span style="color:#99bbff;font-size:9px;font-weight:700;width:16px">A</span>${n}</div>`).join('')}
+        ${P.map(n=>`<div class="duty-row"><span style="color:var(--good);font-size:9px;font-weight:700;width:16px">P</span>${n}</div>`).join('')}
+        ${A.map(n=>`<div class="duty-row"><span style="color:var(--info);font-size:9px;font-weight:700;width:16px">A</span>${n}</div>`).join('')}
         ${!P.length&&!A.length?'<div class="duty-none">Unassigned</div>':''}
         </div>`;
     });
     certList().forEach(c=>{
         const h2=cl[c.id]||[];
-        h+=`<div class="duty-card"><div class="duty-card-title" style="color:#ffaa44">${c.label}</div>
+        h+=`<div class="duty-card"><div class="duty-card-title" style="color:var(--warn)">${c.label}</div>
         ${h2.map(n=>`<div class="duty-row">${n}</div>`).join('')}
         ${!h2.length?'<div class="duty-none">None on record</div>':''}
         </div>`;
@@ -1839,9 +1858,9 @@ function openSettings(){
 function closeSettings(){document.getElementById('settingsModal').classList.remove('active');}
 function saveScriptSettings(){
     const url=document.getElementById('cfgScriptUrl').value.trim();
-    if(!url){document.getElementById('sheetMsg').style.color='#ff9999';document.getElementById('sheetMsg').textContent='URL required.';return;}
+    if(!url){document.getElementById('sheetMsg').style.color='var(--bad)';document.getElementById('sheetMsg').textContent='URL required.';return;}
     saveScriptUrl(url);
-    document.getElementById('sheetMsg').style.color='#55ff99';
+    document.getElementById('sheetMsg').style.color='var(--good)';
     document.getElementById('sheetMsg').textContent='Saved — syncing…';
     setTimeout(()=>{closeSettings();syncSheets();},700);
 }
@@ -2310,7 +2329,7 @@ function closeJSONImport(){ document.getElementById('jsonImportModal').classList
 function processJSONImport(){
     const raw = document.getElementById('jsonImportText').value.trim();
     const msg = document.getElementById('jsonImportMsg');
-    if(!raw){ msg.style.color='#ff9999'; msg.textContent='Paste JSON first.'; return; }
+    if(!raw){ msg.style.color='var(--bad)'; msg.textContent='Paste JSON first.'; return; }
 
     try{
         // Strip markdown fences if present
@@ -2335,11 +2354,11 @@ function processJSONImport(){
         initTrackerForNewReqs(normalized);
         renderRequirements();
         document.getElementById('pushBtn').disabled = false;
-        msg.style.color='#55ff99';
+        msg.style.color='var(--good)';
         msg.textContent=`✓ Imported ${normalized.length} requirements successfully.`;
         setTimeout(closeJSONImport, 1200);
     } catch(e){
-        msg.style.color='#ff9999';
+        msg.style.color='var(--bad)';
         msg.textContent=`✗ Invalid JSON: ${e.message}. Make sure you copied the full array from Claude.`;
     }
 }
@@ -2353,13 +2372,13 @@ async function loadBulletin(e){
 
 function renderRequirements(){
     const list=document.getElementById('reqList');
-    if(!requirements.length){list.innerHTML='<div style="color:#555;font-size:13px;padding:20px;text-align:center;">No requirements yet — extract from bulletin or add manually.</div>';document.getElementById('reqSection').style.display='block';document.getElementById('reqCount').textContent=0;return;}
+    if(!requirements.length){list.innerHTML='<div style="color:var(--t-faint2);font-size:13px;padding:20px;text-align:center;">No requirements yet — extract from bulletin or add manually.</div>';document.getElementById('reqSection').style.display='block';document.getElementById('reqCount').textContent=0;return;}
     list.innerHTML=requirements.map((r,i)=>`
         <div class="req-item" onclick="editReq(${i})">
             <div>
                 <div class="req-title">${r.title}</div>
                 <div class="req-meta">${r.category||''}${r.deadline?' · Due: '+r.deadline:''} · ${r.applicabilityNote||r.applicability||'All'}</div>
-                ${r.description?`<div class="req-meta" style="color:#666;margin-top:3px;">${r.description}</div>`:''}
+                ${r.description?`<div class="req-meta" style="color:var(--t-faint);margin-top:3px;">${r.description}</div>`:''}
             </div>
             <span class="req-badge">${r.category||'General'}</span>
             <div class="req-actions">
@@ -2488,8 +2507,8 @@ function renderTracker(){
     document.getElementById('trackerStats').innerHTML=`
         <div class="stat-card"><div class="stat-label">Requirements</div><div class="stat-value">${requirements.length}</div><div class="stat-sub">This UTA</div></div>
         <div class="stat-card"><div class="stat-label">Personnel</div><div class="stat-value">${people.length}</div><div class="stat-sub">Applicable</div></div>
-        <div class="stat-card"><div class="stat-label">Complete</div><div class="stat-value" style="color:#55ff99">${doneCells}</div><div class="stat-sub">Tasks done</div></div>
-        <div class="stat-card"><div class="stat-label">Due</div><div class="stat-value" style="color:#ffd700">${dueCells}</div><div class="stat-sub">Still needed</div></div>
+        <div class="stat-card"><div class="stat-label">Complete</div><div class="stat-value" style="color:var(--good)">${doneCells}</div><div class="stat-sub">Tasks done</div></div>
+        <div class="stat-card"><div class="stat-label">Due</div><div class="stat-value" style="color:var(--acc)">${dueCells}</div><div class="stat-sub">Still needed</div></div>
         <div class="stat-card"><div class="stat-label">Completion</div><div class="stat-value">${pct}%</div><div class="prog-bar" style="margin-top:6px"><div class="prog-fill" style="width:${pct}%"></div></div></div>`;
 
     let filteredReqs=requirements;
@@ -2498,7 +2517,7 @@ function renderTracker(){
     if(!people.length){document.getElementById('trackerContent').innerHTML='<div class="tracker-empty">No personnel match current filter.</div>';return;}
 
     let html='<table class="tracker-table"><thead><tr><th>Requirement</th>';
-    people.forEach(p=>html+=`<th title="${p.team}">${p.name.split(' ').pop()}<br><span style="color:#555;font-weight:400">${p.rank}</span></th>`);
+    people.forEach(p=>html+=`<th title="${p.team}">${p.name.split(' ').pop()}<br><span style="color:var(--t-faint2);font-weight:400">${p.rank}</span></th>`);
     html+='</tr></thead><tbody>';
 
     filteredReqs.forEach(req=>{
@@ -2831,7 +2850,7 @@ function renderAutoCalc(){
         </div>`).join('');
 }
 
-function ragColor(r){ return r==='G'?'#44cc77':r==='A'?'#ffaa00':r==='R'?'#ff4444':'#555'; }
+function ragColor(r){ return r==='G'?'var(--good)':r==='A'?'var(--warn)':r==='R'?'var(--bad)':'var(--t-faint2)'; }
 
 // ═══════════════════════ KPI RENDER
 function renderKPI(){
@@ -2843,7 +2862,7 @@ function renderKPI(){
     const hasPeriod = kpiData.periods.length > 0 && !isNaN(parseInt(document.getElementById('kpiPeriodSel')?.value));
 
     if(!hasPeriod){
-        document.getElementById('kpiSections').innerHTML='<div style="text-align:center;padding:30px;color:#555;font-size:13px;">Add a period above (e.g. "Mar 2026 UTA") to start entering KPI data.</div>';
+        document.getElementById('kpiSections').innerHTML='<div style="text-align:center;padding:30px;color:var(--t-faint2);font-size:13px;">Add a period above (e.g. "Mar 2026 UTA") to start entering KPI data.</div>';
         return;
     }
 
@@ -2854,7 +2873,7 @@ function renderKPI(){
                 <span class="kpi-owner-role">${sec.role}</span>
                 <span style="margin-left:auto;display:flex;gap:4px;">
                     <button class="kpi-edit-btn" onclick="openKPISectionEdit(${si})" title="Edit owner">✏️</button>
-                    <button class="kpi-edit-btn" style="color:#ff6666" onclick="deleteKPISection(${si})" title="Remove section">🗑</button>
+                    <button class="kpi-edit-btn" style="color:var(--bad)" onclick="deleteKPISection(${si})" title="Remove section">🗑</button>
                 </span>
             </div>
             <div class="kpi-cards">
@@ -2925,8 +2944,8 @@ function openKPIModal(secId, kpiId, si, ki){
     } else {
         fieldHTML += `<input id="kpiValInput" type="number" value="${val}" step="${kpi.type==='pct'?'0.1':'1'}" min="0" max="${kpi.type==='pct'?'100':''}" placeholder="Enter value" style="margin-top:4px">`;
     }
-    if(kpi.target!==null) fieldHTML+=`<div style="font-size:11px;color:#555;margin-top:6px;">Target: ${kpi.target}${kpi.type==='pct'?'%':''}</div>`;
-    if(kpi.note) fieldHTML+=`<div style="font-size:11px;color:#888;margin-top:4px;font-style:italic;">${kpi.note}</div>`;
+    if(kpi.target!==null) fieldHTML+=`<div style="font-size:11px;color:var(--t-faint2);margin-top:6px;">Target: ${kpi.target}${kpi.type==='pct'?'%':''}</div>`;
+    if(kpi.note) fieldHTML+=`<div style="font-size:11px;color:var(--t-lo);margin-top:4px;font-style:italic;">${kpi.note}</div>`;
     fieldHTML+='</div>';
 
     document.getElementById('kpiEntryFields').innerHTML = fieldHTML;
@@ -3246,8 +3265,8 @@ function renderPersonView(){
     const statusF=document.getElementById('personStatusFilter').value;
     const summary=document.getElementById('personSummary');
     const cards=document.getElementById('personCards');
-    if(!name){summary.innerHTML='';cards.innerHTML='<div style="color:#555;text-align:center;padding:30px;font-size:13px;">Select a person above to see their training breakdown.</div>';return;}
-    if(!requirements.length){summary.innerHTML='';cards.innerHTML='<div style="color:#555;text-align:center;padding:30px;font-size:13px;">No requirements yet — load a bulletin first.</div>';return;}
+    if(!name){summary.innerHTML='';cards.innerHTML='<div style="color:var(--t-faint2);text-align:center;padding:30px;font-size:13px;">Select a person above to see their training breakdown.</div>';return;}
+    if(!requirements.length){summary.innerHTML='';cards.innerHTML='<div style="color:var(--t-faint2);text-align:center;padding:30px;font-size:13px;">No requirements yet — load a bulletin first.</div>';return;}
     const person=getAllPersonnel().find(p=>p.name===name);
     if(!person)return;
     const applicable=requirements.filter(r=>personApplies(person,r));
@@ -3256,23 +3275,23 @@ function renderPersonView(){
     const due=statuses.filter(x=>x.st==='DUE').length;
     const exm=statuses.filter(x=>x.st==='EXEMPT').length;
     const pct=applicable.length?Math.round(done/applicable.length*100):0;
-    const barColor=pct>=90?'#44cc77':pct>=70?'#ffaa00':'#ff4444';
+    const barColor=pct>=90?'var(--good)':pct>=70?'var(--warn)':'var(--bad)';
     summary.innerHTML=`<div class="person-summary">
-        <div class="person-summary-item"><div style="font-size:11px;color:#a0a0a0">Person</div><div style="font-size:15px;font-weight:700;color:#fff">${name}</div><div style="font-size:11px;color:#555">${person.rank} · ${person.team}</div></div>
-        <div style="width:1px;background:rgba(255,215,0,.2)"></div>
-        <div class="person-summary-item"><div style="font-size:11px;color:#a0a0a0">Requirements</div><div class="person-summary-val" style="color:#ffd700">${applicable.length}</div></div>
-        <div class="person-summary-item"><div style="font-size:11px;color:#a0a0a0">Complete</div><div class="person-summary-val" style="color:#44cc77">${done}</div></div>
-        <div class="person-summary-item"><div style="font-size:11px;color:#a0a0a0">Due</div><div class="person-summary-val" style="color:#ff9900">${due}</div></div>
-        <div class="person-summary-item"><div style="font-size:11px;color:#a0a0a0">Exempt</div><div class="person-summary-val" style="color:#666">${exm}</div></div>
-        <div class="person-summary-item" style="flex:1"><div style="font-size:11px;color:#a0a0a0">Completion</div><div class="person-summary-val" style="color:${barColor}">${pct}%</div><div class="prog-bar" style="margin-top:4px;max-width:200px"><div class="prog-fill" style="width:${pct}%;background:${barColor}"></div></div></div>
+        <div class="person-summary-item"><div style="font-size:11px;color:var(--t-mid2)">Person</div><div style="font-size:15px;font-weight:700;color:var(--t-hi)">${name}</div><div style="font-size:11px;color:var(--t-faint2)">${person.rank} · ${person.team}</div></div>
+        <div style="width:1px;background:rgba(var(--acc-rgb),.2)"></div>
+        <div class="person-summary-item"><div style="font-size:11px;color:var(--t-mid2)">Requirements</div><div class="person-summary-val" style="color:var(--acc)">${applicable.length}</div></div>
+        <div class="person-summary-item"><div style="font-size:11px;color:var(--t-mid2)">Complete</div><div class="person-summary-val" style="color:var(--good)">${done}</div></div>
+        <div class="person-summary-item"><div style="font-size:11px;color:var(--t-mid2)">Due</div><div class="person-summary-val" style="color:var(--warn)">${due}</div></div>
+        <div class="person-summary-item"><div style="font-size:11px;color:var(--t-mid2)">Exempt</div><div class="person-summary-val" style="color:var(--t-faint)">${exm}</div></div>
+        <div class="person-summary-item" style="flex:1"><div style="font-size:11px;color:var(--t-mid2)">Completion</div><div class="person-summary-val" style="color:${barColor}">${pct}%</div><div class="prog-bar" style="margin-top:4px;max-width:200px"><div class="prog-fill" style="width:${pct}%;background:${barColor}"></div></div></div>
     </div>`;
     const filtered=statusF==='all'?statuses:statuses.filter(x=>x.st===statusF);
-    if(!filtered.length){cards.innerHTML='<div style="color:#555;font-size:13px;padding:20px;text-align:center;">No requirements match filter.</div>';return;}
+    if(!filtered.length){cards.innerHTML='<div style="color:var(--t-faint2);font-size:13px;padding:20px;text-align:center;">No requirements match filter.</div>';return;}
     cards.innerHTML=filtered.map(({req,st})=>`
         <div class="person-req-card s${st}">
             <div class="person-req-title">${req.title}</div>
             <div class="person-req-meta">${req.category||''} · ${req.deadline||'This UTA'}</div>
-            ${req.description?`<div style="font-size:11px;color:#606060;margin-bottom:8px;">${req.description}</div>`:''}
+            ${req.description?`<div style="font-size:11px;color:var(--t-faint);margin-bottom:8px;">${req.description}</div>`:''}
             <button class="status-btn status-${st}" onclick="cyclePersonStatus('${esc(req.title)}','${esc(name)}',this)">${st}</button>
         </div>`).join('');
 }
@@ -3295,7 +3314,7 @@ function cyclePersonStatus(reqKey,personName,btn){
     const statuses=applicable.map(r=>({req:r,st:(tracker[r.title]||{})[name]||'DUE'}));
     const done=statuses.filter(x=>x.st==='DONE').length;
     const pct=applicable.length?Math.round(done/applicable.length*100):0;
-    const barColor=pct>=90?'#44cc77':pct>=70?'#ffaa00':'#ff4444';
+    const barColor=pct>=90?'var(--good)':pct>=70?'var(--warn)':'var(--bad)';
     document.querySelectorAll('.person-summary-val').forEach((el,i)=>{if(i===1)el.textContent=done;if(i===2)el.textContent=statuses.filter(x=>x.st==='DUE').length;if(i===3)el.textContent=statuses.filter(x=>x.st==='EXEMPT').length;if(i===4){el.textContent=pct+'%';el.style.color=barColor;}});
 }
 
@@ -3377,7 +3396,7 @@ function openPromoEdit(name){
         .map(([v,l])=>`<button class="rec-opt${rec===v?' sel-'+v:''}" data-rec="${v}" onclick="setPromoRec('${v}')">${l}</button>`).join('');
     document.getElementById('promoReqGrid').innerHTML=reqs.length
         ? reqs.map((r,i)=>`<div class="promo-req-row"><input type="checkbox" id="pr_${i}" ${met.has(i)?'checked':''} onchange="updatePromoCount()"><label for="pr_${i}">${r}</label></div>`).join('')
-        : `<div style="color:#555;font-size:12px;padding:6px 0;">No requirement checklist defined for rank "${p.Rank||'—'}".</div>`;
+        : `<div style="color:var(--t-faint2);font-size:12px;padding:6px 0;">No requirement checklist defined for rank "${p.Rank||'—'}".</div>`;
     const docs=promoDocsFor(p.Rank), dmet=docIndices(p,docs.length);
     document.getElementById('promoDocsGrid').innerHTML=docs.map((d,i)=>
         `<div class="promo-req-row"><input type="checkbox" id="pd_${i}" ${dmet.has(i)?'checked':''} onchange="updatePromoCount()"><label for="pd_${i}">${d}</label></div>`).join('');
@@ -3528,12 +3547,12 @@ function renderITP(){
     const tasks=itpTasks(utc,level);
     const msg=document.getElementById('itpMsg');
     if(!tasks.length){
-        msg.style.color='#ffaa66';
+        msg.style.color='var(--warn)';
         msg.textContent=`CFETP 2T2X1 lists no ${level}-level tasks for ${utc}. Pick a different UTC or level.`;
         document.getElementById('itpOut').innerHTML=''; return;
     }
     const arc=tasks.filter(t=>t.s==='ARC only').length;
-    msg.style.color='#77dd99';
+    msg.style.color='var(--good)';
     msg.textContent=`${tasks.length} CFETP task${tasks.length===1?'':'s'} for ${utc} at the ${level}-level`+
         (arc?` · ${arc} are ARC-only additions`:'')+'.';
     const sym=FLIGHT_SYMBOLS[String(currentFlight).toUpperCase()]||'TROP';
@@ -3558,7 +3577,7 @@ SUBJECT:  Individual Training Plan — ${trainee}, Upgrade to the ${level}-Skill
 
 `;
     phases.forEach((ph,i)=>{
-        h+=`<strong style="color:#ffd700">${esc(`4.${i+1}.  ${ph.name}`)}</strong>
+        h+=`<strong style="color:var(--acc)">${esc(`4.${i+1}.  ${ph.name}`)}</strong>
 `;
         h+=esc(`     Window: ${dt(ph.startWk)} to ${dt(ph.endWk)}  (${ph.endWk-ph.startWk} weeks, ${ph.tasks.length} tasks)
      Method: ${ph.method}`)+`
@@ -3566,7 +3585,7 @@ SUBJECT:  Individual Training Plan — ${trainee}, Upgrade to the ${level}-Skill
 `;
         h+=`<table class="itp-tbl"><tr><th>CFETP</th><th>Task</th><th>Target</th><th>Trainer initials / date</th></tr>`;
         ph.tasks.forEach(t=>{
-            h+=`<tr><td>${esc(t.n)}</td><td>${esc(t.t)}${t.s==='ARC only'?' <em style="color:#ffaa66">(ARC only)</em>':t.s==='Crossflow'?' <em style="color:#8ab4ff">(crossflow)</em>':''}</td>`
+            h+=`<tr><td>${esc(t.n)}</td><td>${esc(t.t)}${t.s==='ARC only'?' <em style="color:var(--warn)">(ARC only)</em>':t.s==='Crossflow'?' <em style="color:var(--info)">(crossflow)</em>':''}</td>`
               +`<td>${esc(dt(ph.endWk))}</td><td></td></tr>`;
         });
         h+=`</table>
@@ -3613,7 +3632,7 @@ function copyITP(){
     if(!el)return;
     navigator.clipboard.writeText(el.innerText).then(()=>{
         const m=document.getElementById('itpMsg');
-        m.style.color='#77dd99'; m.textContent='✓ Copied. Paste under the squadron letterhead.';
+        m.style.color='var(--good)'; m.textContent='✓ Copied. Paste under the squadron letterhead.';
     });
 }
 function printITP(){
@@ -3734,7 +3753,7 @@ async function generatePromoPackage(){
         SkillLevel:gv('promoSkill'),UIF:gv('promoUIF'),PTCurrent:gv('promoPT'),
         PME:gv('promoPME'),Supervisor:gv('promoSup'),Notes:gv('promoNotes'),
         Recommendation:selectedPromoRec()};
-    msg.style.color='#808080'; msg.textContent='Building…';
+    msg.style.color='var(--t-lo)'; msg.textContent='Building…';
     try{
         const plan=promoPlan(live);
         const res=await fetch(plan.form.file);
@@ -3775,11 +3794,11 @@ async function generatePromoPackage(){
         setTimeout(()=>URL.revokeObjectURL(url),4000);
         const blanks=['DOR','ETS','EPRDate','SkillLevel','UIF','PTCurrent','PME']
             .filter(k=>!live[k]);
-        msg.style.color='#77dd99';
+        msg.style.color='var(--good)';
         msg.textContent=`✓ Downloaded. Recommendation, initials and dates are left for `+
             `each endorser to fill — they are one shared field per form, so filling one fills all.`+
             (blanks.length?` No data yet for: ${blanks.join(', ')}.`:'');
-    }catch(e){ msg.style.color='#ff9999'; msg.textContent='✕ '+e.message; }
+    }catch(e){ msg.style.color='var(--bad)'; msg.textContent='✕ '+e.message; }
 }
 
 /* One runnable check: field mapping per form, the date reformat, and that an
@@ -3971,7 +3990,7 @@ function renderPromotions(){
         // A flight with people but no promotion rows can build them from Manning —
         // that is how ATOC/LOAD PLANNING/RAMP will get cards once they have rosters.
         const staffed=getAllPersonnel().length;
-        content.innerHTML=`<div style="text-align:center;padding:40px;color:#555;font-size:13px;">
+        content.innerHTML=`<div style="text-align:center;padding:40px;color:var(--t-faint2);font-size:13px;">
             No promotions data for ${currentFlight} — click ⟳ Refresh to load from the sheet.
             ${staffed&&!isRollup()?`<div style="margin-top:14px;"><button class="btn" onclick="buildPromotionsFromManning()">＋ Build cards from Manning (${staffed})</button></div>`:''}
         </div>`;
@@ -3982,9 +4001,9 @@ function renderPromotions(){
     const pending=promotions.filter(p=>!p.Recommendation||p.Recommendation==='pending').length;
     stats.innerHTML=`
         <div class="stat-card"><div class="stat-label">Total Personnel</div><div class="stat-value">${promotions.length}</div><div class="stat-sub">Flight strength</div></div>
-        <div class="stat-card"><div class="stat-label">Ready</div><div class="stat-value" style="color:#44cc77">${ready}</div><div class="stat-sub">Promotion ready</div></div>
-        <div class="stat-card"><div class="stat-label">Not Ready</div><div class="stat-value" style="color:#ff4444">${notReady}</div><div class="stat-sub">Action required</div></div>
-        <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value" style="color:#ffd700">${pending}</div><div class="stat-sub">Not yet assessed</div></div>`;
+        <div class="stat-card"><div class="stat-label">Ready</div><div class="stat-value" style="color:var(--good)">${ready}</div><div class="stat-sub">Promotion ready</div></div>
+        <div class="stat-card"><div class="stat-label">Not Ready</div><div class="stat-value" style="color:var(--bad)">${notReady}</div><div class="stat-sub">Action required</div></div>
+        <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value" style="color:var(--acc)">${pending}</div><div class="stat-sub">Not yet assessed</div></div>`;
     const teams=[...new Set(promotions.map(p=>p.Team||'Unknown'))].sort();
     content.innerHTML=teams.map(team=>{
         const members=promotions.filter(p=>(p.Team||'Unknown')===team);
@@ -3993,7 +4012,7 @@ function renderPromotions(){
             <div class="promo-cards-grid">
             ${members.map(p=>{
                 const rec=p.Recommendation||'pending';
-                const color=rec==='ready'?'#44cc77':rec==='not_ready'?'#ff4444':'#ffd700';
+                const color=rec==='ready'?'var(--good)':rec==='not_ready'?'var(--bad)':'var(--acc)';
                 const label=rec==='ready'?'READY':rec==='not_ready'?'NOT READY':'PENDING';
                 const met=parseInt(p.ReqsMet)||0;
                 const total=parseInt(p.TotalReqs)||0;
@@ -4003,13 +4022,13 @@ function renderPromotions(){
                     <div class="promo-card-rank">${p.Rank} → ${p.NextRank||'?'}</div>
                     <div class="promo-card-status" style="color:${color}">${label}</div>
                     <div class="promo-req-bar"><div class="promo-req-fill" style="width:${pct}%;background:${color}"></div></div>
-                    <div style="font-size:10px;color:#666;margin-top:3px;">${met} of ${total} reqs</div>
+                    <div style="font-size:10px;color:var(--t-faint);margin-top:3px;">${met} of ${total} reqs</div>
                     ${(()=>{const d=promoDocsFor(p.Rank);
                         if(!d.length||!total||met<total)return'';
                         const n=docIndices(p,d.length).size;
-                        return`<div style="font-size:10px;margin-top:3px;color:${n===d.length?'#55ff99':'#ffd700'};">📄 package ${n} of ${d.length}</div>`;})()}
+                        return`<div style="font-size:10px;margin-top:3px;color:${n===d.length?'var(--good)':'var(--acc)'};">📄 package ${n} of ${d.length}</div>`;})()}
                     ${p.NotReadyReason?`<div class="promo-reason">⚠ ${p.NotReadyReason}</div>`:''}
-                    ${p.Notes?`<div style="font-size:10px;color:#606060;margin-top:4px;font-style:italic;">${p.Notes}</div>`:''}
+                    ${p.Notes?`<div style="font-size:10px;color:var(--t-faint);margin-top:4px;font-style:italic;">${p.Notes}</div>`:''}
                 </div>`;
             }).join('')}
             </div>
@@ -4080,9 +4099,9 @@ function renderAttendance(){
     const present=cnt('PRESENT');
     const pct=marked?Math.round(present/people.length*100):0;
     document.getElementById('attStats').innerHTML=`
-        <div class="stat-card"><div class="stat-label">Present</div><div class="stat-value" style="color:#55ff99">${present}</div><div class="stat-sub">of ${people.length} assigned</div></div>
-        <div class="stat-card"><div class="stat-label">Attendance Rate</div><div class="stat-value" style="color:${pct>=90?'#44cc77':pct>=75?'#ffaa00':'#ff6666'}">${pct}%</div><div class="stat-sub">${marked} of ${people.length} marked</div></div>
-        <div class="stat-card"><div class="stat-label">Absent</div><div class="stat-value" style="color:${cnt('ABSENT')?'#ff6666':'#44cc77'}">${cnt('ABSENT')}</div><div class="stat-sub">Unexcused</div></div>
+        <div class="stat-card"><div class="stat-label">Present</div><div class="stat-value" style="color:var(--good)">${present}</div><div class="stat-sub">of ${people.length} assigned</div></div>
+        <div class="stat-card"><div class="stat-label">Attendance Rate</div><div class="stat-value" style="color:${pct>=90?'var(--good)':pct>=75?'var(--warn)':'var(--bad)'}">${pct}%</div><div class="stat-sub">${marked} of ${people.length} marked</div></div>
+        <div class="stat-card"><div class="stat-label">Absent</div><div class="stat-value" style="color:${cnt('ABSENT')?'var(--bad)':'var(--good)'}">${cnt('ABSENT')}</div><div class="stat-sub">Unexcused</div></div>
         <div class="stat-card"><div class="stat-label">Excused / RST</div><div class="stat-value">${cnt('EXCUSED')+cnt('RST')}</div><div class="stat-sub">${cnt('TDY')} TDY · ${cnt('LEAVE')} leave</div></div>`;
 }
 
@@ -4219,7 +4238,7 @@ function renderFlow(){
     sum.textContent=rows.length
         ? `${gains} projected gain${gains===1?'':'s'} · ${losses} projected loss${losses===1?'':'es'} · net ${net>0?'+':''}${net}`
         : 'Nothing projected — add inbound and outbound personnel with their effective dates.';
-    if(!rows.length){box.innerHTML='<div style="color:#555;font-size:12px;padding:12px 0;">No projected gains or losses.</div>';return;}
+    if(!rows.length){box.innerHTML='<div style="color:var(--t-faint2);font-size:12px;padding:12px 0;">No projected gains or losses.</div>';return;}
     const today=attToday();
     const soon=new Date(Date.now()+60*864e5).toISOString().slice(0,10);
     box.innerHTML=`<table class="flow-table"><thead><tr>
@@ -4231,9 +4250,9 @@ function renderFlow(){
             return `<tr>
                 <td><span class="flow-tag flow-${r.type}">${r.type}</span></td>
                 <td>${r.rank||'—'}</td>
-                <td style="color:#fff">${r.name||'TBD'}</td>
-                <td class="${near&&!past?'flow-soon':''}" style="${past?'color:#666':''}">${r.date||'—'}${past?' (past)':''}</td>
-                <td style="color:#909090">${r.note||''}</td>
+                <td style="color:var(--t-hi)">${r.name||'TBD'}</td>
+                <td class="${near&&!past?'flow-soon':''}" style="${past?'color:var(--t-faint)':''}">${r.date||'—'}${past?' (past)':''}</td>
+                <td style="color:var(--t-lo)">${r.note||''}</td>
                 <td style="white-space:nowrap;text-align:right;">
                     <button class="flow-act" title="Edit" onclick="openFlowEdit(${i})">✎</button>
                     <button class="flow-act" title="Remove" onclick="deleteFlow(${i})">✕</button>
@@ -4371,7 +4390,7 @@ let editingTplIdx=null;
 function renderTemplates(){
     const box=document.getElementById('tplList');
     if(!box)return;
-    if(!templates.length){box.innerHTML='<div style="color:#555;font-size:12px;padding:12px 0;">No templates yet — click <strong>+ Add Template</strong> to link one.</div>';return;}
+    if(!templates.length){box.innerHTML='<div style="color:var(--t-faint2);font-size:12px;padding:12px 0;">No templates yet — click <strong>+ Add Template</strong> to link one.</div>';return;}
     box.innerHTML=templates.map((t,i)=>`
         <div class="tpl-row">
             <a class="tpl-link" href="${encodeURI(t.url)}" target="_blank" rel="noopener noreferrer">🔗 ${t.name}</a>
@@ -4478,9 +4497,9 @@ function renderOverview(){
     const pct=trk.length?Math.round(done/trk.length*100):0;
     document.getElementById('ovStats').innerHTML=`
         <div class="stat-card"><div class="stat-label">Personnel</div><div class="stat-value">${people}</div><div class="stat-sub">${flights.filter(f=>man.some(m=>m.Flight===f)).length} of ${flights.length} flights staffed</div></div>
-        <div class="stat-card"><div class="stat-label">Training Complete</div><div class="stat-value" style="color:${pct>=90?'#44cc77':pct>=50?'#ffaa00':'#ff6666'}">${pct}%</div><div class="stat-sub">${done} of ${trk.length} tasks</div></div>
-        <div class="stat-card"><div class="stat-label">Expired</div><div class="stat-value" style="color:${expired.length?'#ff4444':'#44cc77'}">${expired.length}</div><div class="stat-sub">Already late</div></div>
-        <div class="stat-card"><div class="stat-label">Due This UTA</div><div class="stat-value" style="color:${hot.length?'#ffaa00':'#44cc77'}">${hot.length}</div><div class="stat-sub">Hard deadline</div></div>
+        <div class="stat-card"><div class="stat-label">Training Complete</div><div class="stat-value" style="color:${pct>=90?'var(--good)':pct>=50?'var(--warn)':'var(--bad)'}">${pct}%</div><div class="stat-sub">${done} of ${trk.length} tasks</div></div>
+        <div class="stat-card"><div class="stat-label">Expired</div><div class="stat-value" style="color:${expired.length?'var(--bad)':'var(--good)'}">${expired.length}</div><div class="stat-sub">Already late</div></div>
+        <div class="stat-card"><div class="stat-label">Due This UTA</div><div class="stat-value" style="color:${hot.length?'var(--warn)':'var(--good)'}">${hot.length}</div><div class="stat-sub">Hard deadline</div></div>
         <div class="stat-card"><div class="stat-label">Vacant Billets</div><div class="stat-value">${vacant}</div><div class="stat-sub">Across squadron</div></div>
         <div class="stat-card"><div class="stat-label">Promotions</div><div class="stat-value">${promoPending}</div><div class="stat-sub">${notReady} not ready · ${pro.length} tracked</div></div>`;
 
@@ -4501,14 +4520,14 @@ function renderOverview(){
             <div class="ov-alert-title">${title}</div>
             ${list.map(g=>`<div class="ov-item">
                 <span class="ov-flag">${g.flight}</span>
-                <span><b style="color:#e8e8e8">${g.req}</b><div class="ov-who">${g.who.sort().join(' · ')}</div></span>
-                <span class="ov-count">${g.who.length} open<div style="font-weight:400;color:#707070;font-size:10px;text-align:right">${g.deadline||''}</div></span>
+                <span><b style="color:var(--t-hi)">${g.req}</b><div class="ov-who">${g.who.sort().join(' · ')}</div></span>
+                <span class="ov-count">${g.who.length} open<div style="font-weight:400;color:var(--t-faint);font-size:10px;text-align:right">${g.deadline||''}</div></span>
             </div>`).join('')}
         </div>`;
     document.getElementById('ovAction').innerHTML=
         block(ranked.filter(g=>g.u===2),'','⚠ Expired — already late')
       + block(ranked.filter(g=>g.u===1),'warn','Hard deadline this UTA')
-      || '<div style="color:#44cc77;font-size:12px;padding:10px 0;">No expired or deadline-bound items outstanding.</div>';
+      || '<div style="color:var(--good);font-size:12px;padding:10px 0;">No expired or deadline-bound items outstanding.</div>';
 
     // ── per-flight cards
     document.getElementById('ovFlights').innerHTML='<div class="ov-grid">'+flights.map(f=>{
@@ -4524,11 +4543,11 @@ function renderOverview(){
         return `<div class="ov-card" onclick="jumpToFlight('${esc(f)}')">
             <div class="ov-name">${f}</div>
             <div class="ov-chief">${[chief.Rank,chief.Name].filter(Boolean).join(' ')||'— no chief assigned —'}</div>
-            <div class="ov-row"><span>Personnel</span><b>${staffed}${m.filter(r=>isVacant(r.Name)).length?` <span style="color:#ff6666">+${m.filter(r=>isVacant(r.Name)).length} vacant</span>`:''}</b></div>
+            <div class="ov-row"><span>Personnel</span><b>${staffed}${m.filter(r=>isVacant(r.Name)).length?` <span style="color:var(--bad)">+${m.filter(r=>isVacant(r.Name)).length} vacant</span>`:''}</b></div>
             <div class="ov-row"><span>Training</span><b>${tPct}% · ${tOpen} open</b></div>
-            ${exp?`<div class="ov-row"><span style="color:#ff6666">Expired</span><b style="color:#ff6666">${exp}</b></div>`:''}
+            ${exp?`<div class="ov-row"><span style="color:var(--bad)">Expired</span><b style="color:var(--bad)">${exp}</b></div>`:''}
             <div class="ov-row"><span>Promotions</span><b>${p.filter(x=>x.Recommendation==='ready').length} ready · ${p.length} tracked</b></div>
-            <div class="ov-bar"><div class="ov-fill" style="width:${tPct}%;background:${tPct>=90?'#44cc77':tPct>=50?'#ffaa00':'#ff6666'}"></div></div>
+            <div class="ov-bar"><div class="ov-fill" style="width:${tPct}%;background:${tPct>=90?'var(--good)':tPct>=50?'var(--warn)':'var(--bad)'}"></div></div>
         </div>`;
     }).join('')+'</div>';
 }
@@ -4538,9 +4557,9 @@ function renderOverview(){
 // not deadline-bound, and late/urgent. Plain divs rather than a chart library —
 // this file has to stay self-contained and openable from disk.
 const OV_BUCKETS=[
-    {k:'done', label:'Done',    color:'#44cc77'},
-    {k:'open', label:'Open',    color:'#4a7fb5'},
-    {k:'late', label:'Late / due now', color:'#ff5555'},
+    {k:'done', label:'Done',    color:'var(--good)'},
+    {k:'open', label:'Open',    color:'var(--info)'},
+    {k:'late', label:'Late / due now', color:'var(--bad)'},
 ];
 const bucketOf=r=>!OPEN_STATUS(r.Status)?'done':(urgencyOf(r.Deadline)>0?'late':'open');
 let ovSel=null;   // {dim:'flight'|'cat', key, bucket}
@@ -4594,10 +4613,10 @@ function ovDrill(dim,key,bucket){
     const body=Object.entries(byReq).sort((a,b)=>b[1].who.length-a[1].who.length).map(([req,g])=>`
         <div class="ov-item">
             <span class="ov-flag">${dim==='flight'?key:[...g.fl].join(' / ')}</span>
-            <span><b style="color:#e8e8e8">${req}</b><div class="ov-who">${g.who.sort().join(' · ')}</div></span>
-            <span class="ov-count" style="color:${b.color}">${g.who.length}<div style="font-weight:400;color:#707070;font-size:10px;text-align:right">${g.dl||''}</div></span>
+            <span><b style="color:var(--t-hi)">${req}</b><div class="ov-who">${g.who.sort().join(' · ')}</div></span>
+            <span class="ov-count" style="color:${b.color}">${g.who.length}<div style="font-weight:400;color:var(--t-faint);font-size:10px;text-align:right">${g.dl||''}</div></span>
         </div>`).join('')
-      ||'<div style="font-size:12px;color:#606060;">Nothing in this bucket.</div>';
+      ||'<div style="font-size:12px;color:var(--t-faint);">Nothing in this bucket.</div>';
     document.getElementById('ovDetail').innerHTML=`
       <div class="ch-detail">
         <div class="ch-detail-head">
@@ -4754,16 +4773,16 @@ function renderBrief(){
     const late=d.allItems.filter(i=>i.urgency===2),hot=d.allItems.filter(i=>i.urgency===1);
     const pct=d.totals.total?Math.round(d.totals.done/d.totals.total*100):100;
     stats.innerHTML=`
-        <div class="stat-card"><div class="stat-label">Flight Complete</div><div class="stat-value" style="color:${pct>=90?'#55ff99':pct>=50?'#ffd700':'#ff6666'}">${pct}%</div><div class="prog-bar" style="margin-top:6px"><div class="prog-fill" style="width:${pct}%"></div></div></div>
-        <div class="stat-card"><div class="stat-label">Late</div><div class="stat-value" style="color:${late.length?'#ff4444':'#55ff99'}">${late.length}</div><div class="stat-sub">Already past due</div></div>
-        <div class="stat-card"><div class="stat-label">Due This UTA</div><div class="stat-value" style="color:${hot.length?'#ffd700':'#55ff99'}">${hot.length}</div><div class="stat-sub">Hard deadline</div></div>
-        <div class="stat-card"><div class="stat-label">Fully Green</div><div class="stat-value" style="color:#55ff99">${d.clear.length}</div><div class="stat-sub">of ${d.totals.people} on the roster</div></div>`;
+        <div class="stat-card"><div class="stat-label">Flight Complete</div><div class="stat-value" style="color:${pct>=90?'var(--good)':pct>=50?'var(--acc)':'var(--bad)'}">${pct}%</div><div class="prog-bar" style="margin-top:6px"><div class="prog-fill" style="width:${pct}%"></div></div></div>
+        <div class="stat-card"><div class="stat-label">Late</div><div class="stat-value" style="color:${late.length?'var(--bad)':'var(--good)'}">${late.length}</div><div class="stat-sub">Already past due</div></div>
+        <div class="stat-card"><div class="stat-label">Due This UTA</div><div class="stat-value" style="color:${hot.length?'var(--acc)':'var(--good)'}">${hot.length}</div><div class="stat-sub">Hard deadline</div></div>
+        <div class="stat-card"><div class="stat-label">Fully Green</div><div class="stat-value" style="color:var(--good)">${d.clear.length}</div><div class="stat-sub">of ${d.totals.people} on the roster</div></div>`;
 
     const nameOf=p=>`${p.rank||''} ${p.name}`.trim();
     let html='';
     d.teams.forEach(t=>{
         const bar=`<div class="prog-bar" style="max-width:160px"><div class="prog-fill" style="width:${t.pct}%"></div></div>`;
-        html+=`<div class="brief-team"><div class="brief-team-head"><span>${t.name}</span><span style="display:flex;align-items:center;gap:10px;font-size:11px;color:${t.pct===100?'#55ff99':'#ffd700'}">${t.pct}%${bar}</span></div>`;
+        html+=`<div class="brief-team"><div class="brief-team-head"><span>${t.name}</span><span style="display:flex;align-items:center;gap:10px;font-size:11px;color:${t.pct===100?'var(--good)':'var(--acc)'}">${t.pct}%${bar}</span></div>`;
         if(!t.owing.length){
             html+='<div class="brief-clear">✅ Nothing outstanding — call them out for it.</div>';
         }else{
@@ -4833,13 +4852,13 @@ async function copyBrief(btn){
 
     <!-- Period selector -->
     <div class="kpi-period-bar">
-        <span style="font-size:11px;color:#a0a0a0;text-transform:uppercase;letter-spacing:1px;">Period:</span>
+        <span style="font-size:11px;color:var(--t-mid2);text-transform:uppercase;letter-spacing:1px;">Period:</span>
         <select class="kpi-period-sel" id="kpiPeriodSel" onchange="renderKPI()"></select>
         <select class="kpi-period-sel" id="kpiPeriodType">
             <option value="UTA">UTA</option>
             <option value="Monthly">Monthly</option>
         </select>
-        <input id="kpiPeriodName" placeholder="e.g. Mar 2026 UTA" style="width:180px;padding:6px 10px;font-size:12px;background:rgba(0,0,0,.4);border:1px solid rgba(255,215,0,.3);color:#fff;border-radius:3px;">
+        <input id="kpiPeriodName" placeholder="e.g. Mar 2026 UTA" style="width:180px;padding:6px 10px;font-size:12px;background:var(--surface);border:1px solid rgba(var(--acc-rgb),.3);color:var(--t-hi);border-radius:3px;">
         <button class="btn-sm" onclick="addKPIPeriod()">+ Add Period</button>
         <button class="btn-sm grey" onclick="deleteKPIPeriod()">✕ Delete Period</button>
     </div>
@@ -4872,7 +4891,7 @@ async function copyBrief(btn){
     <h3>Import Requirements from Claude Chat</h3>
     <div class="ai-note" style="margin-bottom:14px;">
         <strong>Step 1:</strong> Go to this Claude chat and paste your bulletin with the message:<br>
-        <span style="color:#ffd700;font-family:monospace;font-size:11px;">"Extract all requirements from this UTA bulletin as a JSON array. Each item needs: title, description, applicability (all/snco/nco/7level/5level), applicabilityNote, deadline, category (Training/Admin/Ops/Safety/Medical/Readiness)"</span><br><br>
+        <span style="color:var(--acc);font-family:monospace;font-size:11px;">"Extract all requirements from this UTA bulletin as a JSON array. Each item needs: title, description, applicability (all/snco/nco/7level/5level), applicabilityNote, deadline, category (Training/Admin/Ops/Safety/Medical/Readiness)"</span><br><br>
         <strong>Step 2:</strong> Copy the JSON array Claude gives you and paste it below.
     </div>
     <div class="form-group">
@@ -4943,7 +4962,7 @@ async function copyBrief(btn){
 <div class="modal-overlay" id="promoEditModal">
   <div class="modal-box">
     <h3 id="promoEditTitle">Edit</h3>
-    <div style="font-size:11px;color:#808080;margin:-10px 0 14px;" id="promoEditPath"></div>
+    <div style="font-size:11px;color:var(--t-lo);margin:-10px 0 14px;" id="promoEditPath"></div>
 
     <div class="form-group">
         <label>Recommendation</label>
@@ -4956,19 +4975,19 @@ async function copyBrief(btn){
     </div>
 
     <div class="form-group">
-        <label>Promotion Requirements · <span id="promoReqCount" style="color:#ffd700">—</span></label>
+        <label>Promotion Requirements · <span id="promoReqCount" style="color:var(--acc)">—</span></label>
         <div id="promoReqGrid" style="max-height:260px;overflow-y:auto;"></div>
     </div>
 
     <div class="form-group" id="promoDocsWrap" style="display:none">
-        <label>Board Package Documents · <span id="promoDocsCount" style="color:#ffd700">—</span></label>
-        <div style="font-size:11px;color:#808080;margin:-4px 0 6px;">All other requirements are met — this is what still has to be assembled.</div>
+        <label>Board Package Documents · <span id="promoDocsCount" style="color:var(--acc)">—</span></label>
+        <div style="font-size:11px;color:var(--t-lo);margin:-4px 0 6px;">All other requirements are met — this is what still has to be assembled.</div>
         <div id="promoDocsGrid" style="max-height:220px;overflow-y:auto;"></div>
     </div>
 
 
     <div class="form-group">
-        <label>Promotion Package Data <span style="color:#808080;font-weight:400">— fills the AFRC promotion recommendation form</span></label>
+        <label>Promotion Package Data <span style="color:var(--t-lo);font-weight:400">— fills the AFRC promotion recommendation form</span></label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
             <div><label style="font-size:10px">Date of Rank</label><input type="date" id="promoDOR"></div>
             <div><label style="font-size:10px">ETS Date</label><input type="date" id="promoETS"></div>
@@ -4982,7 +5001,7 @@ async function copyBrief(btn){
     </div>
 
     <div class="form-group"><label>Notes</label><input id="promoNotes" placeholder="Optional"></div>
-    <div id="promoPkgMsg" style="font-size:11px;color:#808080;margin:-6px 0 10px"></div>
+    <div id="promoPkgMsg" style="font-size:11px;color:var(--t-lo);margin:-6px 0 10px"></div>
 
     <div class="modal-btns">
         <button class="btn" onclick="generatePromoPackage()">📄 Promotion Form</button>
@@ -5026,8 +5045,8 @@ async function copyBrief(btn){
          the artifact sandbox. This page is served over localhost so they should work,
          but the selectable block costs nothing and always works. -->
     <details style="margin-top:22px">
-        <summary style="cursor:pointer;color:#ffd700;font-size:11px;letter-spacing:1px;text-transform:uppercase">Plain text — triple-click to select</summary>
-        <pre id="briefPlain" style="user-select:all;white-space:pre-wrap;background:rgba(255,255,255,.04);border:1px solid rgba(255,215,0,.22);border-radius:4px;padding:14px;margin-top:10px;font-size:12px;line-height:1.6;"></pre>
+        <summary style="cursor:pointer;color:var(--acc);font-size:11px;letter-spacing:1px;text-transform:uppercase">Plain text — triple-click to select</summary>
+        <pre id="briefPlain" style="user-select:all;white-space:pre-wrap;background:rgba(var(--ink-rgb),.04);border:1px solid rgba(var(--acc-rgb),.22);border-radius:4px;padding:14px;margin-top:10px;font-size:12px;line-height:1.6;"></pre>
     </details>
 </div>
 </div>
@@ -5061,7 +5080,7 @@ async function copyBrief(btn){
 <div class="modal-overlay" id="utaModal">
 <div class="modal-box" style="max-width:900px;max-height:92vh;overflow-y:auto">
     <h3>UTA Participation Worksheet</h3>
-    <div style="font-size:11px;color:#9fb0c0;margin:-6px 0 12px">
+    <div style="font-size:11px;color:var(--t-mid2);margin:-6px 0 12px">
         Fills the fillable PDF and downloads it. Sign after filling — signature fields are left alone.
         Only the CC / AO can approve an excusal, reschedule, or unexcused.
     </div>
@@ -5069,7 +5088,7 @@ async function copyBrief(btn){
     <div class="section-label">Blank template</div>
     <div class="form-group">
         <input type="file" id="utaTplFile" accept="application/pdf" onchange="utaLoadTemplate(this)">
-        <div id="utaTplStatus" style="font-size:11px;color:#9fb0c0;margin-top:4px"></div>
+        <div id="utaTplStatus" style="font-size:11px;color:var(--t-mid2);margin-top:4px"></div>
     </div>
 
     <div class="section-label">1–3. Member &amp; request</div>
@@ -5093,7 +5112,7 @@ async function copyBrief(btn){
     <div id="utaResched"></div>
 
     <div class="section-label">7. Member must answer all — supervisor must concur with all</div>
-    <div style="font-size:11px;color:#ffaa66;margin:-4px 0 8px">
+    <div style="font-size:11px;color:var(--warn);margin:-4px 0 8px">
         Left blank = left blank on the form. These are readiness attestations; nothing is answered for you.
     </div>
     <div id="uta7"></div>
@@ -5101,12 +5120,12 @@ async function copyBrief(btn){
         <input id="utaComments" placeholder="7d: 0 excused / 0 unexcused past 12 mo. 7e: 12 points this qtr."></div>
 
     <details style="margin:10px 0">
-        <summary style="cursor:pointer;color:#ffd700;font-size:11px;letter-spacing:1px;text-transform:uppercase">
+        <summary style="cursor:pointer;color:var(--acc);font-size:11px;letter-spacing:1px;text-transform:uppercase">
             9–11. Duty plan &amp; obligations — required for all reschedules (E-6 &amp; below)</summary>
         <div class="section-label">9. Areas I expect to work</div>
         <div style="display:flex;align-items:center;gap:10px;margin:-4px 0 8px;flex-wrap:wrap">
             <button class="btn-sm" type="button" onclick="utaSuggestPlan()">✎ Generate training plan</button>
-            <span style="font-size:11px;color:#9fb0c0">
+            <span style="font-size:11px;color:var(--t-mid2)">
                 E-6 &amp; below · PAX tasks by skill level · fills blanks only, never overwrites what you typed</span>
         </div>
         <div id="utaPlanMsg" style="font-size:11px;min-height:14px;margin-bottom:6px"></div>
@@ -5144,7 +5163,7 @@ async function copyBrief(btn){
     <div class="form-group" style="max-width:340px"><label>8. Member not available — form completed by</label>
         <input id="utaCompletedBy" placeholder="e.g. SMSgt Strauch, Flight Chief"></div>
 
-    <div id="utaMsg" style="font-size:12px;color:#ff9999;min-height:18px"></div>
+    <div id="utaMsg" style="font-size:12px;color:var(--bad);min-height:18px"></div>
     <div class="modal-btns">
         <button class="btn" onclick="utaGenerate()">⬇ Generate &amp; download PDF</button>
         <button class="btn btn-red" onclick="document.getElementById('utaModal').classList.remove('active')">✕ Close</button>
@@ -5261,7 +5280,7 @@ async function utaFillBytes(bytes,data){
 /* ── template: picked off Greg's own disk, cached locally, never shipped in this file ── */
 function utaSetTplStatus(msg,ok){
     const el=document.getElementById('utaTplStatus');
-    if(el){el.textContent=msg;el.style.color=ok?'#77dd99':'#ffaa66';}
+    if(el){el.textContent=msg;el.style.color=ok?'var(--good)':'var(--warn)';}
 }
 /* The blank template is kept in IndexedDB, not localStorage. localStorage is a ~5MB
    STRING store shared with every afm_* key, and the base64 of a 432KB PDF is ~576KB of it —
@@ -5425,7 +5444,7 @@ function utaBuildForm(){
     document.getElementById('uta7').innerHTML=UTA_Q.map(([L,q])=>`
         <div class="form-row" style="align-items:flex-end">
             <div class="form-group" style="flex:2"><label>7${L}</label>
-                <div style="font-size:11px;color:#c8d4de;padding:4px 0">${q}</div></div>
+                <div style="font-size:11px;color:var(--t-mid);padding:4px 0">${q}</div></div>
             <div class="form-group"><label>Member</label><select id="uta7m${L}">
                 <option value="">—</option>${UTA_MEMBER_ANS.map(o=>`<option value="${o}">${o}</option>`).join('')}</select></div>
             <div class="form-group"><label>Supervisor</label><select id="uta7s${L}">
@@ -5516,7 +5535,7 @@ function utaSuggestPlan(){
         [1,2,3,4].map(i=>({date:(document.getElementById('utaRDate'+i).value||'').trim(),
                            period:document.getElementById('utaRPer'+i).value})),
         (document.getElementById('utaName').value||'').trim());
-    if(!p){msg.style.color='#ffaa66';
+    if(!p){msg.style.color='var(--warn)';
         msg.textContent=rank?rank+' is above E-6 — sections 9–11 are not required.':'Pick a rank first.';return;}
     let filled=0,skipped=0;
     Object.entries(p.fields).forEach(([id,val])=>{
@@ -5526,7 +5545,7 @@ function utaSuggestPlan(){
     });
     const plan=document.getElementById('utaPlan');
     if(plan.value.trim())skipped++;else{plan.value=p.narrative;filled++;}
-    msg.style.color='#77dd99';
+    msg.style.color='var(--good)';
     msg.textContent='✓ Filled '+filled+' field'+(filled===1?'':'s')+
         (skipped?', left '+skipped+' you had already written':'')+
         '. PAX task set — edit before generating the PDF.'+
@@ -5557,7 +5576,7 @@ function utaFileName(data){
 
 async function utaGenerate(){
     const msg=document.getElementById('utaMsg');
-    msg.style.color='#ff9999';
+    msg.style.color='var(--bad)';
     if(!utaTemplateBytes){msg.textContent='Pick the blank worksheet PDF first.';return;}
     const data=utaCollect();
     if(!data.name){msg.textContent='Name is required.';return;}
@@ -5571,7 +5590,7 @@ async function utaGenerate(){
         const a=document.createElement('a');
         a.href=url;a.download=utaFileName(data);document.body.appendChild(a);a.click();a.remove();
         setTimeout(()=>URL.revokeObjectURL(url),4000);
-        msg.style.color='#77dd99';
+        msg.style.color='var(--good)';
         msg.textContent='✓ Downloaded '+utaFileName(data)+' — open it, confirm the radio dots printed, then route for signatures.';
     }catch(e){msg.textContent='✕ '+e.message;}
 }
@@ -5635,9 +5654,9 @@ utaSelfCheck();
         <div><div class="page-title">End-of-UTA Report</div>
              <div class="page-sub" id="rptSub"></div></div>
         <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
-            <div><label style="font-size:10px;color:#9fb0c0;display:block">UTA start</label>
+            <div><label style="font-size:10px;color:var(--t-mid2);display:block">UTA start</label>
                  <input type="date" id="rptFrom" onchange="renderUtaReport()" style="width:auto"></div>
-            <div><label style="font-size:10px;color:#9fb0c0;display:block">UTA end</label>
+            <div><label style="font-size:10px;color:var(--t-mid2);display:block">UTA end</label>
                  <input type="date" id="rptTo" onchange="renderUtaReport()" style="width:auto"></div>
             <button class="btn-sm" onclick="renderUtaReport(true)">⟳ Rebuild from Sheet</button>
             <button class="btn-sm" onclick="copyUtaReport(this)">📋 Copy for email</button>
@@ -5647,8 +5666,8 @@ utaSelfCheck();
     <div class="stats-row" id="rptStats"></div>
     <div id="rptContent"></div>
     <details style="margin-top:22px" id="rptPlainWrap">
-        <summary style="cursor:pointer;color:#ffd700;font-size:11px;letter-spacing:1px;text-transform:uppercase">Plain text — triple-click to select</summary>
-        <pre id="rptPlain" style="user-select:all;white-space:pre-wrap;background:rgba(255,255,255,.04);border:1px solid rgba(255,215,0,.22);border-radius:4px;padding:14px;margin-top:10px;font-size:12px;line-height:1.6;"></pre>
+        <summary style="cursor:pointer;color:var(--acc);font-size:11px;letter-spacing:1px;text-transform:uppercase">Plain text — triple-click to select</summary>
+        <pre id="rptPlain" style="user-select:all;white-space:pre-wrap;background:rgba(var(--ink-rgb),.04);border:1px solid rgba(var(--acc-rgb),.22);border-radius:4px;padding:14px;margin-top:10px;font-size:12px;line-height:1.6;"></pre>
     </details>
 </div>
 </div>
@@ -5854,7 +5873,7 @@ function renderAfDocs(){
 
     const cats=['All',...new Set(DOCS.map(d=>d.cat))];
     document.getElementById('afdocCats').innerHTML=cats.map(c=>
-        `<button class="btn-sm" onclick="afdocSetCat('${esc(c)}')" style="${c===afdocCat?'':'border-color:rgba(255,215,0,.25);background:transparent;color:#a0a0a0;'}">${c}</button>`
+        `<button class="btn-sm" onclick="afdocSetCat('${esc(c)}')" style="${c===afdocCat?'':'border-color:rgba(var(--acc-rgb),.25);background:transparent;color:var(--t-mid2);'}">${c}</button>`
     ).join('');
 
     const q=(document.getElementById('afdocSearch').value||'').trim().toLowerCase();
@@ -5863,7 +5882,7 @@ function renderAfDocs(){
 
     if(!hits.length){
         document.getElementById('afdocList').innerHTML=
-            '<div style="color:#606060;font-size:12px;padding:20px 0;text-align:center">Nothing matches. Add the doc to the DOCS array in the tracker.</div>';
+            '<div style="color:var(--t-faint);font-size:12px;padding:20px 0;text-align:center">Nothing matches. Add the doc to the DOCS array in the tracker.</div>';
         return;
     }
 
@@ -5873,16 +5892,16 @@ function renderAfDocs(){
         const seen=afdocLog[d.num];
         html+=`<div class="card">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
-                <div><div style="font-size:14px;font-weight:700;color:#e0e0e0">${d.num}</div>
-                     <div style="font-size:12px;color:#a0a0a0;margin-top:2px">${d.title}</div></div>
-                <span class="badge" style="background:${d.direct?'rgba(85,255,153,.12)':'rgba(255,181,71,.12)'};color:${d.direct?'#55ff99':'#ffb547'};border:1px solid ${d.direct?'rgba(85,255,153,.35)':'rgba(255,181,71,.35)'}">${d.direct?'DIRECT LINK':'SEARCH E-PUBS'}</span>
+                <div><div style="font-size:14px;font-weight:700;color:var(--t-hi)">${d.num}</div>
+                     <div style="font-size:12px;color:var(--t-mid2);margin-top:2px">${d.title}</div></div>
+                <span class="badge" style="background:${d.direct?'rgba(var(--good-rgb),.12)':'rgba(var(--warn-rgb),.12)'};color:${d.direct?'var(--good)':'var(--warn)'};border:1px solid ${d.direct?'rgba(var(--good-rgb),.35)':'rgba(var(--warn-rgb),.35)'}">${d.direct?'DIRECT LINK':'SEARCH E-PUBS'}</span>
             </div>
-            <div style="font-size:12px;color:#a0a0a0;line-height:1.6;margin-top:10px">${d.note}</div>
-            ${d.verified?`<div style="font-size:11px;color:#d8bf6a;margin-top:6px">Link path built ${d.verified} — re-check the cover page date/GM/IC before citing, don't rely on the badge alone.</div>`:''}
-            <div style="font-size:11px;color:${seen?'#55ff99':'#606060'};margin-top:6px">${seen?'✓ You last confirmed this on '+afdocFmt(seen):'Not yet manually verified'}</div>
+            <div style="font-size:12px;color:var(--t-mid2);line-height:1.6;margin-top:10px">${d.note}</div>
+            ${d.verified?`<div style="font-size:11px;color:var(--acc-mut);margin-top:6px">Link path built ${d.verified} — re-check the cover page date/GM/IC before citing, don't rely on the badge alone.</div>`:''}
+            <div style="font-size:11px;color:${seen?'var(--good)':'var(--t-faint)'};margin-top:6px">${seen?'✓ You last confirmed this on '+afdocFmt(seen):'Not yet manually verified'}</div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
                 <a class="btn-sm" href="${d.url}" target="_blank" rel="noopener" style="text-decoration:none">${d.direct?'Open PDF':'Go search'}</a>
-                <button class="btn-sm" onclick="afdocMarkVerified('${esc(d.num)}')" style="border-color:rgba(255,215,0,.25);background:transparent;color:#a0a0a0">Mark verified today</button>
+                <button class="btn-sm" onclick="afdocMarkVerified('${esc(d.num)}')" style="border-color:rgba(var(--acc-rgb),.25);background:transparent;color:var(--t-mid2)">Mark verified today</button>
             </div>
         </div>`;
     });
@@ -5895,18 +5914,18 @@ function renderAfDocs(){
      to #tab-templates (it styled bare body/*/section) and repainted to the tracker
      palette. -->
 <style>
-#tab-templates{--bg:transparent;--bg3:rgba(255,255,255,0.04);--border:rgba(255,215,0,0.15);--green:#ffd700;--yellow:#ffd700;--text:#e0e0e0;--muted:#a0a0a0;--dim:#606060;--mono:"DM Mono",monospace;}
+#tab-templates{--bg:transparent;--bg3:rgba(var(--ink-rgb),0.04);--border:rgba(var(--acc-rgb),0.15);--green:var(--acc);--yellow:var(--acc);--text:var(--t-hi);--muted:var(--t-mid2);--dim:var(--t-faint);--mono:"DM Mono",monospace;}
 #tplMain *{box-sizing:border-box;margin:0;padding:0;}
 #tab-templates #tplMain{background:var(--bg);color:var(--text);font-size:15px;line-height:1.7;}
 #tab-templates #tplMain{max-width:900px;padding:4px 0 60px;}
-#tab-templates #tab-templates .pt{font-size:26px;font-weight:normal;letter-spacing:-.5px;color:#ffd700;margin-bottom:4px;}
+#tab-templates #tab-templates .pt{font-size:26px;font-weight:normal;letter-spacing:-.5px;color:var(--acc);margin-bottom:4px;}
 #tab-templates .pm{font-size:13px;color:var(--muted);font-style:italic;margin-bottom:24px;}
 #tab-templates .topnav{display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:4px;gap:4px;margin-bottom:28px;}
 #tab-templates .topbtn{flex:1;font-family:var(--mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;padding:13px 0;border:1px solid transparent;border-radius:6px;cursor:pointer;background:transparent;color:var(--dim);transition:all .15s;text-align:center;}
-#tab-templates .topbtn.active{background:rgba(255,215,0,0.10);border-color:rgba(255,215,0,.55);color:var(--green);}
+#tab-templates .topbtn.active{background:rgba(var(--acc-rgb),0.10);border-color:rgba(var(--acc-rgb),.55);color:var(--green);}
 #tab-templates .section{display:none;}
 #tab-templates .section.active{display:block;}
-#tab-templates .intro{font-size:13px;color:#a0a0a0;line-height:1.75;margin-bottom:28px;padding-bottom:22px;border-bottom:1px solid var(--border);}
+#tab-templates .intro{font-size:13px;color:var(--t-mid2);line-height:1.75;margin-bottom:28px;padding-bottom:22px;border-bottom:1px solid var(--border);}
 #tab-templates .intro strong{color:var(--text);}
 #tab-templates .intro ul{margin:10px 0 0 18px;}
 #tab-templates .intro li{margin-bottom:8px;}
@@ -5914,7 +5933,7 @@ function renderAfDocs(){
 #tab-templates .grp:first-child{margin-top:0;}
 #tab-templates .stab{display:flex;flex-wrap:wrap;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:3px;gap:3px;margin-bottom:24px;}
 #tab-templates .stabtn{flex:1;min-width:100px;font-family:var(--mono);font-size:11px;padding:9px 6px;border:1px solid transparent;border-radius:4px;cursor:pointer;background:transparent;color:var(--dim);transition:all .15s;text-align:center;}
-#tab-templates .stabtn.active{background:rgba(255,215,0,0.10);border-color:rgba(255,215,0,.45);color:var(--green);}
+#tab-templates .stabtn.active{background:rgba(var(--acc-rgb),0.10);border-color:rgba(var(--acc-rgb),.45);color:var(--green);}
 #tab-templates .tpl{display:none;}
 #tab-templates .tpl.active{display:block;}
 #tab-templates .mb{background:var(--bg3);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px;}
@@ -5922,9 +5941,9 @@ function renderAfDocs(){
 #tab-templates .mt{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.08em;text-transform:uppercase;}
 #tab-templates .cb{font-family:var(--mono);font-size:10px;padding:5px 12px;background:transparent;border:1px solid var(--border);color:var(--dim);border-radius:4px;cursor:pointer;transition:all .15s;}
 #tab-templates .cb:hover{border-color:var(--green);color:var(--green);}
-#tab-templates .cb.copied{border-color:#55ff99;color:#55ff99;}
+#tab-templates .cb.copied{border-color:var(--good);color:var(--good);}
 #tab-templates .mc{padding:16px;font-size:12.5px;line-height:1.85;white-space:pre-wrap;color:var(--text);font-family:var(--mono);}
-#tab-templates .sc{margin-top:0;padding:14px 16px;border:1px solid rgba(255,215,0,.25);background:rgba(255,215,0,.06);border-radius:8px;font-size:12.5px;color:#d8bf6a;line-height:1.7;}
+#tab-templates .sc{margin-top:0;padding:14px 16px;border:1px solid rgba(var(--acc-rgb),.25);background:rgba(var(--acc-rgb),.06);border-radius:8px;font-size:12.5px;color:var(--acc-mut);line-height:1.7;}
 #tab-templates .sc strong{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--yellow);display:block;margin-bottom:8px;}
 #tab-templates .sc ul{margin:0 0 0 16px;}
 #tab-templates .sc li{margin-bottom:6px;}
@@ -5949,7 +5968,7 @@ function renderAfDocs(){
         This routing begins <strong>after</strong> the Rater and Ratee have worked and prepared the EPB,
         using whatever process they feel appropriate to get a final product ready (Word, ALQ Eval Preparation Document, etc.).
     </div>
-    <div id="epbWrap" style="overflow-x:auto;background:#fff;border-radius:6px;padding:8px;"></div>
+    <div id="epbWrap" style="overflow-x:auto;background:#ffffff;border-radius:6px;padding:8px;"></div>
     <div class="footer">Export the PNG for Slack, the PDF for email.</div>
 </div>
 </div>
@@ -5961,7 +5980,7 @@ function renderAfDocs(){
         <div><div class="page-title">Pubs &amp; Templates</div>
              <div class="page-sub">AF publications · Flight Chief admin docs · SMSgt / CMSgt career templates</div></div>
         <div id="afdocHead" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <span style="font-size:11px;color:#a0a0a0">Last full pass: <strong id="afdocGlobal" style="color:#ffd700">—</strong></span>
+            <span style="font-size:11px;color:var(--t-mid2)">Last full pass: <strong id="afdocGlobal" style="color:var(--acc)">—</strong></span>
             <button class="btn-sm" onclick="afdocMarkGlobal()">✓ Full review done today</button>
         </div>
     </div>
@@ -5976,16 +5995,16 @@ function renderAfDocs(){
 
   <!-- ============ SECTION: AF PUBLICATIONS ============ -->
   <div id="sec-pubs" class="section active">
-<div class="card" style="font-size:11px;color:#a0a0a0;line-height:1.6;margin-bottom:14px">
-        <strong style="color:#ffd700">There is no auto-check button on purpose.</strong>
+<div class="card" style="font-size:11px;color:var(--t-mid2);line-height:1.6;margin-bottom:14px">
+        <strong style="color:var(--acc)">There is no auto-check button on purpose.</strong>
         e-Publishing's file server sits behind Akamai bot protection (403 to a normal browser identity)
         and sends no CORS headers, so a page cannot read it. A button claiming to have checked for updates
         would be lying. Instead: open the doc, read the cover page (date, Certified by, Supersedes, any
-        IC/GM heading), then press <strong style="color:#ffd700">Mark verified</strong> — that timestamp is a real audit trail.
-        <span style="color:#606060">Saved in this browser only.</span>
+        IC/GM heading), then press <strong style="color:var(--acc)">Mark verified</strong> — that timestamp is a real audit trail.
+        <span style="color:var(--t-faint)">Saved in this browser only.</span>
     </div>
     <input id="afdocSearch" type="text" placeholder="Search by number, title, or keyword…" oninput="renderAfDocs()"
-           style="width:100%;padding:10px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,215,0,.15);border-radius:3px;color:#e0e0e0;font-size:13px;">
+           style="width:100%;padding:10px 12px;background:rgba(var(--ink-rgb),.04);border:1px solid rgba(var(--acc-rgb),.15);border-radius:3px;color:var(--t-hi);font-size:13px;">
     <div id="afdocCats" style="display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 16px"></div>
     <div id="afdocList"></div>
   </div>
@@ -5998,7 +6017,7 @@ function renderAfDocs(){
       Airman to their 5- or 7-skill level. Tasks come straight out of <strong>CFETP 2T2X1 (6 March 2026)</strong>,
       Attachment 2, filtered to the UTC the member actually works and the level being upgraded to. Nothing here is
       invented: if a task is not in the CFETP for that UTC and level, it does not appear.
-      <div style="font-size:11px;color:#808080;margin-top:6px">
+      <div style="font-size:11px;color:var(--t-lo);margin-top:6px">
         The plan is a starting point, not a finished product. Set real dates, and replace the method column
         where your section trains it differently.
       </div>
@@ -6021,7 +6040,7 @@ function renderAfDocs(){
       <button class="btn" onclick="copyITP()">⧉ Copy as text</button>
       <button class="btn" onclick="printITP()">📄 PDF</button>
     </div>
-    <div id="itpMsg" style="font-size:11px;color:#808080;margin-bottom:8px"></div>
+    <div id="itpMsg" style="font-size:11px;color:var(--t-lo);margin-bottom:8px"></div>
     <div id="itpOut"></div>
   </div>
 
@@ -6033,9 +6052,9 @@ function renderAfDocs(){
       <div style="margin:10px 0 4px">
         <a class="btn-sm" style="text-decoration:none;display:inline-block"
            href="Official_Letterhead_Template_AFRC.docx" download>⬇ Download the letterhead template (.docx)</a>
-        <span style="font-size:10px;color:#707070;margin-left:8px">MFR Template w/ DoW Seal · correct signature box · ao Dec 2025</span>
+        <span style="font-size:10px;color:var(--t-faint);margin-left:8px">MFR Template w/ DoW Seal · correct signature box · ao Dec 2025</span>
       </div>
-      <div style="font-size:11px;color:#808080;margin-bottom:8px">
+      <div style="font-size:11px;color:var(--t-lo);margin-bottom:8px">
         Format, read out of the Dec 2025 template itself: date <strong>right-aligned</strong> as
         <strong>1 July 2026</strong> (no leading zero, month spelled out); <strong>SUBJECT:</strong> followed by two
         spaces; numbered paragraphs with two spaces after the period; no <code>//SIGNED//</code>.
@@ -6044,7 +6063,7 @@ function renderAfDocs(){
         Apply the template's built-in <strong>Signature</strong> style rather than spacing it over by hand — pasting
         pre-indented text into a styled paragraph double-indents it. An <strong>Attachments:</strong> line goes last,
         back at the left margin.
-        <br><span style="color:#ffaa66">Two deliberate departures from the template's placeholder text:</span>
+        <br><span style="color:var(--warn)">Two deliberate departures from the template's placeholder text:</span>
         it prints <code>USAF</code> and a two-line block, but Reserve members sign <strong>USAFR</strong> and the
         signed 39 APS examples carry the full four-line block (name, duty title, squadron and wing, base).
         The templates below follow the signed examples.
@@ -6865,7 +6884,7 @@ async function renderUtaReport(force){
         ?Object.values(n.neverMarkableByFlight).flat()
         :(n.neverMarkableByFlight[currentFlight]||[]);
     const cov=rptAppCoverage(n);
-    const W=t=>`<div class="brief-clear" style="border-left:3px solid #ffaa00;padding-left:10px;margin-bottom:10px;color:#ffcc88">⚠ ${t}</div>`;
+    const W=t=>`<div class="brief-clear" style="border-left:3px solid var(--warn);padding-left:10px;margin-bottom:10px;color:var(--warn)">⚠ ${t}</div>`;
     warn.innerHTML=
         (n.attDupes?W(`${n.attDupes} redundant attendance row${n.attDupes===1?'':'s'} in the Sheet — every save appends instead of
             updating, so a person can hold several conflicting marks for one day. The most recent row wins here, which is
@@ -6901,11 +6920,11 @@ function renderRptFlight(n,from,to){
     document.getElementById('rptSub').textContent=
         `${d.flight} · UTA ${from}${to!==from?' → '+to:''} · from the Sheet ${rptCache.at.toLocaleTimeString()}`;
     document.getElementById('rptStats').innerHTML=`
-        <div class="stat-card"><div class="stat-label">Participation</div><div class="stat-value" style="color:${d.partPct>=90?'#55ff99':d.partPct>=75?'#ffd700':'#ff6666'}">${d.days.length?d.partPct+'%':'—'}</div><div class="stat-sub">${d.present} of ${d.assigned} assigned</div></div>
-        <div class="stat-card"><div class="stat-label">Training Complete</div><div class="stat-value" style="color:${d.training.pct>=90?'#55ff99':d.training.pct>=50?'#ffd700':'#ff6666'}">${d.training.pct==null?'—':d.training.pct+'%'}</div><div class="stat-sub">${d.training.done} of ${d.training.total} tasks</div></div>
-        <div class="stat-card"><div class="stat-label">Overdue</div><div class="stat-value" style="color:${d.training.late?'#ff4444':'#55ff99'}">${d.training.late}</div><div class="stat-sub">${d.training.hot} due this UTA</div></div>
+        <div class="stat-card"><div class="stat-label">Participation</div><div class="stat-value" style="color:${d.partPct>=90?'var(--good)':d.partPct>=75?'var(--acc)':'var(--bad)'}">${d.days.length?d.partPct+'%':'—'}</div><div class="stat-sub">${d.present} of ${d.assigned} assigned</div></div>
+        <div class="stat-card"><div class="stat-label">Training Complete</div><div class="stat-value" style="color:${d.training.pct>=90?'var(--good)':d.training.pct>=50?'var(--acc)':'var(--bad)'}">${d.training.pct==null?'—':d.training.pct+'%'}</div><div class="stat-sub">${d.training.done} of ${d.training.total} tasks</div></div>
+        <div class="stat-card"><div class="stat-label">Overdue</div><div class="stat-value" style="color:${d.training.late?'var(--bad)':'var(--good)'}">${d.training.late}</div><div class="stat-sub">${d.training.hot} due this UTA</div></div>
         <div class="stat-card"><div class="stat-label">Manning</div><div class="stat-value">${d.assigned}/${d.authorized||'—'}</div><div class="stat-sub">${rptPct(d.assigned,d.authorized)}% of UMD · ${d.vacant} vacant</div></div>
-        <div class="stat-card"><div class="stat-label">Unexcused</div><div class="stat-value" style="color:${d.counts.ABSENT?'#ff4444':'#55ff99'}">${d.counts.ABSENT}</div><div class="stat-sub">${d.counts.EXCUSED} excused · ${d.counts.RST} RST</div></div>
+        <div class="stat-card"><div class="stat-label">Unexcused</div><div class="stat-value" style="color:${d.counts.ABSENT?'var(--bad)':'var(--good)'}">${d.counts.ABSENT}</div><div class="stat-sub">${d.counts.EXCUSED} excused · ${d.counts.RST} RST</div></div>
         <div class="stat-card"><div class="stat-label">Promotions</div><div class="stat-value">${d.promo.not.length}</div><div class="stat-sub">not ready of ${d.promo.ready.length+d.promo.not.length+d.promo.pending.length}</div></div>`;
 
     const sec=(t,inner)=>`<div class="brief-team"><div class="brief-team-head"><span>${t}</span></div>${inner}</div>`;
@@ -6924,16 +6943,16 @@ function renderRptFlight(n,from,to){
             +`<table class="flow-table" style="max-width:340px"><tbody>`
             +ATT_STATES.map(s=>`<tr><td>${s}</td><td style="text-align:right">${d.counts[s]}</td></tr>`).join('')
             +`<tr><td>Not marked</td><td style="text-align:right">${d.unmarked.length}</td></tr></tbody></table>`
-            +(absent.length?`<div class="brief-person"><div class="brief-name" style="color:#ff8888">Unexcused (${absent.length})</div><div class="brief-clear">${absent.map(r=>rptName(r.p)).join(' · ')}</div></div>`:'')
+            +(absent.length?`<div class="brief-person"><div class="brief-name" style="color:var(--bad)">Unexcused (${absent.length})</div><div class="brief-clear">${absent.map(r=>rptName(r.p)).join(' · ')}</div></div>`:'')
             +(other.length?`<div class="brief-person"><div class="brief-name">Excused / RST / TDY / Leave (${other.length})</div><div class="brief-clear">${other.map(r=>rptName(r.p)+' — '+r.worst).join(' · ')}</div></div>`:'')
-            +(d.unmarked.length?`<div class="brief-person"><div class="brief-name" style="color:#ffaa66">Never marked (${d.unmarked.length}) — counted neither way</div><div class="brief-clear">${d.unmarked.map(r=>rptName(r.p)).join(' · ')}</div></div>`:''));
+            +(d.unmarked.length?`<div class="brief-person"><div class="brief-name" style="color:var(--warn)">Never marked (${d.unmarked.length}) — counted neither way</div><div class="brief-clear">${d.unmarked.map(r=>rptName(r.p)).join(' · ')}</div></div>`:''));
     }
 
     h+=sec(`2. Training — ${d.training.pct==null?'no data':d.training.pct+'% complete'}`,
         d.training.total
             ?(d.training.byReq.length
                 ?`<table class="flow-table"><thead><tr><th>Requirement</th><th>Owing</th><th>Deadline</th></tr></thead><tbody>`
-                 +d.training.byReq.slice(0,12).map(r=>`<tr><td${r.urgency===2?' style="color:#ff8888"':r.urgency===1?' style="color:#ffd700"':''}>${r.title}</td><td>${r.who.length}</td><td>${r.deadline||'—'}</td></tr>`).join('')
+                 +d.training.byReq.slice(0,12).map(r=>`<tr><td${r.urgency===2?' style="color:var(--bad)"':r.urgency===1?' style="color:var(--acc)"':''}>${r.title}</td><td>${r.who.length}</td><td>${r.deadline||'—'}</td></tr>`).join('')
                  +`</tbody></table>`
                  +(d.training.byReq.length>12?empty(`+ ${d.training.byReq.length-12} more requirement(s) outstanding — full detail on the Training Tracker tab.`):'')
                 :empty('✅ Nothing outstanding.'))
@@ -6956,14 +6975,14 @@ function renderRptFlight(n,from,to){
         (d.promo.ready.length+d.promo.not.length+d.promo.pending.length)
             ?empty(`${d.promo.ready.length} recommended · ${d.promo.not.length} not ready · ${d.promo.pending.length} pending`)
              +(d.promo.not.length?`<table class="flow-table"><thead><tr><th>Member</th><th>Next</th><th>Reason not ready</th></tr></thead><tbody>`
-               +d.promo.not.map(p=>`<tr><td>${p.Rank||''} ${p.Name||''}</td><td>${p.NextRank||'—'}</td><td>${p.NotReadyReason||'<em style="color:#ff8888">no reason recorded</em>'}</td></tr>`).join('')+`</tbody></table>`:'')
+               +d.promo.not.map(p=>`<tr><td>${p.Rank||''} ${p.Name||''}</td><td>${p.NextRank||'—'}</td><td>${p.NotReadyReason||'<em style="color:var(--bad)">no reason recorded</em>'}</td></tr>`).join('')+`</tbody></table>`:'')
             :empty('Nothing tracked for this cycle.'));
 
     h+=sec(`5. KPIs${d.period?' — '+d.period:''}`,
         d.kpis.length
             ?`<table class="flow-table"><thead><tr><th>Owner</th><th>KPI</th><th>Value</th><th>Target</th><th>RAG</th></tr></thead><tbody>`
              +d.kpis.map(k=>`<tr><td>${k.owner}</td><td>${k.label}</td><td>${k.value}</td><td>${k.target||'—'}</td>
-               <td style="color:${k.rag==='R'?'#ff6666':k.rag==='A'?'#ffd700':k.rag==='G'?'#55ff99':'#888'}">${RAG_WORD[k.rag]||'—'}</td></tr>`).join('')+`</tbody></table>`
+               <td style="color:${k.rag==='R'?'var(--bad)':k.rag==='A'?'var(--acc)':k.rag==='G'?'var(--good)':'var(--t-lo)'}">${RAG_WORD[k.rag]||'—'}</td></tr>`).join('')+`</tbody></table>`
             :empty('No KPI values recorded for this flight.'));
 
     document.getElementById('rptContent').innerHTML=h;
@@ -7027,10 +7046,10 @@ function renderRptRollup(n,from,to){
     document.getElementById('rptSub').textContent=
         `ALL SQUADRON · UTA ${from}${to!==from?' → '+to:''} · ${rows.filter(r=>r.assigned).length} of ${rows.length} flights with a roster · from the Sheet ${rptCache.at.toLocaleTimeString()}`;
     document.getElementById('rptStats').innerHTML=`
-        <div class="stat-card"><div class="stat-label">Participation</div><div class="stat-value" style="color:${rptPct(present,assigned)>=90?'#55ff99':'#ffd700'}">${rptPct(present,assigned)}%</div><div class="stat-sub">${present} of ${assigned} assigned</div></div>
-        <div class="stat-card"><div class="stat-label">Training Complete</div><div class="stat-value" style="color:${trainPct>=90?'#55ff99':trainPct>=50?'#ffd700':'#ff6666'}">${trainPct==null?'—':trainPct+'%'}</div><div class="stat-sub">${tDone} of ${tTot} tasks</div></div>
-        <div class="stat-card"><div class="stat-label">Overdue</div><div class="stat-value" style="color:${late?'#ff4444':'#55ff99'}">${late}</div><div class="stat-sub">expired tasks</div></div>
-        <div class="stat-card"><div class="stat-label">Unexcused</div><div class="stat-value" style="color:${absent?'#ff4444':'#55ff99'}">${absent}</div><div class="stat-sub">across squadron</div></div>
+        <div class="stat-card"><div class="stat-label">Participation</div><div class="stat-value" style="color:${rptPct(present,assigned)>=90?'var(--good)':'var(--acc)'}">${rptPct(present,assigned)}%</div><div class="stat-sub">${present} of ${assigned} assigned</div></div>
+        <div class="stat-card"><div class="stat-label">Training Complete</div><div class="stat-value" style="color:${trainPct>=90?'var(--good)':trainPct>=50?'var(--acc)':'var(--bad)'}">${trainPct==null?'—':trainPct+'%'}</div><div class="stat-sub">${tDone} of ${tTot} tasks</div></div>
+        <div class="stat-card"><div class="stat-label">Overdue</div><div class="stat-value" style="color:${late?'var(--bad)':'var(--good)'}">${late}</div><div class="stat-sub">expired tasks</div></div>
+        <div class="stat-card"><div class="stat-label">Unexcused</div><div class="stat-value" style="color:${absent?'var(--bad)':'var(--good)'}">${absent}</div><div class="stat-sub">across squadron</div></div>
         <div class="stat-card"><div class="stat-label">Manning</div><div class="stat-value">${assigned}/${authorized||'—'}</div><div class="stat-sub">${vacant} vacant billets</div></div>
         <div class="stat-card"><div class="stat-label">Not Ready</div><div class="stat-value">${notReady}</div><div class="stat-sub">promotion readiness</div></div>`;
 
@@ -7038,10 +7057,10 @@ function renderRptRollup(n,from,to){
         `<div class="brief-team"><div class="brief-team-head"><span>By flight</span></div>
          <table class="flow-table"><thead><tr><th>Flight</th><th>Assigned</th><th>UMD</th><th>Particip.</th><th>Unexc.</th><th>Training</th><th>Overdue</th><th>Not ready</th></tr></thead><tbody>
          ${rows.map(r=>`<tr><td>${r.flight}</td><td>${r.assigned||'—'}</td><td>${r.authorized||'—'}</td>
-            <td${r.days.length?'':' style="color:#666"'}>${r.days.length?r.partPct+'%':'no data'}</td>
-            <td${r.counts.ABSENT?' style="color:#ff8888"':''}>${r.counts.ABSENT}</td>
+            <td${r.days.length?'':' style="color:var(--t-faint)"'}>${r.days.length?r.partPct+'%':'no data'}</td>
+            <td${r.counts.ABSENT?' style="color:var(--bad)"':''}>${r.counts.ABSENT}</td>
             <td>${r.training.pct==null?'—':r.training.pct+'%'}</td>
-            <td${r.training.late?' style="color:#ff8888"':''}>${r.training.late}</td>
+            <td${r.training.late?' style="color:var(--bad)"':''}>${r.training.late}</td>
             <td>${r.promo.not.length}</td></tr>`).join('')}
          </tbody></table>
          <div class="brief-clear">“no data” means no attendance was marked for these dates — an empty roster reports blank rather than 0%, because the difference matters when briefing.</div></div>`;
