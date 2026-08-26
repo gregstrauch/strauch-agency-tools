@@ -519,6 +519,7 @@ label{display:block;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter
     </div>
 
     <div id="warnZone"></div>
+    <div id="verifyZone"></div>
 
     <div class="xnco-strip">
         <div><div class="xnco-label">Flight XNCO</div><div class="xnco-name" id="xncoFlight">—</div></div>
@@ -1048,6 +1049,7 @@ function renderManning(){
     oc.scrollLeft=(oc.scrollWidth-oc.clientWidth)/2;
     oc.dataset.stamp=chartStamp();   // printed header for the PDF export
 
+    renderVerifyPanel();
     renderDuties();
     populateTeamFilter();
 }
@@ -1270,6 +1272,63 @@ function exportEPBPDF(){
     const done=()=>{document.body.classList.remove('print-epb');window.removeEventListener('afterprint',done);};
     window.addEventListener('afterprint',done);
     window.print();
+}
+
+// ═══════════════════════ NAMES TO VERIFY
+// Names transcribed off the wiring-diagram photo carry Skills='(verify)'. Rather
+// than making Greg hunt them down node by node across flights, list this flight's
+// in one card and fix them in a pass. The flag lives in Skills, never in Name —
+// Name is the upsert key, so editing it is a rename, not a correction.
+const VERIFY_FLAG='(verify)';
+let _verifyRefs=[];
+function isVerify(p){return String(p&&p.skills||'').trim()===VERIFY_FLAG;}
+
+function renderVerifyPanel(){
+    const host=document.getElementById('verifyZone');
+    if(!host)return;
+    _verifyRefs=[];
+    if(isRollup()){host.innerHTML='';return;}
+    (manning.msgtLeads||[]).forEach(sec=>{
+        const add=(p,where)=>{if(isVerify(p))_verifyRefs.push({p,where});};
+        add(sec.msgt,sec.name);
+        sec.tsgts.forEach(t=>{add(t,sec.name);t.subordinates.forEach(x=>add(x,sec.name));});
+    });
+    const ch=flightChief(), cm=flightCommander();
+    if(isVerify(ch))_verifyRefs.push({p:ch,where:'Flight Chief',top:'chief'});
+    if(cm&&isVerify(cm))_verifyRefs.push({p:cm,where:'Flight Commander',top:'cmdr'});
+    if(!_verifyRefs.length){host.innerHTML='';return;}
+    host.innerHTML=`<div class="card" style="cursor:default;border-color:rgba(255,170,102,.45)">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+        <div><strong style="color:#ffaa66">⚠ ${_verifyRefs.length} name${_verifyRefs.length===1?'':'s'} to verify</strong>
+          <div style="font-size:11px;color:#808080;margin-top:2px">
+            Read off the wiring-diagram photo and not fully legible. Correct the spelling, or leave it and press Confirm.
+            Anything still flagged shows a badge on the chart.</div></div>
+        <button class="btn-sm" onclick="saveVerifyNames()">✓ Save all</button>
+      </div>
+      <div style="display:grid;gap:6px">${_verifyRefs.map((r,i)=>`
+        <div style="display:grid;grid-template-columns:78px 1fr 150px;gap:8px;align-items:center">
+          <span style="font-size:11px;color:#ffd700">${esc(r.p.rank||'—')}</span>
+          <input id="vf_${i}" value="${esc(r.p.name)}" style="font-size:13px">
+          <span style="font-size:10px;color:#707070">${esc(r.where)}</span>
+        </div>`).join('')}</div>
+    </div>`;
+}
+
+function saveVerifyNames(){
+    if(isRollup()){setSyncStatus('','ALL SQUADRON is read-only — pick a flight to edit');return;}
+    let renamed=0;
+    _verifyRefs.forEach((r,i)=>{
+        const el=document.getElementById('vf_'+i);
+        const v=(el&&el.value||'').trim();
+        if(v&&v!==r.p.name){r.p.name=v;renamed++;}
+        r.p.skills='';                       // confirmed either way — drop the badge
+        if(r.top==='chief')manning.chief={...r.p};
+        if(r.top==='cmdr') manning.commander={...r.p};
+    });
+    saveLS('afm_v4',manning);
+    renderManning();
+    setSyncStatus('ok',renamed?`${renamed} name${renamed===1?'':'s'} corrected — pushing`:'Names confirmed — pushing');
+    schedulePush('Manning');
 }
 
 function cntDuties(d){return Object.entries(d||{}).filter(([id,v])=>(v==='P'||v==='A')&&!hiddenDuties().has(id)).length;}
@@ -1925,7 +1984,7 @@ function parseASManning(rows){
     // Heal rows written before sheetSafe existed: Sheets stored "(7)" as -7.
     // Idempotent, and the next push writes the repaired value back.
     const skill=s=>/^-\d+$/.test(String(s||'').trim())?`(${String(s).trim().slice(1)})`:(s||'');
-    return{commander:cmRow?{rank:cmRow.Rank,name:cmRow.Name}:null,
+    return{commander:cmRow?{rank:cmRow.Rank,name:cmRow.Name,skills:skill(cmRow.Skills)}:null,
         chief:chRow?{rank:chRow.Rank,name:chRow.Name,skills:skill(chRow.Skills)}:null,
         msgtLeads:teams.map(tn=>{
         const tp=rows.filter(r=>r.Team===tn);
