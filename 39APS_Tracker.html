@@ -1094,9 +1094,9 @@ function renderManning(){
               <div class="otitle" onclick="event.stopPropagation();renameTeam(${si})" style="cursor:text" title="Click the team name to rename it">${sec.name} ✎</div>
               <div class="oname">${sec.msgt.rank} ${sec.msgt.name}</div>
               ${getBadges(sec.msgt)}
-              ${sec.actingLead?`<div class="acting-banner"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5L2.8 19.5a1.4 1.4 0 0 0 1.2 2h16a1.4 1.4 0 0 0 1.2-2z"/><path d="M12 9v5M12 17.5h.01"/></svg> Acting: TSgt ${sec.actingLead}</div>`:''}
+              ${sec.actingLead?`<div class="acting-banner"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5L2.8 19.5a1.4 1.4 0 0 0 1.2 2h16a1.4 1.4 0 0 0 1.2-2z"/><path d="M12 9v5M12 17.5h.01"/></svg> Acting: ${(sec.tsgts[0]||{}).rank||''} ${sec.actingLead}</div>`:''}
               <div class="node-actions">
-                <button class="node-btn" onclick="event.stopPropagation();addTsgt(${si})">+ TSGT</button>
+                <button class="node-btn" onclick="event.stopPropagation();addTsgt(${si})">+ SUPERVISOR</button>
                 <button class="node-btn rm" onclick="event.stopPropagation();removeNode('team',${si},-1,-1)">✕</button>
               </div>
             </div>
@@ -1109,6 +1109,7 @@ function renderManning(){
                   ${getBadges(t)}
                   <div class="node-actions">
                     <button class="node-btn" onclick="event.stopPropagation();addSub(${si},${ti})">+ MEMBER</button>
+                    ${!t.subordinates.length&&sec.tsgts.length>1?`<button class="node-btn" onclick="event.stopPropagation();demoteToMember(${si},${ti})" title="Move back to being rated by another supervisor on this team">↓ MEMBER</button>`:''}
                     <button class="node-btn rm" onclick="event.stopPropagation();removeNode('tsgt',${si},${ti},-1)">✕</button>
                   </div>
                 </div>
@@ -1118,7 +1119,10 @@ function renderManning(){
                     <div class="otitle">${x.rank}</div>
                     <div class="oname">${x.name}</div>
                     ${xv?'<div class="badges"><span class="badge b-vacant">FUNDED OPEN</span></div>':getBadges(x)}
-                    <div class="node-actions"><button class="node-btn rm" onclick="event.stopPropagation();removeNode('sub',${si},${ti},${xi})">✕</button></div>
+                    <div class="node-actions">
+                      <button class="node-btn" onclick="event.stopPropagation();promoteToSup(${si},${ti},${xi})" title="Make this person a direct supervisor on this team — any rank can hold the slot">↑ SUPERVISOR</button>
+                      <button class="node-btn rm" onclick="event.stopPropagation();removeNode('sub',${si},${ti},${xi})">✕</button>
+                    </div>
                   </div></li>`;}).join('')}</ul>`}
               </li>`;}).join('')}</ul>`}
           </li>`;}).join('')}</ul>`}
@@ -1688,6 +1692,27 @@ function renameTeam(si){
     sec.id=name.toLowerCase().replace(/\s/g,'');
     saveManning();
 }
+// Any rank can hold a supervisor slot — Role (the billet) and Rank (the person)
+// are separate columns, which is why an MSgt already sits in one on Air Freight.
+// Appended, never unshifted: reActing() reads tsgts[0] as the acting team lead, so
+// promoting someone must not silently hand them the team.
+function promoteToSup(si,ti,xi){
+    if(editGuard())return;
+    const sec=manning.msgtLeads[si];
+    const [p]=sec.tsgts[ti].subordinates.splice(xi,1);
+    sec.tsgts.push({...p,subordinates:[]});
+    reActing(); saveManning();
+}
+// Only offered for a supervisor with nobody under them, so nothing is orphaned.
+function demoteToMember(si,ti){
+    if(editGuard())return;
+    const sec=manning.msgtLeads[si];
+    if(sec.tsgts.length<2)return;
+    const [p]=sec.tsgts.splice(ti,1);
+    delete p.subordinates;
+    sec.tsgts[0].subordinates.push(p);
+    reActing(); saveManning();
+}
 function addSub(si,ti){
     if(editGuard())return;
     manning.msgtLeads[si].tsgts[ti].subordinates.push({rank:'SrA',name:nextVacantName(),skills:'(X)',duties:{},certs:{}});
@@ -1767,7 +1792,7 @@ function openEdit(type,si,ti,xi){
     if(type!=='sq'&&editGuard())return;
     editTarget={type,si,ti,xi};
     const p=getPerson(type,si,ti,xi);
-    document.getElementById('editTitle').textContent=type==='sq'?`Edit ${SQ_ROLES[si].title}`:type==='cmdr'?'Edit Flight Commander':type==='chief'?'Edit Flight Chief':type==='msgt'?`Edit ${manning.msgtLeads[si].name} — MSgt`:type==='tsgt'?`Edit TSgt — ${p.name}`:`Edit ${p.rank||'Position'} — ${p.name}`;
+    document.getElementById('editTitle').textContent=type==='sq'?`Edit ${SQ_ROLES[si].title}`:type==='cmdr'?'Edit Flight Commander':type==='chief'?'Edit Flight Chief':type==='msgt'?`Edit ${manning.msgtLeads[si].name} — MSgt`:type==='tsgt'?`Edit Supervisor — ${p.rank||''} ${p.name}`.replace('  ',' '):`Edit ${p.rank||'Position'} — ${p.name}`;
     document.getElementById('eRank').value=p.rank||'';
     document.getElementById('eName').value=p.name.includes('VACANT')?'':p.name;
     document.getElementById('eSkills').value=p.skills||'';
@@ -3247,7 +3272,27 @@ function _selfCheckDragAndRollup(){
         // same-supervisor drop still swaps (that is how you reorder in a team)
         dragSrc='sub|1|0|0'; doDrop(fakeEvt,'sub|1|0|1');
         if(names(1,0)!=='x1,x2')throw new Error('same-team reorder should swap');
+        // any rank can be promoted into a supervisor slot, and back down again
+        manning={msgtLeads:[{id:'c',name:'Team C',msgt:person('Lead C'),actingLead:null,
+            tsgts:[{...person('TSgt C'),subordinates:[{...person('SrA Jr'),rank:'SrA'},person('y2')]}]}]};
+        promoteToSup(0,0,0);
+        if(manning.msgtLeads[0].tsgts.length!==2)throw new Error('promote did not create a supervisor slot');
+        if(manning.msgtLeads[0].tsgts[1].name!=='SrA Jr')throw new Error('promoted person appended, not unshifted');
+        if(manning.msgtLeads[0].tsgts[1].rank!=='SrA')throw new Error('promote must not rewrite the rank');
+        if(manning.msgtLeads[0].tsgts[0].name!=='TSgt C')throw new Error('promote stole the acting-lead slot');
+        if(names(0,0)!=='y2')throw new Error('promote left a ghost under the old supervisor');
+        if(_rowRetires.length)throw new Error('same-team promote must not retire a row');
+        demoteToMember(0,1);
+        if(manning.msgtLeads[0].tsgts.length!==1)throw new Error('demote did not remove the slot');
+        if(names(0,0)!=='y2,SrA Jr')throw new Error('demote did not land under the remaining supervisor');
+        if('subordinates' in manning.msgtLeads[0].tsgts[0].subordinates[1])throw new Error('demoted member kept a subordinates array');
         // a member dropped on a TEAM box lands under that team's first supervisor
+        manning={msgtLeads:[
+            {id:'a',name:'Team A',msgt:person('Lead A'),actingLead:null,
+             tsgts:[{...person('TSgt A'),subordinates:[person('x1'),person('x2')]}]},
+            {id:'b',name:'Team B',msgt:person('Lead B'),actingLead:null,
+             tsgts:[{...person('TSgt B'),subordinates:[]}]}
+        ]};
         _rowRetires.length=0;
         dragSrc='sub|1|0|0'; doDrop(fakeEvt,'msgt|0');
         if(names(0,0)!=='x1')throw new Error('member dropped on team box did not re-parent');
