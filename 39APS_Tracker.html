@@ -853,8 +853,7 @@ const certList=()=>CERTS.filter(c=>!hiddenDuties().has(c.id));
 const FLIGHT_COMMANDERS={
     'RAMP':            {rank:'Capt',name:'Haapapuro'},
     'AIR FREIGHT':     {rank:'Lt',  name:'Matlock'},
-    'ATOC':            {rank:'',    name:'VACANT (coverage)'},
-    'LOAD PLANNING':   {rank:'',    name:'VACANT (coverage)'},
+    'AIR TERMINAL OPS':{rank:'',    name:'VACANT (coverage)'},
     'PAX':             {rank:'',    name:'VACANT (coverage)'},
 };
 // An explicit {name:''} means "this flight has no commander" — distinct from
@@ -866,14 +865,13 @@ const FLIGHT_CHIEFS={
     'PAX':             {rank:'SMSgt',name:'Gregory Strauch',skills:'9-Level'},
     'AIR FREIGHT':     {rank:'SMSgt',name:'Roy Wunderlich', skills:''},
     'RAMP':            {rank:'SMSgt',name:'Sears',          skills:''},
-    'ATOC':            {rank:'SMSgt',name:'Buckley, A',     skills:''},
-    'LOAD PLANNING':   {rank:'SMSgt',name:'Buckley, A',     skills:''},
+    'AIR TERMINAL OPS':{rank:'SMSgt',name:'Buckley, A',     skills:''},
     'PROGRAMS':        {rank:'SMSgt',name:'Moore',          skills:''},
     'NEWCOMERS':       {rank:'TSgt', name:'Olson',          skills:''},
 };
 // Office symbol per section, straight off the wiring diagram's left column.
 const FLIGHT_SYMBOLS={'RAMP':'TROCR','AIR FREIGHT':'TROCA / TROCS',
-    'ATOC':'TROAA','LOAD PLANNING':'TROOM','PAX':'TROP','PROGRAMS':'TROX','NEWCOMERS':''};
+    'AIR TERMINAL OPS':'TROAA / TROOM','PAX':'TROP','PROGRAMS':'TROX','NEWCOMERS':''};
 const flightSymbol=()=>FLIGHT_SYMBOLS[String(currentFlight).toUpperCase()]||'';
 const NO_CHIEF={rank:'',name:'— not assigned —',skills:''};
 const flightChief=()=>manning.chief?(manning.chief.name?manning.chief:NO_CHIEF)
@@ -1871,18 +1869,30 @@ function saveScriptUrl(url){localStorage.setItem('afm_scripturl',url);}
 // that saved the older two-flight list still picks up the other three.
 // The wiring diagram's sections (cao 06 Aug 2026), in chart order. Cargo and
 // Joint Inspection are TEAMS inside AIR FREIGHT, not flights of their own —
-// SMSgt Wunderlich is Flight Chief, Air Freight Operations over both.
-const SQUADRON_FLIGHTS=['RAMP','AIR FREIGHT','ATOC','LOAD PLANNING','PAX','PROGRAMS','NEWCOMERS'];
+// SMSgt Wunderlich is Flight Chief, Air Freight Operations over both. ATOC and
+// Load Planning are the same arrangement under SMSgt Buckley: one flight,
+// AIR TERMINAL OPS, with each as a team inside it (merged 27 Aug 2026).
+const SQUADRON_FLIGHTS=['RAMP','AIR FREIGHT','AIR TERMINAL OPS','PAX','PROGRAMS','NEWCOMERS'];
+// Flights that were split up and have since merged. Pruned from a returning
+// browser's saved list, and their orphaned per-flight state dropped — otherwise
+// the dead tab persists forever in every browser that ever loaded the old build.
+const RETIRED_FLIGHTS={'ATOC':'AIR TERMINAL OPS','LOAD PLANNING':'AIR TERMINAL OPS'};
 // Authorized strength per flight (UMD), editable by clicking the Authorized stat.
 // Stored in ONE map under a non-per-flight key so the rollup can sum every flight
 // without tripping the per-flight read guard. Raising it adds VACANT billets;
 // lowering it never deletes anyone — the chart is allowed to exceed the UMD.
-const AUTH_DEFAULTS={'RAMP':24,'AIR FREIGHT':31,'ATOC':10,
-    'LOAD PLANNING':10,'PAX':24,'PROGRAMS':6,'NEWCOMERS':21};
+const AUTH_DEFAULTS={'RAMP':24,'AIR FREIGHT':31,'AIR TERMINAL OPS':20,
+    'PAX':24,'PROGRAMS':6,'NEWCOMERS':21};
 const authMap=()=>({...AUTH_DEFAULTS,...loadLS('afm_auth',{})});
 const authFor=f=>authMap()[f];
 let knownFlights=loadLS('afm_flights',SQUADRON_FLIGHTS.slice());
+knownFlights=knownFlights.filter(f=>!RETIRED_FLIGHTS[f]);
 SQUADRON_FLIGHTS.forEach(f=>{if(!knownFlights.includes(f))knownFlights.push(f);});
+Object.keys(RETIRED_FLIGHTS).forEach(dead=>{
+    Object.keys(localStorage).filter(k=>k.endsWith('__'+dead)).forEach(k=>localStorage.removeItem(k));
+    if(localStorage.getItem('afm_auth'))
+        {const a=loadLS('afm_auth',{}); if(dead in a){delete a[dead]; saveLS('afm_auth',a);}}
+});
 // Squadron order, not the order the saved list happens to be in — a newly added
 // flight appends to the end otherwise. Custom flights (index -1 → 99) stay last,
 // in the order they were created, since Array.sort is stable.
@@ -2785,7 +2795,7 @@ const DEFAULT_KPI_SECTIONS = [
 // higherBetter:false — ragThresholds read [green_at_or_below, amber_at_or_below].
 // ═══════════════════════════════════════════════════════════════════════════════
 const FLIGHT_KPI_SECTIONS = {
-    'ATOC': { id:'msn_atoc', name:'ATOC — Air Terminal Operations Center', role:'Mission C2 · GATES/ADPS',
+    'AIR TERMINAL OPS': [{ id:'msn_atoc', name:'ATOC — Air Terminal Operations Center', role:'Mission C2 · GATES/ADPS',
       kpis:[
         {id:'atoc_data_acc',   label:'Mission Data Accuracy Rate',            type:'pct',     target:100, higherBetter:true,  ragThresholds:[98,95], note:'GATES/ADPS entries error-free on first submission'},
         {id:'atoc_amr_ontime', label:'Airlift Movement Records On Time',      type:'pct',     target:100, higherBetter:true,  ragThresholds:[95,85], note:'AMRs transmitted within required reporting window'},
@@ -2795,7 +2805,7 @@ const FLIGHT_KPI_SECTIONS = {
         {id:'atoc_missions',   label:'Missions Managed',                      type:'count',   target:null},
         {id:'atoc_qual',       label:'ATOC Duty Position Qualified Rate',     type:'pct',     target:100, higherBetter:true,  ragThresholds:[90,80]},
       ]},
-    'LOAD PLANNING': { id:'msn_loadplan', name:'Load Planning', role:'Weight & Balance · 463L',
+     { id:'msn_loadplan', name:'Load Planning', role:'Weight & Balance · 463L',
       kpis:[
         {id:'lp_wb_acc',      label:'Weight & Balance Accuracy Rate',        type:'pct',     target:100, higherBetter:true,  ragThresholds:[100,98],note:'Safety of flight — anything below 100% is a finding'},
         {id:'lp_no_revision', label:'Load Plans Approved Without Revision',   type:'pct',     target:100, higherBetter:true,  ragThresholds:[90,80]},
@@ -2804,7 +2814,7 @@ const FLIGHT_KPI_SECTIONS = {
         {id:'lp_hazmat_cert', label:'Hazmat Load Plans Certified',            type:'pct',     target:100, higherBetter:true,  ragThresholds:[100,95]},
         {id:'lp_plans_built', label:'Load Plans Built',                       type:'count',   target:null},
         {id:'lp_qual',        label:'Load Planners Qualified (AALPS Current)',type:'pct',     target:100, higherBetter:true,  ragThresholds:[90,80]},
-      ]},
+      ]}],
     'PAX': { id:'msn_pax', name:'PAX — Passenger Service', role:'Terminal · Space-A · Baggage',
       kpis:[
         {id:'pax_processed',  label:'Passengers Processed',                  type:'count',   target:null},
@@ -2856,10 +2866,11 @@ function _selfCheckFlightKPIs(){
             currentFlight=f;
             kpiData={periods:[],sections:[]};
             ensureFlightKPISections();
-            if(kpiData.sections.length!==1)throw new Error(f+': expected 1 seeded section');
+            const want=[].concat(FLIGHT_KPI_SECTIONS[f]).length;
+            if(kpiData.sections.length!==want)throw new Error(f+': expected '+want+' seeded section(s)');
             ensureFlightKPISections();  // idempotent — must not duplicate
-            if(kpiData.sections.length!==1)throw new Error(f+': re-seeded a duplicate section');
-            const bad=kpiData.sections[0].kpis.find(k=>k.ragThresholds&&k.type==='count');
+            if(kpiData.sections.length!==want)throw new Error(f+': re-seeded a duplicate section');
+            const bad=kpiData.sections.flatMap(s=>s.kpis).find(k=>k.ragThresholds&&k.type==='count');
             if(bad)throw new Error(f+'/'+bad.id+": type 'count' never gets a RAG — use 'decimal'");
         }
         currentFlight='NOT A FLIGHT';
@@ -2873,12 +2884,18 @@ function _selfCheckFlightKPIs(){
 // Add the current flight's mission section if it isn't already there. Idempotent —
 // safe to call on every flight switch.
 function ensureFlightKPISections(){
-    const def = FLIGHT_KPI_SECTIONS[String(currentFlight).toUpperCase()];
-    if(!def) return;
+    // A merged flight owns one section per team it absorbed, so the map value is
+    // either a section or a list of them.
+    const defs = [].concat(FLIGHT_KPI_SECTIONS[String(currentFlight).toUpperCase()] || []);
+    if(!defs.length) return;
     if(!kpiData.sections) kpiData.sections = [];
-    if(kpiData.sections.some(s => s.id === def.id)) return;
-    kpiData.sections.unshift(structuredClone(def));
-    saveLS('afm_kpi', kpiData);
+    let added = false;
+    defs.slice().reverse().forEach(def => {
+        if(kpiData.sections.some(s => s.id === def.id)) return;
+        kpiData.sections.unshift(structuredClone(def));
+        added = true;
+    });
+    if(added) saveLS('afm_kpi', kpiData);
 }
 
 // ═══════════════════════ KPI STATE
@@ -3590,7 +3607,7 @@ function closePromoEdit(){editingPromo=null;document.getElementById('promoEditMo
 const CFETP_UTC = {"UFBAT":{"title":"AIR TERMINAL OPERATIONS CENTER (ATOC)","tasks":[{"n":"3.1.1.2","t":"Gather & disseminate aircraft load information from available sources (e.g., user, Command Post GDSS, SMS, GATES)","l":"57","s":""},{"n":"3.1.1.4","t":"Prioritize mission requirements to effectively manage air transportation workload","l":"57","s":""},{"n":"3.1.3.1","t":"Provide quality control on flight documentation. (Prepare consolidated flight package)","l":"57","s":""},{"n":"3.1.2.4","t":"Communicate with various agencies to provide mission overview (Brief aircrew/troop commander on load information)","l":"57","s":""},{"n":"3.1.2.4","t":"Communicate with various agencies to provide mission overview (Mission Load Report)","l":"57","s":""},{"n":"3.1.3.6","t":"Leverage data systems and source documents to generate timely and accurate schedules","l":"7","s":""},{"n":"3.1.4.1","t":"Monitor and provide all required coordination for airlift mission to include work unique requirements (coordinate mission requirements/Complete clearance requirements)","l":"7","s":""},{"n":"3.1.3.1","t":"Provide quality control on flight documentation UTC: UFBBR RAMP OPERATIONS Capable of on or off loading pallet position equivalents per hour during 12-hour shift Description: This UTC provides a four-person ramp operations capability; Load Team Chief, aircraft on/off Load Team, Material Handling Equipment (MHE) operators and Engine Run On/Offload (ERO) IAW applicable guidance or directives. Able to on/off load organic and/or commercial aircraft with applicable MHE. Utilize aircraft load plans and computer-based air transportation systems. When not performing UFBBR function, can augment following UTCs for these specific tasks: UFBCP (aircraft pallet build/break) and/or UFBML (passenger on/off load, baggage on/off load and/or baggage pallet build/break). STS Reference/Training Task 3-level 5-level 7-level","l":"57","s":""},{"n":"3.2.1.11","t":"Operate applicable MHE for mission requirements (10K Standard)","l":"357","s":""},{"n":"3.2.1.11","t":"Operate applicable MHE for mission requirements (10K Adverse Terrain forklift)","l":"357","s":""},{"n":"3.2.1.11","t":"Operate applicable MHE for mission requirements (Tow Vehicle)","l":"57","s":""},{"n":"3.2.1.11","t":"Operate applicable MHE for mission requirements (Halvorsen Loader)","l":"357","s":""},{"n":"3.2.2.9","t":"Select appropriate MHE for mission execution","l":"357","s":""},{"n":"3.2.2.2","t":"Sequence aircraft load","l":"357","s":""},{"n":"3.2.1.4","t":"Demonstrate effective cargo tie-down restraint","l":"357","s":""},{"n":"3.2.2.3","t":"Inspect cargo and documentation for loading/unloading","l":"357","s":""},{"n":"3.2.1.2","t":"Perform Onload/Offload procedures","l":"357","s":""},{"n":"3.2.2.8","t":"Calculate tie-down and shoring requirements","l":"57","s":""},{"n":"3.2.2.4","t":"Conduct Load Team Chief Duties","l":"7","s":""},{"n":"3.3.1.1","t":"Load/unload passengers and baggage","l":"357","s":"Crossflow"},{"n":"3.2.1.11","t":"Operate applicable MHE for mission requirements Tunner Loader (NOTE: A minimum 50% of personnel assigned to UTC must be trained)","l":"357","s":"ARC only"}]},"UFBCP":{"title":"AIR FREIGHT","tasks":[{"n":"3.2.1.11","t":"Operate applicable MHE for mission requirements (10K Standard)","l":"357","s":""},{"n":"3.2.1.11","t":"Operate applicable MHE for mission requirements (10K Adverse Terrain forklift)","l":"357","s":""},{"n":"3.2.1.7","t":"Process cargo/mail","l":"357","s":""},{"n":"3.2.3.4","t":"Process Special Cargo Expedited shipment (AMC MICAP, VVIP, Green sheet, etc.)","l":"57","s":""},{"n":"3.2.3.3","t":"Validate cargo for onward movement","l":"357","s":""},{"n":"3.2.2.10","t":"Identify and document cargo discrepancies","l":"3","s":""},{"n":"3.2.2.11","t":"Resolve cargo discrepancies","l":"57","s":""},{"n":"3.2.2.12","t":"Process frustrated cargo","l":"357","s":""},{"n":"3.2.1.9","t":"Inventory/Select/Build cargo for onward movement","l":"357","s":""},{"n":"3.2.1.9","t":"Inventory/Select/Build cargo for onward movement (Build multi- pallet train)","l":"357","s":""},{"n":"3.2.2.7","t":"Calculate cargo center of balance (Compute centers-of-balance for rolling stock, outsized cargo, and multi- pallet trains)","l":"357","s":""},{"n":"3.2.1.7","t":"Process cargo/mail","l":"357","s":""},{"n":"3.2.3.5.1","t":"Special Handling","l":"357","s":""},{"n":"3.2.1.2","t":"Perform Onload/Offload procedures","l":"357","s":"Crossflow"},{"n":"3.3.1.1","t":"Load/unload passengers and baggage UTC: UFBN2 FLEET SERVICES Capable of servicing aircraft latrine and potable water systems every hours during 12- hour shift This UTC provides a four-person fleet service capability; aircraft latrine and Description: potable water service vehicle operators IAW applicable guidance or directives. Able to service organic and/or commercial aircraft latrine systems, potable water systems, remove trash from aircraft IAW local guidance. Utilize computer-based air transportation systems. When not performing UFBN2 function, can augment following UTCs for these specific tasks: UFBBR (ramp operations - aircraft on/off load) and/or UFBCP (air freight - aircraft pallet build/break) and/or UFBML (passenger service - baggage pallet build/break). STS Reference/Training Task 3-level 5-level 7-level","l":"357","s":"Crossflow"},{"n":"5.5.1.2","t":"Operates applicable vehicles for mission requirements (Latrine service truck/cart)","l":"357","s":"Crossflow"},{"n":"5.5.1.5","t":"Prepare fleet service documents","l":"357","s":"Crossflow"},{"n":"5.5.1.8","t":"Service/clean Air Transportable Galley and Lavatories (ATGLs)","l":"357","s":"Crossflow"},{"n":"5.5.1.9","t":"Fill freshwater tanks and containers","l":"357","s":"Crossflow"},{"n":"5.5.1.12","t":"Service aircraft lavatory systems","l":"357","s":"Crossflow"},{"n":"5.5.1.13","t":"Remove/dispose of trash/waste materials from aircraft","l":"357","s":"Crossflow"},{"n":"3.2.1.2","t":"Perform Onload/Offload procedures","l":"357","s":"Crossflow"},{"n":"3.3.1.1","t":"Load/unload passengers and baggage","l":"357","s":"Crossflow"}]},"UFBML":{"title":"PASSENGER SERVICE","tasks":[{"n":"3.3.1.8","t":"Operate applicable MHE for mission requirements (10K Standard)","l":"357","s":""},{"n":"3.3.1.8","t":"Operate applicable MHE for mission requirements (10K Adverse Terrain forklift)","l":"357","s":""},{"n":"3.3.1.8","t":"Operate applicable MHE for mission requirements (Wide-body staircase)","l":"357","s":""},{"n":"3.3.1.3","t":"Gather & document passenger data documentation (Determine/verify travel eligibility/priorities)","l":"357","s":""},{"n":"3.3.3.1","t":"Account for accurate passenger source (Sign-up passengers)","l":"357","s":""},{"n":"3.3.3.4","t":"Ensure compliance with governing directives (Special Category passengers)","l":"357","s":""},{"n":"3.3.3.4","t":"Ensure compliance with governing directives (Brief passengers on flight information)","l":"357","s":""},{"n":"3.3.1.4","t":"Perform anti-hijacking procedures & basic security measures.","l":"357","s":""},{"n":"3.3.1.3","t":"Gather & document passenger data documentation (Select passengers)","l":"357","s":""},{"n":"3.3.1.3","t":"Gather & document passenger data documentation (Check-in passengers and baggage)","l":"357","s":""},{"n":"3.3.1.4","t":"Perform anti-hijacking procedures & basic security measures. (Gate passengers)","l":"357","s":""},{"n":"3.3.1.1","t":"Load/offload passenger and baggage","l":"357","s":""},{"n":"3.3.1.1","t":"Load/offload passenger and baggage (Build-up/breakdown baggage)","l":"357","s":""},{"n":"3.3.3.3","t":"Provide oversight of passenger operations and apply course of action (Process mishandled baggage)","l":"57","s":""},{"n":"3.3.2.1","t":"Communicate with applicable work-centers on emerging mission changes and requirements. (Dispatch -Set up flights)","l":"57","s":""},{"n":"3.3.2.1","t":"Communicate with applicable work-centers on emerging mission changes and requirements. (Dispatch - Prepare passenger manifests)","l":"57","s":""},{"n":"3.3.2.1","t":"Communicate with applicable work-centers on emerging mission changes and requirements. (Dispatch - Close out flights)","l":"57","s":""},{"n":"3.2.1.2","t":"Perform Onload/Offload procedures","l":"357","s":"Crossflow"}]},"UFBJT":{"title":"JOINT INSPECTION","tasks":[{"n":"3.2.2.5.3","t":"Joint Inspection","l":"57","s":""},{"n":"3.2.1.2","t":"Perform Onload/Offload procedures","l":"57","s":"Crossflow"},{"n":"3.3.1.1","t":"Load/unload passengers and baggage","l":"57","s":"Crossflow"},{"n":"3.2.1.7","t":"Process cargo/mail","l":"57","s":"ARC only"},{"n":"3.2.3.4","t":"Process Special Cargo - Expedited shipment (AMC MICAP, VVIP, Green sheet, etc.)","l":"57","s":"ARC only"},{"n":"3.2.3.3","t":"Validate cargo for onward movement","l":"57","s":"ARC only"},{"n":"3.2.2.12","t":"Process frustrated cargo","l":"57","s":"ARC only"},{"n":"3.2.1.9","t":"Inventory/Select/Build cargo for onward movement","l":"57","s":"ARC only"},{"n":"3.2.1.9","t":"Inventory/Select/Build cargo for onward movement (Build multi- pallet train)","l":"57","s":"ARC only"},{"n":"3.2.2.7","t":"Calculate cargo center of balance (Compute centers-of-balance for rolling stock, outsized cargo, and multi- pallet trains) UTC: UFBPL LOAD PLANNING Capable of completing x aircraft load plans every hours during 12-hour shift Description: This UTC provides a two-person load planning capability; select cargo for air movement, verify air worthiness, calculate aircraft weight/balance and cargo manifesting IAW applicable guidance or directives. Able to build organic aircraft load plans IAW applicable aircraft technical orders (to) and air force manual (AFMAN) 24-604 hazardous material compatibility chart and coordinate load sequence with commercial aircraft representatives. Utilize computer-based air transportation systems. When not performing UFBPL function, can augment following UTCs for these specific tasks: air terminal operations center (UFBAT - information control, airlift forecasting, in transit visibility), and/or UFBBR (ramp operations - aircraft on/off load) and/or UFBCP (air freight - aircraft pallet build/break) and/or UFBML (passenger service - baggage pallet build/break). STS Reference/Training Task 3-level 5-level 7-level","l":"57","s":"ARC only"},{"n":"3.2.3.5.2","t":"Load planning","l":"57","s":"ARC only"},{"n":"3.2.1.2","t":"Perform Onload/Offload procedures","l":"57","s":"Crossflow"},{"n":"3.3.1.1","t":"Load/unload passengers and baggage","l":"57","s":"Crossflow"},{"n":"3.1.1.2","t":"Gather & disseminate aircraft load information from available sources (e.g., user, Command Post GDSS, SMS, GATES)","l":"57","s":"Crossflow"},{"n":"3.1.1.4","t":"Prioritize mission requirements to effectively manage air transportation workload","l":"57","s":"Crossflow"},{"n":"3.1.3.1","t":"Provide quality control on flight documentation. (Prepare consolidated flight package)","l":"57","s":"Crossflow"},{"n":"3.1.2.4","t":"Communicate with various agencies to provide mission overview (Brief aircrew/troop commander on load information)","l":"57","s":"Crossflow"},{"n":"3.1.2.4","t":"Communicate with various agencies to provide mission overview (Mission Load Report)","l":"57","s":"Crossflow"}]},"UFBXS":{"title":"AIR TRANSPORTATION ADVISOR/TEAM LEAD","tasks":[{"n":"2.2.2.1","t":"Coordinate resource requirements to facilitate mission execution","l":"7","s":""},{"n":"2.2.2.3","t":"Establish procedures to manage and utilize available resources","l":"7","s":""},{"n":"2.2.2.4","t":"Identify/minimize impact of resource shortfalls","l":"7","s":""},{"n":"2.2.2.5","t":"Collaborate with outside agencies to execute the mission","l":"7","s":""},{"n":"2.2.2.6","t":"Describe the concepts of contracting","l":"7","s":""},{"n":"2.2.2.7","t":"Generate funding requests to meet mission requirements","l":"7","s":""},{"n":"2.2.2.8","t":"Gather data for justifications","l":"7","s":""},{"n":"2.2.2.9","t":"Identify and communicate readiness gaps to leadership","l":"7","s":""},{"n":"2.2.2.10","t":"Utilize applicable documents to align work center personnel UTC: UFBJE AIR TRANSPORTATION SUPERVISION (E-8) Capable of advising Joint Staff, Air Staff or serve as air transportation operations leader at all types of locations. UTC should be tasked when operations have at least 75+ air transportation personnel. Description: This UTC provides a one-person air transportation senior enlisted leader capability; knowledgeable of sustainment and contingency air transportation capabilities IAW applicable guidance or directives. Capable of directing air transportation operations at all levels and serving as expeditionary squadron senior enlisted air transportation leader and/or advisor at either an ELRS, EAMS, or EAPS. STS Reference/Training Task 9-level","l":"7","s":""},{"n":"2.2.3.1","t":"Review key components of manning documents","l":"7","s":""},{"n":"2.2.3.2","t":"Develop strategies to efficiently manage resources","l":"7","s":""},{"n":"2.2.3.3","t":"Forecast impacts of resource movements","l":"7","s":""},{"n":"2.2.3.4","t":"Establish prioritization plan","l":"7","s":""},{"n":"2.2.3.5","t":"Develop and manages funding and resources for budgets to execute mission requirements","l":"7","s":""},{"n":"2.2.4.2","t":"Elevate and explain potential impacts to HHQ or DAF priorities","l":"7","s":""},{"n":"2.2.4.3","t":"Analyze manning levels and impacts on total force capabilities within AF constraints","l":"7","s":""},{"n":"2.2.4.4","t":"Optimize procedures to manage and utilize available resources","l":"7","s":""},{"n":"2.2.4.5","t":"Justify manpower movements to appropriate stakeholders","l":"7","s":""},{"n":"2.2.4.6","t":"Secure manpower capabilities with authorized allocations","l":"7","s":""},{"n":"2.2.4.7","t":"Mitigate resource constraints to meet current and future demands","l":"7","s":""}]},"UFBBS":{"title":"APO AIR TRANSPORTATION FUNCTION","tasks":[{"n":"3.2.3.5.2","t":"Load planning","l":"7","s":""},{"n":"3.2.2.5.3","t":"Joint Inspection","l":"57","s":""},{"n":"3.3.1.8","t":"Operate applicable MHE for mission requirements (10K Standard)","l":"3","s":""},{"n":"3.3.1.8","t":"Operate applicable MHE for mission requirements (10K Adverse Terrain forklift)","l":"3","s":""},{"n":"3.3.1.8","t":"Operate applicable MHE for mission requirements (Wide-body staircase)","l":"3","s":""},{"n":"3.3.1.3","t":"Gather & document passenger data documentation (Determine/verify travel eligibility/priorities)","l":"3","s":""},{"n":"3.3.3.1","t":"Account for accurate passenger source (Sign-up passengers)","l":"3","s":""},{"n":"3.3.3.4","t":"Ensure compliance with governing directives (Special Category passengers)","l":"3","s":""},{"n":"3.3.3.4","t":"Ensure compliance with governing directives (Brief passengers on flight information)","l":"3","s":""},{"n":"3.3.1.4","t":"Perform anti-hijacking procedures & basic security measures.","l":"3","s":""},{"n":"3.3.1.3","t":"Gather & document passenger data documentation (Select passengers)","l":"3","s":""},{"n":"3.3.1.3","t":"Gather & document passenger data documentation (Check-in passengers and baggage)","l":"3","s":""},{"n":"3.3.1.4","t":"Perform anti-hijacking procedures & basic security measures. (Gate passengers)","l":"3","s":""},{"n":"3.3.1.1","t":"Load/offload passenger and baggage","l":"3","s":""},{"n":"3.3.1.1","t":"Load/offload passenger and baggage (Build-up/breakdown baggage)","l":"3","s":""},{"n":"3.2.1.11","t":"Operate applicable MHE for mission requirements (10K Standard)","l":"3","s":""},{"n":"3.2.1.11","t":"Operate applicable MHE for mission requirements (10K Adverse Terrain forklift)","l":"3","s":""},{"n":"3.2.1.11","t":"Operate applicable MHE for mission requirements (Tow Vehicle)","l":"3","s":""},{"n":"3.2.1.11","t":"Operate applicable MHE for mission requirements (Halvorsen Loader)","l":"3","s":""},{"n":"3.2.2.9","t":"Select appropriate MHE for mission execution","l":"3","s":""},{"n":"3.2.2.2","t":"Sequence aircraft load","l":"3","s":""},{"n":"3.2.1.4","t":"Demonstrate effective cargo tie-down restraint","l":"3","s":""},{"n":"3.2.2.3","t":"Inspect cargo and documentation for loading/unloading","l":"3","s":""},{"n":"3.2.1.2","t":"Perform Onload/Offload procedures","l":"3","s":""}]}};
 // The tracker's flights map onto the UTCs the squadron actually deploys.
 const FLIGHT_UTC = {'PAX':'UFBML','AIR FREIGHT':'UFBCP','RAMP':'UFBCP',
-                    'ATOC':'UFBAT','LOAD PLANNING':'UFBAT'};
+                    'AIR TERMINAL OPS':'UFBAT'};
 const TEAM_UTC   = {'Joint Inspection':'UFBJT','Cargo':'UFBCP'};
 
 const CFETP_REFS = [
@@ -3814,9 +3831,11 @@ const PROMO_FORMS={
   'TSgt':{file:'PROMO_REC_TSgt.pdf', name:'Rank/Name via RankName', endorsers:2},
 };
 // The forms' own Section dropdown wording, which is not the tracker's flight naming.
-const PROMO_SECTION={'RAMP':'Ramp','ATOC':'ATOC','LOAD PLANNING':'Load Planning',
-  'PAX':'Passenger Services','AIR FREIGHT':null};   // Air Freight splits by team
-const PROMO_SECTION_TEAM={'Cargo':'Cargo','Joint Inspection':'Joint Inspection'};
+// null means "this flight has no single section — read it off the team instead".
+const PROMO_SECTION={'RAMP':'Ramp','PAX':'Passenger Services',
+  'AIR FREIGHT':null,'AIR TERMINAL OPS':null};
+const PROMO_SECTION_TEAM={'Cargo':'Cargo','Joint Inspection':'Joint Inspection',
+  'ATOC':'ATOC','Load Planning':'Load Planning'};
 // NOTE: the forms' 'Recommendation', 'Inital' and 'Date' boxes are each ONE field
 // shared across every endorser row, so there is no way to fill the supervisor's
 // without also filling the Team Chief's and Flight Chief's. They are deliberately
@@ -3844,7 +3863,7 @@ function manningLookup(name){
 
 function promoSection(p){
     const f=String(p.Flight||currentFlight).toUpperCase();
-    if(f==='AIR FREIGHT')return PROMO_SECTION_TEAM[p.Team]||'';
+    if(PROMO_SECTION[f]===null)return PROMO_SECTION_TEAM[p.Team]||'';
     return PROMO_SECTION[f]||'';
 }
 
