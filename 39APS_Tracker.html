@@ -5777,17 +5777,19 @@ const DOCS = [
   cat: "Cargo / Air Transportation",
   num: "AF Form 4080",
   title: "Load/Sequence Breakdown Worksheet",
-  url: "https://www.e-publishing.af.mil/Product-Index/",
-  direct: false,
-  note: "Prescribed form under AFI 24-605V2. Search \"AF4080\" (no spaces) in the box at top of e-Pubs Product Index."
+  url: "https://static.e-publishing.af.mil/production/1/af_a3/form/af4080/af4080.pdf",
+  verified: "27 Aug 2026",
+  direct: true,
+  note: "Prescribed form under DAFI 24-605V2. Fillable PDF, 66 KB. Hosted under af_a3, not af_a4 like its parent instruction."
 },
 {
   cat: "Cargo / Air Transportation",
   num: "AF Form 847",
-  title: "Recommendation for Change of Publication",
-  url: "https://www.e-publishing.af.mil/Product-Index/",
-  direct: false,
-  note: "Used to route recommended changes to any AFI, including 24-605V2, up through OPR. Search \"AF847\"."
+  title: "Recommendation for Change of Publication (now DAF Form 847)",
+  url: "https://static.e-publishing.af.mil/production/1/saf_aa/form/daf847/daf847.pdf",
+  verified: "27 Aug 2026",
+  direct: true,
+  note: "Renamed DAF Form 847 in the DAF renumbering, so searching \"AF847\" on e-Pubs now misses it. Routes a recommended change to any AFI, including DAFI 24-605V2, up through the OPR."
 },
 {
   cat: "Cargo / Air Transportation",
@@ -5795,15 +5797,16 @@ const DOCS = [
   title: "Aerial Port Movement Log",
   url: "https://www.e-publishing.af.mil/Product-Index/",
   direct: false,
-  note: "AMC-series form, hosted under Air Mobility Command in e-Pubs rather than departmental AF. Search \"AMC68\"."
+  note: "Not reachable by public URL — AMC-series forms are not mirrored to the e-Pubs static host, so this one still needs the Product Index. Search \"AMC68\" (no spaces). Checked 27 Aug 2026."
 },
 {
   cat: "Cargo / Air Transportation",
   num: "DD Form 1385",
   title: "Cargo Manifest",
-  url: "https://www.esd.whs.mil/Directives/forms/",
-  direct: false,
-  note: "DD-series forms live on the DoD Executive Services Directorate site, not e-Publishing. Use their form search."
+  url: "https://www.esd.whs.mil/Directives/forms/dd1000_1499/DD1385/",
+  verified: "27 Aug 2026",
+  direct: true,
+  note: "DoD form, not an AF one, so it is hosted by the Executive Services Directorate rather than e-Pubs. This link is the form's own page; the PDF sits on it."
 },
 
 // ---------------- PERSONNEL / EVALUATIONS / PROMOTION ----------------
@@ -5828,18 +5831,20 @@ const DOCS = [
 {
   cat: "Personnel & Evaluations",
   num: "Enlisted Force Structure",
-  title: "\"The Little Brown Book\" — formerly AFH 36-2618",
-  url: "https://www.e-publishing.af.mil/Product-Index/",
-  direct: false,
-  note: "In flux. AFH 36-2618 (5 Jul 2018) was superseded by a Sept 2025 rewrite titled simply \"The Enlisted Force Structure,\" seen hosted on individual wing sites (not yet confirmed on a stable e-Pubs path under a new number). Search e-Pubs for \"Enlisted Force Structure\" directly — do not trust any 36-2618 link you find elsewhere without checking the date."
+  title: "Airman (AFH 1) — absorbed the Enlisted Force Structure, the old \"Little Brown Book\"",
+  url: "https://static.e-publishing.af.mil/production/1/af_a1/publication/afh1/afh1.pdf",
+  verified: "27 Aug 2026",
+  direct: true,
+  note: "The Little Brown Book (AFH 36-2618) no longer exists as a standalone pub; its content now lives in AFH 1, Airman. 14.7 MB, so it is slow on a phone. The tier expectations for SSgt through CMSgt are the part promotion boards ask about."
 },
 {
   cat: "Personnel & Evaluations",
   num: "DAF Form 3538 / 3538E",
   title: "Retention Recommendation Form / Enlisted RRF",
-  url: "https://www.e-publishing.af.mil/Product-Index/",
-  direct: false,
-  note: "Performance-based differentiation, involuntary sep/retirement boards. Search \"DAF3538\"."
+  url: "https://static.e-publishing.af.mil/production/1/af_a1/form/daf3538/daf3538.pdf",
+  verified: "27 Aug 2026",
+  direct: true,
+  note: "Fillable RRF. The enlisted variant is a separate file: <a href='https://static.e-publishing.af.mil/production/1/af_a1/form/daf3538e/daf3538e.pdf' target='_blank' rel='noopener' style='color:var(--acc)'>open DAF Form 3538E</a>."
 },
 
 // ---------------- CHIEF BOARD / PROMOTION ----------------
@@ -5856,43 +5861,48 @@ const DOCS = [
   cat: "Chief Board / Promotion",
   num: "DAFMAN 36-2689",
   title: "Training Program",
-  url: "https://www.e-publishing.af.mil/Product-Index/",
-  direct: false,
-  note: "Referenced for 60-day initial training evaluation and informal feedback standards feeding into your Q2/Q3 board answers. Search \"DAFMAN36-2689\"."
+  url: "https://static.e-publishing.af.mil/production/1/af_a1/publication/dafman36-2689/dafman36-2689.pdf",
+  verified: "27 Aug 2026",
+  direct: true,
+  note: "The training-program rules behind upgrade training, trainers and certifiers, and the ITP the TSgt package needs."
 },
 {
   cat: "Chief Board / Promotion",
   num: "AFI 1-1",
   title: "Air Force Standards",
-  url: "https://www.e-publishing.af.mil/Product-Index/",
-  direct: false,
-  note: "Core standards reference, commonly cited alongside informal feedback and conduct expectations in board answers. Search \"AFI1-1\"."
+  url: "https://static.e-publishing.af.mil/production/1/af_cc/publication/afi1-1/afi1-1.pdf",
+  verified: "27 Aug 2026",
+  direct: true,
+  note: "Air Force standards — the conduct baseline cited in most LOC/LOR paperwork. Hosted under af_cc."
 },
 {
   cat: "Chief Board / Promotion",
   num: "AFH 33-337",
   title: "Tongue and Quill",
-  url: "https://www.e-publishing.af.mil/Product-Index/",
-  direct: false,
-  note: "Unconfirmed whether still active or rescinded — this handbook has had status changes in recent years. Search e-Pubs before relying on it for board-answer writing structure; if it's gone, AFH 33-337 content has been folded into other guidance."
+  url: "https://static.e-publishing.af.mil/production/1/saf_aa/publication/afh33-337/afh33-337.pdf",
+  verified: "27 Aug 2026",
+  direct: true,
+  note: "The Tongue and Quill — format authority for memos, LOCs, LORs and MFRs. 7.9 MB. Hosted under saf_aa; older links pointing at administrative_assistant now 404."
 },
 
 // ---------------- ADMIN / COMPLIANCE (Porras, Sjolin, unit actions) ----------------
 {
   cat: "Admin & Unit Actions",
   num: "AFI 36-2254V1",
-  title: "Reserve Personnel Participation",
-  url: "https://www.e-publishing.af.mil/Product-Index/",
-  direct: false,
-  note: "Governs UTA participation and unexcused absence actions. Search \"AFI36-2254V1\" — confirm this is the current volume/number before citing in the Porras action."
+  title: "Reserve Personnel Participation (superseded by DAFMAN 36-2136)",
+  url: "https://static.e-publishing.af.mil/production/1/af_re/publication/dafman36-2136/dafman36-2136.pdf",
+  verified: "27 Aug 2026",
+  direct: true,
+  note: "AFI 36-2254V1 is superseded; the current pub is DAFMAN 36-2136, Reserve Personnel Participation and Training Procedures. Satisfactory participation, RMPs, AT and the point year all live here."
 },
 {
   cat: "Admin & Unit Actions",
   num: "AFI 36-2905",
-  title: "Fitness Program",
-  url: "https://www.e-publishing.af.mil/Product-Index/",
-  direct: false,
-  note: "Governs fitness assessment/TFAT status and follow-on requirements. Search \"AFI36-2905\"."
+  title: "Physical Fitness Program (now DAFMAN 36-2905)",
+  url: "https://static.e-publishing.af.mil/production/1/af_a1/publication/afman36-2905/dafman36-2905.pdf",
+  verified: "27 Aug 2026",
+  direct: true,
+  note: "Renumbered DAFMAN 36-2905. Note the path: the folder is afman36-2905 but the file is dafman36-2905.pdf, which is why the obvious URL 404s."
 },
 {
   cat: "Admin & Unit Actions",
@@ -5971,7 +5981,7 @@ function renderAfDocs(){
             ${d.verified?`<div style="font-size:11px;color:var(--acc-mut);margin-top:6px">Link path built ${d.verified} — re-check the cover page date/GM/IC before citing, don't rely on the badge alone.</div>`:''}
             <div style="font-size:11px;color:${seen?'var(--good)':'var(--t-faint)'};margin-top:6px">${seen?'✓ You last confirmed this on '+afdocFmt(seen):'Not yet manually verified'}</div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
-                <a class="btn-sm" href="${d.url}" target="_blank" rel="noopener" style="text-decoration:none">${d.direct?'Open PDF':'Go search'}</a>
+                <a class="btn-sm" href="${d.url}" target="_blank" rel="noopener" style="text-decoration:none">${!d.direct?'Go search':(/\.pdf$/i.test(d.url)?'Open PDF':'Open page')}</a>
                 <button class="btn-sm" onclick="afdocMarkVerified('${esc(d.num)}')" style="border-color:rgba(var(--acc-rgb),.25);background:transparent;color:var(--t-mid2)">Mark verified today</button>
             </div>
         </div>`;
