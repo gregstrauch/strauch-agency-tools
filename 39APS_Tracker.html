@@ -1905,7 +1905,18 @@ const SQUADRON_FLIGHTS=['RAMP','AIR FREIGHT','AIR TERMINAL OPS','PAX','PROGRAMS'
 // Flights that were split up and have since merged. Pruned from a returning
 // browser's saved list, and their orphaned per-flight state dropped — otherwise
 // the dead tab persists forever in every browser that ever loaded the old build.
-const RETIRED_FLIGHTS={'ATOC':'AIR TERMINAL OPS','LOAD PLANNING':'AIR TERMINAL OPS'};
+// Value = where that flight's people actually live now, so a device parked on a
+// retired tab lands somewhere real instead of on a blank screen.
+const RETIRED_FLIGHTS={
+    'ATOC':'AIR TERMINAL OPS','LOAD PLANNING':'AIR TERMINAL OPS',
+    // Hand-made tabs from before the merge. Cargo/SH and Joint Inspection are
+    // TEAMS inside Air Freight and always were; ATOC/LOAD PLANNING held a stale
+    // copy of the PROGRAMS roster. None of the three ever had Sheet rows of their
+    // own — every person in them is filed under a real flight.
+    'ATOC/LOAD PLANNING':'AIR TERMINAL OPS',
+    'JOINT INSPECTION':'AIR FREIGHT',
+    'CARGO/SH':'AIR FREIGHT',
+};
 // Authorized strength per flight (UMD), editable by clicking the Authorized stat.
 // Stored in ONE map under a non-per-flight key so the rollup can sum every flight
 // without tripping the per-flight read guard. Raising it adds VACANT billets;
@@ -1922,6 +1933,13 @@ Object.keys(RETIRED_FLIGHTS).forEach(dead=>{
     if(localStorage.getItem('afm_auth'))
         {const a=loadLS('afm_auth',{}); if(dead in a){delete a[dead]; saveLS('afm_auth',a);}}
 });
+// Declared long after currentFlight is read, so the redirect has to happen here:
+// a device last parked on a retired tab would otherwise sit on a flight that no
+// longer exists and show an empty chart.
+if(RETIRED_FLIGHTS[currentFlight]){
+    currentFlight=RETIRED_FLIGHTS[currentFlight];
+    localStorage.setItem('afm_flight',currentFlight);
+}
 // Squadron order, not the order the saved list happens to be in — a newly added
 // flight appends to the end otherwise. Custom flights (index -1 → 99) stay last,
 // in the order they were created, since Array.sort is stable.
