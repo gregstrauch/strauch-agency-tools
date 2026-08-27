@@ -3,8 +3,8 @@
  * Backend for Personal_Quote_Application.html and Commercial_Quote_Application.html
  *
  * SETUP (one time, ~4 minutes)
- *  1. Create a new Google Sheet. Name it "Quote Applications".
- *  2. Extensions > Apps Script. Delete the sample code, paste this whole file.
+ *  1. Create a new Google Sheet and put its ID in SHEET_ID below.
+ *  2. Go to script.new, delete the sample code, paste this whole file.
  *  3. Change NOTIFY_EMAIL below if you want alerts somewhere other than the
  *     account that owns the Sheet.
  *  4. Deploy > New deployment > type: Web app
@@ -17,6 +17,7 @@
  * and re-paste the new /exec URL into the forms.
  */
 
+var SHEET_ID     = "16PAc49TQVUkLq1XgJ_8JMzutIeUlfJdKX0BOTESnK4k";  // the "Quote Applications" sheet
 var INGEST_KEY   = "strauch-quote-2026";   // must match INGEST_KEY in both html files
 var NOTIFY_EMAIL = "";                      // blank = the Sheet owner's address
 var MAX_FIELDS   = 400;                     // spam / abuse ceiling
@@ -54,7 +55,7 @@ function doPost(e) {
 
 /** Appends a row, growing the header row whenever a new field shows up. */
 function writeRow(tabName, row) {
-  var ss  = SpreadsheetApp.getActive();
+  var ss  = SpreadsheetApp.openById(SHEET_ID);
   var sh  = ss.getSheetByName(tabName) || ss.insertSheet(tabName);
 
   var headers = sh.getLastColumn()
