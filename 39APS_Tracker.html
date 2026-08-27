@@ -1806,7 +1806,7 @@ function closeEdit(){document.getElementById('editModal').classList.remove('acti
 
 // ═══════════════════════ APPS SCRIPT SYNC
 // v14, deployed 10 Aug 2026 — stops the attendance duplicate-append. v13 archived same day.
-const DEFAULT_SCRIPT_URL='https://script.google.com/macros/s/AKfycbwHCZZS728lKhk_LxwfLUxj0JScbtDbMvmjbPiJcpYwKnO7_br_QZIXIEuh1NZRORjyqQ/exec';
+const DEFAULT_SCRIPT_URL='https://script.google.com/macros/s/AKfycbyu5FB2isrZgwO3N-F5fxdnAIl1Fi9IE2qZXNeZSqIsXLsBoejsjztKDXICSOxrl2QCyg/exec';
 // Who is signed in on THIS device. The credential used to be hardcoded to
 // 'strauch', so every edit from anyone was attributed to Greg. It now comes from
 // the login screen and rides on every read and write — the backend rejects both
@@ -1847,7 +1847,11 @@ const DEAD_SCRIPT_IDS=['AKfycbztvwwj1Rz-adpC-LUoAW7qs4yX4sNRs-8onFNknoohUJ5mTLyU
                        // v14 — superseded 26 Aug 2026 by v15 (the four other flight chiefs).
                        // It has no sears/wunderlich/buckley/moore, so a device pinned to it
                        // refuses them outright rather than degrading.
-                       'AKfycbw93HH03FDYY7CwanVo2E1IwoprtPcGfauNJUWWRWuhsQGX5DHhX9NsQv1MxEf276eF7A'];
+                       'AKfycbw93HH03FDYY7CwanVo2E1IwoprtPcGfauNJUWWRWuhsQGX5DHhX9NsQv1MxEf276eF7A',
+                       // v15 — superseded 27 Aug 2026 by v16 (ATOC + Load Planning merged into
+                       // AIR TERMINAL OPS). It still scopes buckley to the two retired flight
+                       // names, so a device pinned to it shows him an empty roster.
+                       'AKfycbwHCZZS728lKhk_LxwfLUxj0JScbtDbMvmjbPiJcpYwKnO7_br_QZIXIEuh1NZRORjyqQ'];
 function loadScriptUrl(){
     const saved=localStorage.getItem('afm_scripturl');
     if(saved&&DEAD_SCRIPT_IDS.some(id=>saved.includes(id))){
