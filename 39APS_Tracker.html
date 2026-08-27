@@ -6194,7 +6194,7 @@ function renderAfDocs(){
     <div id="itpOut"></div>
   </div>
 
-  <!-- ============ SECTION: LOC / LOR / MFR ============ -->
+  <!-- ============ SECTION: LOC / LOA / LOR / MFR ============ -->
   <div id="sec-admin" class="section">
 
     <div class="intro">
@@ -6220,13 +6220,15 @@ function renderAfDocs(){
       </div>
       <ul>
         <li><strong>LOC (Letter of Counseling)</strong> — lowest-level, most common. Documents a specific issue and puts the member on notice. Coaching record, not punishment.</li>
-        <li><strong>LOR (Letter of Reprimand)</strong> — formal administrative action, one step up. Carries appeal rights language; normally commander-signed. Get legal eyes on it first.</li>
+        <li><strong>LOA (Letter of Admonishment)</strong> — the middle step. Stronger censure than an LOC, short of a reprimand. Same due-process shape as an LOR: rebuttal rights, possible UIF.</li>
+        <li><strong>LOR (Letter of Reprimand)</strong> — the most severe of the three, formal administrative action. Carries appeal rights language; normally commander-signed. Get legal eyes on it first.</li>
         <li><strong>MFR (Memorandum for Record)</strong> — no addressee. Documents an event or conversation for the record. Use it to build the paper trail before an LOC/LOR becomes necessary.</li>
       </ul>
     </div>
 
     <div class="stab">
       <button class="stabtn active" onclick="tplShow('loc',this)">LOC</button>
+      <button class="stabtn" onclick="tplShow('loa',this)">LOA</button>
       <button class="stabtn" onclick="tplShow('lor',this)">LOR</button>
       <button class="stabtn" onclick="tplShow('mfr',this)">MFR</button>
     </div>
@@ -6277,6 +6279,60 @@ _____________________________          _______________
           <li>Keep paragraph 2 to facts a video camera could confirm — dates, times, what was and wasn't done. "Was disrespectful" is an argument; "raised his voice and told the supervisor 'this is BS' in front of two other Airmen" is a fact.</li>
           <li>Always give the member a path to correct it (para 4) — an LOC with no stated expectation reads as punitive, not corrective, and is easier to grieve.</li>
           <li>Confirm your unit's actual filing practice for LOCs (some units keep none, some keep a flight-level log) before writing para 5 — don't promise "not filed" if your squadron does file them locally.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div id="tpl-loa" class="tpl">
+      <div class="mb">
+        <div class="mm"><span class="mt">Letter of Admonishment</span><button class="cb" onclick="tplCopy(this)">Copy</button></div>
+        <div class="mc">[SEAL &mdash; DEPARTMENT OF THE AIR FORCE / AIR FORCE RESERVE COMMAND &mdash; from letterhead template]
+
+                                                              [Day Month Year]
+
+MEMORANDUM FOR [RANK] [LAST NAME], [FIRST NAME]
+
+FROM:  [OFFICE SYMBOL &mdash; e.g. 39 APS/TROP (Pax), TROCR (Ramp), TROCA (Cargo), TROCS (JI), TROAA (ATOC), TROOM (Load Planning); or the commander's, 39 APS/CC]
+
+SUBJECT:  Letter of Admonishment
+
+1.  You are hereby admonished for [specific misconduct or performance failure &mdash; e.g., "failing to report for scheduled duty on 14 July 2026 after being counseled in writing on the same issue"].
+
+2.  Specifically, on [date(s)], [detailed factual account &mdash; what happened, where, who else was present or affected, and how it came to your attention. Facts a video camera could confirm; no character judgments]. This conduct [violates / fails to meet] [cite the specific standard: AFI number, UTA attendance policy, published schedule, duty performance standard].
+
+3.  [If applicable &mdash; prior corrective action: "You were counseled in writing on (date) regarding a similar issue (reference LOC), and were advised at that time that continued failure to (standard) could result in further action."]
+
+4.  Your conduct falls short of [the standards expected of a member of your grade / mission readiness / good order and discipline &mdash; pick what fits]. It must be corrected.
+
+5.  You are expected to [specific corrective expectation, stated so completion is observable]. Any recurrence may result in more severe administrative action, to include a Letter of Reprimand, placement on a Control Roster, a referral performance report, or separation action.
+
+6.  This Letter of Admonishment may be filed in your Unfavorable Information File (UIF) at the discretion of your commander. You have the right to submit a written rebuttal within [unit's standard window &mdash; typically 3 duty days, confirm with MPF/legal] of receipt of this letter. Any rebuttal will be attached to and considered with this letter.
+
+7.  This is an administrative action and is separate from and does not preclude any action under the Uniform Code of Military Justice.
+
+8.  If you have questions regarding this admonishment, contact me at [phone/email].
+
+
+[FULL NAME IN CAPS], [Rank], USAFR
+[Duty title]
+39th Aerial Port Squadron, 302nd Airlift Wing
+Peterson Space Force Base, Colo.
+
+Attachments:
+[list, or delete this line if none]
+
+
+I acknowledge receipt of this Letter of Admonishment on the date indicated below. My signature does not necessarily indicate agreement with its contents. I understand I have the right to submit a written rebuttal within the timeframe stated above.
+
+_____________________________          _______________
+[RANK] [NAME], Member                   Date</div>
+      </div>
+      <div class="sc">
+        <strong>Coaching notes</strong>
+        <ul>
+          <li>An LOA is a <strong>reprimand's due process at a counseling's severity</strong>. That is the whole reason to pick it: you want the rebuttal-rights and UIF-eligible weight of an LOR, but the misconduct doesn't warrant the word "reprimand" yet. Keep paragraphs 6 and 7 &mdash; stripping them to make it feel lighter turns it back into an LOC with harsher wording and no protections.</li>
+          <li>Unlike an LOR, a Flight Chief or supervisor can normally sign an LOA. Confirm with the shirt before you sign &mdash; if the intended outcome is a UIF entry, the commander may want it under their signature instead.</li>
+          <li>Don't skip a step to get here. An LOA that follows a documented LOC on the same issue is nearly unassailable; an LOA as the first written action on a minor issue invites the question of why counseling was never tried.</li>
         </ul>
       </div>
     </div>
@@ -6382,7 +6438,7 @@ Attachments:
   <div id="sec-career" class="section">
 
     <div class="intro">
-      Companion set to the LOC / LOR / MFR templates above — those document individuals; this set is the rest of the Flight Chief's writing load, plus what opens up once you pin on CMSgt. Memo-format templates (Appointment Ltr, Waiver Request, Policy Letter, Dev Team Input, Retirement Ltr, UMD Request) use the same header/signature layout, matched to Greg's actual signed MFR. Narrative-only templates (Feedback, 1206, Award Package, 1168, CMSgt of Year) have no header — they feed a form or board packet, not a standalone memo. Use with <strong>Official Letterhead Template AFRC_CD</strong> for the seal graphic. Tongue &amp; Quill is the format authority where these don't cover it.
+      Companion set to the LOC / LOA / LOR / MFR templates above — those document individuals; this set is the rest of the Flight Chief's writing load, plus what opens up once you pin on CMSgt. Memo-format templates (Appointment Ltr, Waiver Request, Policy Letter, Dev Team Input, Retirement Ltr, UMD Request) use the same header/signature layout, matched to Greg's actual signed MFR. Narrative-only templates (Feedback, 1206, Award Package, 1168, CMSgt of Year) have no header — they feed a form or board packet, not a standalone memo. Use with <strong>Official Letterhead Template AFRC_CD</strong> for the seal graphic. Tongue &amp; Quill is the format authority where these don't cover it.
     </div>
 
     <div class="grp">SMSgt / Flight Chief — use now</div>
