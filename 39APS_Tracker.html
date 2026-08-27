@@ -1983,11 +1983,18 @@ function setFlight(f){
         if(!knownFlights.includes(name)){knownFlights.push(name);saveLS('afm_flights',knownFlights);}
         f=name;
     }
-    currentFlight=f;
-    localStorage.setItem('afm_flight',f);
-    renderFlightSel();
-    reloadFlightState();   // swap to this flight's cached state before hitting the network
-    syncSheets();          // then let the Sheet win
+    // Flush while currentFlight is still the OLD one. appsPost stamps the active
+    // flight onto every outgoing row, so a push that fires after the switch would
+    // file the previous flight's people under the new flight.
+    (async()=>{
+        try{ await flushPushes(); }
+        catch(e){ setSyncStatus('err',`Unsent ${currentFlight} edits — staying put: ${e.message}`); return; }
+        currentFlight=f;
+        localStorage.setItem('afm_flight',f);
+        renderFlightSel();
+        reloadFlightState();   // swap to this flight's cached state before hitting the network
+        syncSheets();          // then let the Sheet win
+    })();
 }
 
 // Self-check — paste _selfCheckFlightScoping() in the console after changing
@@ -2095,6 +2102,10 @@ function syncSheets(){
     setSyncStatus('spin','Syncing…');
     (async()=>{
         try{
+            // Local edits go up BEFORE the Sheet comes down, or the pull below
+            // discards them. If they can't be sent, abort rather than clobber.
+            try{ await flushPushes(); }
+            catch(e){ setSyncStatus('err','Unsent local edits — sync stopped so they are not lost: '+e.message); return; }
             const roll=isRollup();
             // ponytail: KPI sections match by owner name, which collides across
             // flights — skip KPIs in rollup rather than auto-creating sections.
@@ -2153,19 +2164,38 @@ function schedulePush(tab,delay=1200){
     _pushPending[tab]=setTimeout(()=>{delete _pushPending[tab];pushTab(tab);},delay);
 }
 
+async function pushTabNow(tab){
+    if(tab==='Manning')await pushManningToAS();
+    if(tab==='Tracker')await pushTrackerToAS();
+    if(tab==='KPIs')   await pushKPIsToAS();
+    if(tab==='Promotions')await pushPromotionsToAS();
+    if(tab==='Attendance')await pushAttendanceToAS();
+    if(tab==='Templates') await pushTemplatesToAS();
+    if(tab==='Flow')      await pushFlowToAS();
+}
 function pushTab(tab){
     (async()=>{
         try{
-            if(tab==='Manning')await pushManningToAS();
-            if(tab==='Tracker')await pushTrackerToAS();
-            if(tab==='KPIs')   await pushKPIsToAS();
-            if(tab==='Promotions')await pushPromotionsToAS();
-            if(tab==='Attendance')await pushAttendanceToAS();
-            if(tab==='Templates') await pushTemplatesToAS();
-            if(tab==='Flow')      await pushFlowToAS();
+            await pushTabNow(tab);
             setSyncStatus('ok',`Pushed ${tab} ${new Date().toLocaleTimeString()}`);
         }catch(e){setSyncStatus('err',`Push ${tab} failed: ${e.message}`);}
     })();
+}
+
+// Send anything still waiting out the 1.2s debounce, right now.
+//
+// Why this has to exist: a pull REPLACES `manning` wholesale and then resets the
+// push baseline to whatever the Sheet said. So an edit still sitting in the
+// debounce was overwritten by the Sheet's older copy, and the queued push then
+// found nothing changed and sent nothing — the move vanished from both sides,
+// and looked to the user like it "didn't stick unless you hit Push to Sheet".
+// Anything that replaces state or drops the page must flush first.
+// Throws if a push fails, so the caller can refuse to clobber.
+async function flushPushes(){
+    const tabs=Object.keys(_pushPending);
+    if(!tabs.length)return;
+    tabs.forEach(t=>{clearTimeout(_pushPending[t]);delete _pushPending[t];});
+    for(const t of tabs)await pushTabNow(t);
 }
 
 // Rows the user explicitly renamed away or removed. Deleting a Sheet row is the one
@@ -4238,6 +4268,12 @@ function renderPromotions(){
     }).join('');
 }
 
+// Closing the tab or switching away inside the 1.2s debounce used to drop the
+// edit entirely. 'hidden' is the last point a fetch is still reliably allowed —
+// beforeunload is not. Fire and forget: there is no time to await here.
+document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='hidden'&&Object.keys(_pushPending).length)flushPushes().catch(()=>{});
+});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeEdit();closeSettings();closeReqModal();closeKPIModal();closeJSONImport();closeKPISectionModal();closeKPIAddModal();closePromoEdit();closeFlowEdit();}});
 // ═══════════════════════ OVERVIEW (squadron-wide, all five flights)
 // Reads the Sheet unscoped rather than localStorage: per-flight state is namespaced
