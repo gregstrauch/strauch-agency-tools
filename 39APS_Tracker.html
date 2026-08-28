@@ -396,6 +396,15 @@ label{display:block;font-size:10px;color:var(--t-mid2);text-transform:uppercase;
 .promo-reason{font-size:10px;color:var(--bad);background:rgba(var(--bad-rgb),.08);border-left:2px solid rgba(var(--bad-rgb),.4);padding:4px 8px;border-radius:2px;margin-top:6px;}
 
 /* ── ATTENDANCE ── */
+.uta-grid{border-collapse:collapse;font-size:11px;width:100%;min-width:900px;}
+.uta-grid th,.uta-grid td{border:1px solid rgba(var(--acc-rgb),.15);padding:5px 6px;text-align:center;white-space:nowrap;}
+.uta-grid th{background:rgba(var(--acc-rgb),.08);color:var(--acc);font-size:10px;text-transform:uppercase;letter-spacing:.8px;font-weight:700;}
+.uta-grid td.uta-name,.uta-grid th.uta-name{text-align:left;font-size:12px;color:var(--t-hi);position:sticky;left:0;background:var(--surface);z-index:1;}
+.uta-team{font-size:9px;color:var(--t-faint);text-transform:uppercase;letter-spacing:.8px;}
+.uta-note{font-size:9px;color:var(--t-faint);text-transform:none;letter-spacing:0;}
+.uta-cell{display:inline-block;width:20px;height:20px;line-height:20px;margin:0 1px;border-radius:3px;font-weight:700;font-size:10px;cursor:pointer;border:1px solid transparent;}
+.uta-blank{color:var(--t-faint);background:rgba(var(--ink-rgb),.04);}
+.uta-num{font-size:13px;}
 .att-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(var(--ink-rgb),.03);border:1px solid rgba(var(--acc-rgb),.15);border-radius:4px;margin-bottom:16px;flex-wrap:wrap;}
 .att-team{margin-bottom:16px;}
 .att-team-head{font-size:11px;color:var(--acc);text-transform:uppercase;letter-spacing:1.5px;padding:7px 14px;background:rgba(var(--acc-rgb),.07);border:1px solid rgba(var(--acc-rgb),.2);border-radius:4px 4px 0 0;}
@@ -698,18 +707,26 @@ label{display:block;font-size:10px;color:var(--t-mid2);text-transform:uppercase;
 <div class="container">
     <div style="padding-top:6px"></div>
     <div class="page-header">
-        <div><div class="page-title">Attendance</div><div class="page-sub">Tap a status to cycle · saves to the Sheet</div></div>
+        <div><div class="page-title">Attendance</div><div class="page-sub">Tap a status to cycle · saves to the Sheet · FY27 UTA schedule built in</div></div>
         <button class="btn" onclick="exportAttendance()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5"/><path d="M4 20h16"/></svg> Export</button>
     </div>
 
     <div class="att-bar">
-        <label style="margin:0">Date</label>
-        <input type="date" id="attDate" onchange="renderAttendance()" style="width:auto;">
-        <button class="btn-sm" onclick="markAllAttendance('PRESENT')">✓ All Present</button>
-        <button class="btn-sm grey" onclick="markAllAttendance('')">↩ Clear Day</button>
-        <button class="btn-sm" onclick="openUtaWorksheet('','')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg> UTA Worksheet</button>
-        <button class="btn-sm" onclick="pushTab('Attendance')">⇧ Push</button>
+        <span id="attViewBtns" style="display:flex;gap:6px">
+            <button class="btn-sm" data-view="day"  onclick="setAttView('day')">Mark a day</button>
+            <button class="btn-sm" data-view="year" onclick="setAttView('year')">Year to date</button>
+        </span>
+        <span id="attDayBar">
+            <label style="margin:0">Date</label>
+            <input type="date" id="attDate" onchange="renderAttendance()" style="width:auto;">
+            <select id="attUtaJump" onchange="if(this.value)attGoDate(this.value)" style="width:auto;max-width:260px"></select>
+            <button class="btn-sm" onclick="markAllAttendance('PRESENT')">✓ All Present</button>
+            <button class="btn-sm grey" onclick="markAllAttendance('')">↩ Clear Day</button>
+            <button class="btn-sm" onclick="openUtaWorksheet('','')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg> UTA Worksheet</button>
+            <button class="btn-sm" onclick="pushTab('Attendance')">⇧ Push</button>
+        </span>
     </div>
+    <div id="attWhich" style="font-size:11px;color:var(--t-mid2);margin:-8px 0 14px 2px"></div>
 
     <div class="stats-row" id="attStats"></div>
     <div id="attContent"></div>
@@ -4331,11 +4348,99 @@ function attendanceRoster(){
     return list;
 }
 
+// ═══════════════════════ UTA SCHEDULE (FY27)
+// 39 APS/CC memo, 7 June 2026, "FY27 Unit Training Assembly (UTA) Schedule",
+// signed by Maj Rogelio De La Fuente Jr. Two-day assemblies, one four-day event in
+// August, and no training event at all in July. POC MSgt Russel Hudson.
+//
+// Dates are hard-coded rather than computed from a "first weekend" rule, because the
+// memo does not follow one — October is the 3rd-4th, November the 7th-8th, August is
+// a Thursday-through-Sunday. A rule would have silently invented the wrong weekend.
+const UTA_SCHEDULE={
+    fy:'FY27',
+    memo:'39 APS/CC memo, 7 Jun 2026 · AFMAN 36-2136 · POC MSgt Russel Hudson',
+    assemblies:[
+        {id:'OCT26',label:'Oct 2026',days:['2026-10-03','2026-10-04']},
+        {id:'NOV26',label:'Nov 2026',days:['2026-11-07','2026-11-08']},
+        {id:'DEC26',label:'Dec 2026',days:['2026-12-05','2026-12-06']},
+        {id:'JAN27',label:'Jan 2027',days:['2027-01-09','2027-01-10']},
+        {id:'FEB27',label:'Feb 2027',days:['2027-02-06','2027-02-07']},
+        {id:'MAR27',label:'Mar 2027',days:['2027-03-06','2027-03-07']},
+        {id:'APR27',label:'Apr 2027',days:['2027-04-03','2027-04-04']},
+        {id:'MAY27',label:'May 2027',days:['2027-05-01','2027-05-02']},
+        {id:'JUN27',label:'Jun 2027',days:['2027-06-05','2027-06-06']},
+        {id:'AUG27',label:'Aug 2027',days:['2027-08-05','2027-08-06','2027-08-07','2027-08-08'],note:'4-day event'},
+        {id:'SEP27',label:'Sep 2027',days:['2027-09-11','2027-09-12']}
+    ],
+    // Carried deliberately: "no UTA in July" is information, and an empty gap in the
+    // grid looks like missing data rather than a decision.
+    noTraining:[{label:'Jul 2027',note:'No training event'}]
+};
+const utaDays=()=>UTA_SCHEDULE.assemblies.flatMap(a=>a.days);
+const utaAssemblyFor=d=>UTA_SCHEDULE.assemblies.find(a=>a.days.includes(d))||null;
+// "3 Oct" — the year is already on the assembly header.
+function utaDayLabel(d){
+    const m=String(d).match(/^(\d{4})-(\d{2})-(\d{2})$/); if(!m)return d;
+    const dt=new Date(Date.UTC(+m[1],+m[2]-1,+m[3]));
+    return `${dt.getUTCDate()} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][dt.getUTCMonth()]}`;
+}
+const utaDow=d=>{const m=String(d).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return m?['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date(Date.UTC(+m[1],+m[2]-1,+m[3])).getUTCDay()]:'';};
+
+// Squadron policy: ONE excusal per year. Counted in ASSEMBLIES, not days — a member
+// excused for both days of one UTA has used one excusal, not two. The day count is
+// shown beside it so the other reading is still visible if that is the intent.
+const UTA_EXCUSAL_LIMIT=1;
+
+/* One person's whole year. Pure over (attendance, name) so it can be checked without
+   a roster or a Sheet. RST is a rescheduled UTA, not an excusal — the training still
+   gets done — so it is tallied separately and never counted against the limit. */
+function utaTally(att,name){
+    const t={present:0,absent:0,excused:0,rst:0,tdy:0,leave:0,unmarked:0,
+             absentAsm:[],excusedAsm:[],rstAsm:[]};
+    UTA_SCHEDULE.assemblies.forEach(a=>{
+        const seen=new Set();
+        a.days.forEach(d=>{
+            const s=((att||{})[d]||{})[name]||'';
+            if(s==='PRESENT')t.present++;
+            else if(s==='ABSENT')t.absent++;
+            else if(s==='EXCUSED')t.excused++;
+            else if(s==='RST')t.rst++;
+            else if(s==='TDY')t.tdy++;
+            else if(s==='LEAVE')t.leave++;
+            else t.unmarked++;
+            if(s)seen.add(s);
+        });
+        if(seen.has('ABSENT'))t.absentAsm.push(a.id);
+        if(seen.has('EXCUSED'))t.excusedAsm.push(a.id);
+        if(seen.has('RST'))t.rstAsm.push(a.id);
+    });
+    t.overLimit=t.excusedAsm.length>UTA_EXCUSAL_LIMIT;
+    return t;
+}
+
 function renderAttendance(){
     const box=document.getElementById('attContent');
     if(!box)return;
+    document.querySelectorAll('#attViewBtns .btn-sm').forEach(b=>
+        b.classList.toggle('grey',b.dataset.view!==attView));
+    document.getElementById('attDayBar').style.display=attView==='day'?'contents':'none';
+    document.getElementById('attWhich').style.display=attView==='day'?'block':'none';
+    if(attView==='year'){renderAttYear();return;}
     const dEl=document.getElementById('attDate');
     if(dEl&&!dEl.value)dEl.value=attToday();
+    const sel=document.getElementById('attUtaJump');
+    if(sel&&!sel.options.length){
+        sel.innerHTML='<option value="">Jump to a scheduled UTA day…</option>'
+            +UTA_SCHEDULE.assemblies.map(a=>`<optgroup label="${a.label}${a.note?' — '+a.note:''}">`
+                +a.days.map(d=>`<option value="${d}">${utaDow(d)} ${utaDayLabel(d)}</option>`).join('')
+                +'</optgroup>').join('');
+    }
+    if(sel)sel.value=utaAssemblyFor(attDate())?attDate():'';
+    const asm=utaAssemblyFor(attDate());
+    document.getElementById('attWhich').innerHTML=asm
+        ? `<span style="color:var(--acc)">${asm.label} UTA</span>${asm.note?' · '+asm.note:''}`
+        : '<span style="color:var(--warn)">Not a scheduled FY27 UTA day</span> — marks here are kept but do not count in the year view';
     const day=attendance[attDate()]||{};
     const people=attendanceRoster();
     if(!people.length){box.innerHTML='<div class="tracker-empty">No roster loaded for this flight.</div>';document.getElementById('attStats').innerHTML='';return;}
@@ -4364,6 +4469,116 @@ function renderAttendance(){
         <div class="stat-card"><div class="stat-label">Absent</div><div class="stat-value" style="color:${cnt('ABSENT')?'var(--bad)':'var(--good)'}">${cnt('ABSENT')}</div><div class="stat-sub">Unexcused</div></div>
         <div class="stat-card"><div class="stat-label">Excused / RST</div><div class="stat-value">${cnt('EXCUSED')+cnt('RST')}</div><div class="stat-sub">${cnt('TDY')} TDY · ${cnt('LEAVE')} leave</div></div>`;
 }
+
+// ── Year view ─────────────────────────────────────────────────────────────
+// The day view answers "who is here today". This answers the question a flight
+// chief actually gets asked at the end of the year: who has missed what, who is
+// carrying an outstanding reschedule, and who has spent their one excusal.
+let attView=localStorage.getItem('afm_att_view')||'day';
+function setAttView(v){
+    attView=v; localStorage.setItem('afm_att_view',v);
+    renderAttendance();
+}
+// Jump the day view to a scheduled date, from the picker or from a cell in the grid.
+function attGoDate(d){
+    const el=document.getElementById('attDate'); if(!el)return;
+    el.value=d; setAttView('day');
+}
+const ATT_ABBR={PRESENT:'P',ABSENT:'A',EXCUSED:'E',RST:'R',TDY:'T',LEAVE:'L'};
+
+function renderAttYear(){
+    const people=attendanceRoster();
+    const box=document.getElementById('attContent');
+    if(!people.length){box.innerHTML='<div class="tracker-empty">No roster loaded for this flight.</div>';
+        document.getElementById('attStats').innerHTML='';return;}
+
+    const asm=UTA_SCHEDULE.assemblies;
+    let h='<div style="overflow-x:auto"><table class="uta-grid">'
+        +'<tr><th class="uta-name">Member</th><th>Missed</th><th>Excused</th><th>Resched</th>'
+        +asm.map(a=>`<th title="${a.days.map(d=>utaDow(d)+' '+utaDayLabel(d)).join(' · ')}${a.note?' — '+a.note:''}">`
+            +`${a.label}${a.note?'<div class="uta-note">4-day</div>':''}</th>`).join('')
+        +'</tr>';
+
+    people.forEach(p=>{
+        const t=utaTally(attendance,p.name);
+        const num=(n,bad)=>`<td class="uta-num" style="${n&&bad?'color:var(--bad);font-weight:700':n?'':'color:var(--t-faint)'}">${n}</td>`;
+        h+=`<tr><td class="uta-name">${esc(`${p.rank||''} ${p.name}`.trim())}`
+           +`<div class="uta-team">${esc(p.team||'')}</div></td>`
+           +num(t.absentAsm.length,true)
+           +`<td class="uta-num" style="${t.overLimit?'color:var(--bad);font-weight:700':t.excusedAsm.length?'':'color:var(--t-faint)'}">`
+           +`${t.excusedAsm.length}${t.overLimit?' ⚠':''}</td>`
+           +num(t.rstAsm.length,false);
+        asm.forEach(a=>{
+            h+='<td>'+a.days.map(d=>{
+                const s=(attendance[d]||{})[p.name]||'';
+                return `<span class="uta-cell ${s?'att-'+s:'uta-blank'}" title="${utaDow(d)} ${utaDayLabel(d)} — ${s||'not marked'}"`
+                     +` onclick="attGoDate('${d}')">${ATT_ABBR[s]||'·'}</span>`;
+            }).join('')+'</td>';
+        });
+        h+='</tr>';
+    });
+    h+='</table></div>';
+
+    const over=people.map(p=>({p,t:utaTally(attendance,p.name)})).filter(x=>x.t.overLimit);
+    h+=`<div class="card" style="margin-top:14px;font-size:11px;color:var(--t-mid2);line-height:1.7">`
+      +`<strong style="color:var(--acc)">P</strong> present · <strong style="color:var(--bad)">A</strong> unexcused absence · `
+      +`<strong style="color:var(--acc)">E</strong> excused · <strong style="color:var(--info)">R</strong> rescheduled (RST) · `
+      +`<strong>T</strong> TDY · <strong>L</strong> leave · <strong style="color:var(--t-faint)">·</strong> not marked. Click any cell to go mark that day.<br>`
+      +`<strong style="color:var(--acc)">One excusal per year</strong> is counted in <strong>assemblies, not days</strong> — `
+      +`excused for both days of one UTA is one excusal. A rescheduled UTA is not an excusal: the training still gets done. `
+      +`July 2027 has no training event, so it is not a column.`
+      +(over.length?`<div style="margin-top:8px;color:var(--bad)"><strong>Over the limit:</strong> `
+            +over.map(x=>`${esc(x.p.name)} (${x.t.excusedAsm.length})`).join(', ')+'</div>':'')
+      +`<div style="margin-top:6px;color:var(--t-faint)">${UTA_SCHEDULE.fy} schedule — ${UTA_SCHEDULE.memo}</div></div>`;
+    box.innerHTML=h;
+
+    // Squadron-level roll-up across the whole year, not one day.
+    const all=people.map(p=>utaTally(attendance,p.name));
+    const sum=k=>all.reduce((n,t)=>n+t[k],0);
+    const days=utaDays().length, slots=days*people.length;
+    const marked=slots-sum('unmarked');
+    const rate=marked?Math.round(sum('present')/marked*100):0;
+    document.getElementById('attStats').innerHTML=`
+        <div class="stat-card"><div class="stat-label">UTAs scheduled</div><div class="stat-value">${UTA_SCHEDULE.assemblies.length}</div><div class="stat-sub">${days} duty days · ${UTA_SCHEDULE.fy}</div></div>
+        <div class="stat-card"><div class="stat-label">Participation</div><div class="stat-value" style="color:${rate>=90?'var(--good)':rate>=75?'var(--warn)':'var(--bad)'}">${rate}%</div><div class="stat-sub">of ${marked} marked day-slots</div></div>
+        <div class="stat-card"><div class="stat-label">Unexcused</div><div class="stat-value" style="color:${sum('absent')?'var(--bad)':'var(--good)'}">${sum('absent')}</div><div class="stat-sub">day-marks across the year</div></div>
+        <div class="stat-card"><div class="stat-label">Over one excusal</div><div class="stat-value" style="color:${over.length?'var(--bad)':'var(--good)'}">${over.length}</div><div class="stat-sub">${sum('rst')} rescheduled day-marks</div></div>`;
+}
+
+/* One runnable check on the tally and the policy call, against a synthetic year so
+   it never depends on what is in the live Sheet. */
+function _selfCheckUta(){
+    const fails=[]; const ck=(c,m)=>{if(!c)fails.push(m);};
+    ck(UTA_SCHEDULE.assemblies.length===11,'11 assemblies — July has none');
+    ck(utaDays().length===24,'24 duty days (10 two-day + one four-day), got '+utaDays().length);
+    ck(new Set(utaDays()).size===24,'a date is listed twice');
+    ck(UTA_SCHEDULE.assemblies.find(a=>a.id==='AUG27').days.length===4,'August is the four-day event');
+    ck(!utaDays().some(d=>d.startsWith('2027-07')),'July 2027 must not appear');
+    ck(utaDays().every(d=>/^20(26-1[012]|27-0[1-9])-\d{2}$/.test(d)),'a date falls outside FY27');
+    ck(utaAssemblyFor('2026-11-08').id==='NOV26','date lookup');
+    ck(utaAssemblyFor('2026-11-09')===null,'a non-UTA date must not match an assembly');
+    ck(utaDow('2026-10-03')==='Sat'&&utaDow('2027-08-05')==='Thu','day of week');
+    // Two excused days inside ONE assembly is one excusal, not two.
+    const one={'2026-10-03':{X:'EXCUSED'},'2026-10-04':{X:'EXCUSED'}};
+    const t1=utaTally(one,'X');
+    ck(t1.excused===2&&t1.excusedAsm.length===1,'both days of one UTA is one excusal');
+    ck(!t1.overLimit,'one excused assembly is within policy');
+    // Two different assemblies is two, and over the limit.
+    const two={'2026-10-03':{X:'EXCUSED'},'2026-12-05':{X:'EXCUSED'}};
+    ck(utaTally(two,'X').overLimit,'two excused assemblies must trip the limit');
+    // A reschedule is not an excusal.
+    const rst={'2026-10-03':{X:'RST'},'2026-11-07':{X:'RST'},'2026-12-05':{X:'RST'}};
+    const t3=utaTally(rst,'X');
+    ck(!t3.overLimit&&t3.rstAsm.length===3&&t3.excusedAsm.length===0,'RST must never count as an excusal');
+    // Marks on a non-UTA date are ignored entirely.
+    const off={'2026-10-10':{X:'ABSENT'}};
+    ck(utaTally(off,'X').absent===0,'a mark on a non-scheduled date must not count');
+    const blank=utaTally({},'Nobody');
+    ck(blank.unmarked===24&&blank.present===0,'an unmarked year is 24 unmarked, not 24 absences');
+    if(fails.length)console.error('[uta schedule] self-check FAILED:',fails);
+    return fails.length?'FAILED':'OK';
+}
+console.log('[uta schedule] self-check '+_selfCheckUta());
 
 // One runnable check: leadership must appear exactly once, vacant/unassigned must not appear,
 // and the tab's roster must never be smaller than the team tree it is built from.
@@ -6106,6 +6321,16 @@ const DOCS = [
   note: "IRR actions are governed at AFRC level, not unit level — start at AFRC's official site or MPF for current guidance rather than e-Publishing."
 },
 
+// ---------------- SCHEDULE ----------------
+{
+  cat: "Career Progression",
+  num: "FY27 UTA Schedule",
+  title: "FY27 Unit Training Assembly Schedule — 39 APS",
+  url: "39APS_FY27_UTA_Schedule.pdf",
+  direct: true,
+  verified: "28 Aug 2026",
+  note: "39 APS/CC memo, 7 Jun 2026, signed by Maj De La Fuente. Two-day assemblies, a four-day event 5-8 Aug 2027, and NO training event in July 2027. The same dates drive the year view on UTA \u25b8 Attendance. POC MSgt Russel Hudson."
+},
 // ---------------- CAREER PROGRESSION ----------------
 // Squadron-produced, not e-Pubs. Rendered as a live grid on Readiness ▸ Career
 // Progression; linked here too so the reference list stays the one place to look.
