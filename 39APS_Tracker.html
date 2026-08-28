@@ -980,7 +980,9 @@ const TAB_GROUPS=[
         {id:'utarpt',     label:'End-of-UTA Report'}]},
     {id:'ready', label:'Readiness', icon:'ready', tabs:[
         {id:'tracker', label:'Training Tracker'},
-        {id:'kpi',     label:'KPIs'}]},
+        {id:'kpi',     label:'KPIs'},
+        {id:'career',  label:'Career Progression'},
+        {id:'orders',  label:'Orders Request'}]},
     {id:'ref', label:'Reference', icon:'ref', tabs:[
         {id:'templates', label:'Pubs & Templates'},
         {id:'epb',       label:'EPB Routing'}]}
@@ -1024,6 +1026,8 @@ function switchTab(name,btn){
     if(name==='utarpt') renderUtaReport();
     if(name==='templates') renderAfDocs();
     if(name==='epb') renderEPB();
+    if(name==='career') renderCareer();
+    if(name==='orders') ordersInit();
 }
 
 // ═══════════════════════ MANNING RENDER
@@ -6102,6 +6106,27 @@ const DOCS = [
   note: "IRR actions are governed at AFRC level, not unit level — start at AFRC's official site or MPF for current guidance rather than e-Publishing."
 },
 
+// ---------------- CAREER PROGRESSION ----------------
+// Squadron-produced, not e-Pubs. Rendered as a live grid on Readiness ▸ Career
+// Progression; linked here too so the reference list stays the one place to look.
+{
+  cat: "Career Progression",
+  num: "39 APS Chart",
+  title: "Career Progression — Air Freight (rank ladder)",
+  url: "39APS_Career_Progression_AirFreight.pdf",
+  direct: true,
+  verified: "28 Aug 2026",
+  note: "Squadron chart, supplied 28 Aug 2026. Time in service / time in grade / skill level / PME per rank, plus recommended 2T2 and leadership development. The 2T2 Development row is Air Freight specific — the other flights have not supplied theirs."
+},
+{
+  cat: "Career Progression",
+  num: "2T2 Course List",
+  title: "Career Progression — Courses for 2T2s (AFIT · ETCA · MyFSS · MyVector)",
+  url: "2T2_Career_Courses.pdf",
+  direct: true,
+  verified: "28 Aug 2026",
+  note: "Where each recommended course actually lives and how to sign up. Same list is rendered with working links on Readiness ▸ Career Progression."
+},
 // ---------------- E-PUBS DIRECT ----------------
 {
   cat: "Search / Index",
@@ -7366,6 +7391,665 @@ function _selfCheckUtaReport(){
     return fails.length?'FAILED':'OK';
 }
 console.log('[UTA report] self-check '+_selfCheckUtaReport());
+</script>
+
+
+<!-- ═══════════════════════ CAREER PROGRESSION ═══════════════════════ -->
+<div class="tab-content" id="tab-career">
+<div class="container">
+    <div style="padding-top:6px"></div>
+    <div class="page-header">
+        <div><div class="page-title">Career Progression</div>
+             <div class="page-sub">The squadron rank ladder · what one Airman is working toward · where each course lives</div></div>
+    </div>
+
+    <div id="carFlightNote"></div>
+
+    <div class="card">
+      <div class="section-label" style="margin-top:0">The ladder</div>
+      <div style="font-size:11px;color:var(--t-mid2);line-height:1.6;margin-bottom:12px">
+        Transcribed cell-for-cell from the squadron's <strong>Air Freight</strong> chart (28 Aug 2026) — bars read by
+        column position, not by counting. <strong style="color:var(--acc)">Essential to Promote</strong> rows are
+        Air Force wide; the <strong style="color:var(--acc)">2T2 Development</strong> row is Air Freight specific and
+        no other flight has supplied one.
+        <a href="39APS_Career_Progression_AirFreight.pdf" target="_blank" rel="noopener" style="color:var(--acc)">Open the original chart</a>.
+      </div>
+      <div style="overflow-x:auto"><table id="carGrid" class="car-grid"></table></div>
+    </div>
+
+    <div class="card">
+      <div class="section-label" style="margin-top:0">One Airman</div>
+      <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;margin-bottom:14px">
+        <div><label>Airman</label><select id="carPerson" onchange="renderCareerPerson()"></select></div>
+        <div><button class="btn-sm" onclick="renderCareer()">↻ Reload roster</button></div>
+      </div>
+      <div id="carPerson1"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-label" style="margin-top:0">Where the courses live</div>
+      <div style="font-size:11px;color:var(--t-mid2);line-height:1.6;margin-bottom:12px">
+        From the squadron's 2T2 course list.
+        <a href="2T2_Career_Courses.pdf" target="_blank" rel="noopener" style="color:var(--acc)">Open the original PDF</a>.
+        AFIT and ETCA both need a CAC — ETCA is behind DPS, so open it from a machine with the DoD certs trusted.
+      </div>
+      <div id="carCourses"></div>
+    </div>
+</div>
+</div>
+
+<!-- ═══════════════════════ ORDERS REQUEST ═══════════════════════ -->
+<div class="tab-content" id="tab-orders">
+<div class="container">
+    <div style="padding-top:6px"></div>
+    <div class="page-header">
+        <div><div class="page-title">Orders Request</div>
+             <div class="page-sub">39 APS Orders Request Worksheet (23 Jan 2026) — fill it here, download the PDF</div></div>
+    </div>
+
+    <div class="card" style="font-size:11px;color:var(--t-mid2);line-height:1.6">
+      Nothing typed here is saved — not to this browser, not to the Sheet. Fill it, download it, send it.
+      Reload the page and the form is empty again, <strong style="color:var(--acc)">including the DoD ID</strong>,
+      which is deliberate.
+      The downloaded PDF stays fillable, so anything left blank can still be typed in the reader.
+      <a href="39APS_Orders_Request_Worksheet.pdf" target="_blank" rel="noopener" style="color:var(--acc)">Open the blank worksheet</a>.
+    </div>
+
+    <div class="card">
+      <div class="section-label" style="margin-top:0">Member</div>
+      <div class="ord-grid">
+        <div style="grid-column:span 2"><label>Name</label><input id="ordName" list="ordRoster" placeholder="Last, First"></div>
+        <datalist id="ordRoster"></datalist>
+        <div><label>DoD ID #</label><input id="ordDoD" inputmode="numeric" autocomplete="off" placeholder="10 digits"></div>
+        <div><label>Date of request</label><input type="date" id="ordReqDate"></div>
+      </div>
+
+      <div class="section-label">This order is for</div>
+      <div class="ord-grid">
+        <div><label>Action</label><select id="ordAction" onchange="ordSync()">
+            <option value="initial">Initial Order</option>
+            <option value="cancel">Cancel Order</option>
+            <option value="modify">Modify Order</option></select></div>
+        <div id="ordModWrap" style="display:none"><label>Order # being modified</label><input id="ordOrderNum"></div>
+      </div>
+
+      <div class="section-label">938 order type (pick one)</div>
+      <div class="ord-grid">
+        <div style="grid-column:span 2"><label>Type</label><select id="ordType" onchange="ordSync()">
+            <option value="AT">AT — Annual Tour (15 days per year)</option>
+            <option value="SEASONING">Seasoning Tour (AMRT) — training in AFSC</option>
+            <option value="SCHOOL">School (attach School RIP)</option>
+            <option value="ADOS">ADOS/RPA — Active Duty Ops Support / Reserve Per. Appropriation</option>
+            <option value="MPA">MPA — e.g. USAFA support orders</option></select></div>
+        <div id="ordM4SWrap" style="display:none"><label>M4S tasking #</label><input id="ordM4S"></div>
+        <div style="grid-column:span 2"><label>Funding source</label>
+            <input id="ordFunding" placeholder="Unit Funded / Centrally Funded / MAJCOM Funded"></div>
+      </div>
+
+      <div class="section-label">Dates &amp; airports</div>
+      <div class="ord-grid">
+        <div><label>Departure airport</label><input id="ordDepApt" placeholder="COS"></div>
+        <div><label>Arrival airport</label><input id="ordArrApt" placeholder="ONT"></div>
+        <div><label>Travel date out (if needed)</label><input type="date" id="ordTrav1" onchange="ordSync()"></div>
+        <div><label>Travel date back (if needed)</label><input type="date" id="ordTrav2" onchange="ordSync()"></div>
+        <div><label>Duty start</label><input type="date" id="ordStart" onchange="ordSync()"></div>
+        <div><label>Duty end</label><input type="date" id="ordEnd" onchange="ordSync()"></div>
+      </div>
+      <div style="font-size:11px;color:var(--t-mid2);margin:10px 0 4px">
+        Duty days: <strong id="ordDutyDays" style="color:var(--acc)">—</strong> ·
+        Days with travel: <strong id="ordTravDays" style="color:var(--acc)">—</strong>
+        <span style="color:var(--t-faint)">— both counted inclusive of the first and last day, and both editable in the PDF.</span>
+      </div>
+      <div class="promo-req-row" style="margin-top:8px">
+        <input type="checkbox" id="ordItinVar"><label for="ordItinVar">Itinerary variations authorized (Mil Air flights only)</label>
+      </div>
+
+      <div class="section-label">Itinerary</div>
+      <div style="font-size:11px;color:var(--t-faint);margin-bottom:8px">
+        The blank worksheet ships with an example itinerary already typed in. Every row is overwritten on download —
+        leave a row empty and it comes out empty, not as the example.
+        Reporting locations need the ZIP code of the duty location.
+      </div>
+      <div style="overflow-x:auto"><table class="ord-itin" id="ordItin"></table></div>
+
+      <div class="section-label">Travel, dining &amp; lodging</div>
+      <div class="ord-grid">
+        <div><label>Primary mode of travel</label><select id="ordMode">
+            <option value="">— not stated —</option>
+            <option>Commercial Air</option><option>Military Air</option>
+            <option>Govt Vehicle</option><option>Rental Car</option>
+            <option>Private Auto</option><option>Other</option></select></div>
+        <div><label>Dining facility</label><select id="ordDining">
+            <option value="">— not stated —</option>
+            <option>Available</option><option>Not Available</option>
+            <option>Included w/conference fee</option></select></div>
+        <div><label>Lodging</label><select id="ordLodging">
+            <option value="">— not stated —</option>
+            <option>Available</option><option>Not Available</option>
+            <option>Included w/conference fee</option></select></div>
+        <div><label>GTCC status</label><select id="ordGtcc">
+            <option value="">— not stated —</option>
+            <option>Card Issued &amp; Activated</option>
+            <option>Applied for, but not Issued</option>
+            <option>Not Eligible or Declined</option></select></div>
+      </div>
+
+      <div class="section-label">Special requests, justifications or remarks</div>
+      <div style="font-size:11px;color:var(--t-faint);margin-bottom:6px">
+        Name the purpose of travel — training, site visit, conference (and its fee) — and describe the duty being
+        performed. A rental car needs its own justification here. Detail any change in duty status day by day.
+      </div>
+      <textarea id="ordRemarks" rows="5" placeholder="Member on ADOS to …"></textarea>
+
+      <div class="btn-row" style="margin-top:14px">
+        <button class="btn" onclick="buildOrdersPdf()">↓ Build the PDF</button>
+        <button class="btn" onclick="ordClear()">Clear the form</button>
+      </div>
+      <div id="ordMsg" style="font-size:11px;color:var(--t-lo);margin-top:8px"></div>
+    </div>
+</div>
+</div>
+
+<style>
+.car-grid{border-collapse:collapse;font-size:11px;min-width:900px;width:100%;}
+.car-grid th,.car-grid td{border:1px solid rgba(var(--acc-rgb),.18);padding:6px 8px;vertical-align:top;}
+.car-grid th{background:rgba(var(--acc-rgb),.08);color:var(--acc);font-size:10px;text-transform:uppercase;letter-spacing:1px;white-space:nowrap;}
+.car-grid td.rowhead{background:rgba(var(--ink-rgb),.05);color:var(--t-mid2);font-size:10px;text-transform:uppercase;letter-spacing:1px;white-space:nowrap;}
+.car-grid td.now{background:rgba(var(--acc-rgb),.10);}
+.car-grid th.now{background:rgba(var(--acc-rgb),.22);}
+.car-pill{display:inline-block;margin:1px 2px 1px 0;padding:2px 7px;border-radius:10px;font-size:10px;background:rgba(var(--acc-rgb),.12);color:var(--t-mid);white-space:nowrap;}
+.car-col{border:1px solid rgba(var(--acc-rgb),.18);border-radius:4px;padding:12px;}
+.ord-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.ord-itin{border-collapse:collapse;width:100%;min-width:640px;font-size:12px;}
+.ord-itin th{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--t-mid2);text-align:left;padding:0 4px 4px;font-weight:600;}
+.ord-itin td{padding:2px 4px 2px 0;}
+@media(max-width:700px){.ord-grid{grid-template-columns:1fr;}}
+</style>
+<script>
+/* ═════════ CAREER PROGRESSION
+   The squadron chart is a picture, so it is transcribed here as data. Every value
+   below was read off the PDF by the pixel column the bar sits in — the same trap as
+   the CFETP X marks: counting bars left to right silently shifts a whole row.
+
+   One thing the chart does not say, and this page therefore does not claim: whether a
+   column means "requirements you meet while holding this rank" or "requirements to be
+   promoted INTO it". Both readings fit some cells and neither fits all of them, so the
+   Airman panel shows the current rank column AND the next one side by side rather than
+   picking one and being confidently wrong. */
+const CAREER_RANKS=['AB','Amn','A1C','SrA','SSgt','TSgt','MSgt','SMSgt','CMSgt'];
+const CAREER_ESSENTIAL={
+    'AB':   {},
+    'Amn':  {tig:'6 months'},
+    'A1C':  {tig:'6 months'},
+    'SrA':  {tis:'1 year',  tig:'8 months', skill:'3 level', pme:'JEFC 300 into ALS'},
+    'SSgt': {tis:'4 years', tig:'12 months',skill:'5 level'},
+    'TSgt': {tis:'6 years', tig:'24 months',skill:'7 level', pme:'NCO 500 into NCOA'},
+    'MSgt': {tis:'8 years', tig:'24 months',skill:'7 level', pme:'SNCO 700 into SNCOA', addl:'CCAF Awarded'},
+    'SMSgt':{tis:'11 years',tig:'24 months',skill:'7 level'},
+    'CMSgt':{tis:'14 years',                skill:'9 level'}
+};
+// A bar spanning two columns is recommended across both ranks — kept as a list of
+// ranks rather than a start/end so a future flight's chart can be irregular.
+const CAREER_DEV=[
+    {kind:'2t2', item:'5 level AMRT',          ranks:['A1C','SrA']},
+    {kind:'2t2', item:'Hazmat Insp.',          ranks:['SrA']},
+    {kind:'2t2', item:'APO',                   ranks:['SrA','SSgt']},
+    {kind:'2t2', item:'7 level AMRT',          ranks:['SSgt','TSgt']},
+    {kind:'2t2', item:'Joint Insp.',           ranks:['SSgt','TSgt']},
+    {kind:'2t2', item:'PATM',                  ranks:['TSgt']},
+    {kind:'2t2', item:'ATTIC',                 ranks:['TSgt','MSgt']},
+    {kind:'ldr', item:'LDR 106',               ranks:['SSgt','TSgt']},
+    {kind:'ldr', item:'LDR 108',               ranks:['TSgt']},
+    {kind:'ldr', item:'Theater Logistics',     ranks:['TSgt']},
+    {kind:'ldr', item:'WKLDR 300 into LDR 390',ranks:['MSgt']},
+    {kind:'ldr', item:'DT Board',              ranks:['MSgt']},
+    {kind:'ldr', item:'EJPME I (JKO)',         ranks:['MSgt']},
+    {kind:'ldr', item:'RGMC 1',                ranks:['MSgt']},
+    {kind:'ldr', item:'RGMC 2',                ranks:['MSgt']},
+    {kind:'ldr', item:'CWPC',                  ranks:['SMSgt']},
+    {kind:'ldr', item:'EDEB',                  ranks:['SMSgt']},
+    {kind:'ldr', item:'EJPME II (JKO)',        ranks:['SMSgt']},
+    {kind:'ldr', item:'RGMC 3',                ranks:['SMSgt']},
+    {kind:'ldr', item:'Chief Orient.',         ranks:['CMSgt']},
+    {kind:'ldr', item:'CLC',                   ranks:['CMSgt']}
+];
+const CAREER_COURSES=[
+  {src:'AFIT — School of Logistics / School of Leadership & Mission Support',
+   url:'https://www.afit.edu/LS/index.cfm',
+   groups:[
+     {name:'2T2 related',items:[
+       '21X327 Organizational Alignment: Organizational Culture',
+       '21X329 Organizational Alignment: Achieving Alignment',
+       'Air 116 / 216 / 316 Airworthiness Certificates (Load Planning)',
+       'LOG 099 Fundamentals of Logistics AF',
+       'LOG 199 Introduction of Logistics AF',
+       'LOG 299 Combat Logistics']},
+     {name:'Personal and supervisory / leadership growth',items:[
+       'LDR 106 Understanding Generations',
+       'LDR 108 Dynamic Teaming',
+       'LDR 390 Organizational Leadership in Five Lessons',
+       'LOG 117 Process Improvement Team Member',
+       'WKLDR 100 Generational Communication',
+       'WKLDR 300 Generations for Leaders',
+       'WKLDR 399 Generations for Leaders']}]},
+  {src:'ETCA', url:'https://usaf.dps.mil/teams/app10-etca/SitePages/Courses.aspx',
+   groups:[{name:'',items:[
+       'JEFC 300','Aerial Port Operations','NCOFC 500',
+       "Theatre Logistics: A Deployed Airman's View",
+       'Principles of Air Transportation Management','SNCOFC 700',
+       'Contingency Wartime Planning Course (CWPC)']}]},
+  {src:'MyFSS — MyLearning & Joint Knowledge Online', url:'https://myfss.us.af.mil/',
+   groups:[{name:'',items:[
+       'Rapid Global Mobility Course I & II (online in MyLearning)',
+       'Rapid Global Mobility Course III (in residence — wing nomination to attend)',
+       'EJPME I & II (through JKO)']}]},
+  {src:'MyVector', url:'https://myvector.us.af.mil/',
+   groups:[{name:'',items:['DT Board','EDEB']}]}
+];
+// The chart is Air Freight's. The Essential rows are AF-wide; the 2T2 row is not.
+const CAREER_CHART_FLIGHT='AIR FREIGHT';
+
+const careerDevFor=(rank,kind)=>CAREER_DEV.filter(d=>d.kind===kind&&d.ranks.includes(rank)).map(d=>d.item);
+// Manning stores skill as "…(5)"; Promotions carries an explicit SkillLevel. Prefer
+// the explicit one, fall back to the wiring diagram, and return '' rather than a guess.
+function careerSkillOf(name){
+    const p=(promotions||[]).find(x=>String(x.Name)===String(name));
+    return (p&&p.SkillLevel)||manningLookup(name).skill||'';
+}
+
+function renderCareer(){
+    const note=document.getElementById('carFlightNote');
+    if(note){
+        const f=String(currentFlight||'').toUpperCase();
+        note.innerHTML=(f===CAREER_CHART_FLIGHT||isRollup())?'':
+          `<div class="card" style="font-size:11px;color:var(--t-mid2);line-height:1.6;border-color:rgba(var(--warn-rgb,255,176,32),.35)">`
+          +`<strong style="color:var(--acc)">This is the Air Freight chart.</strong> You are in `
+          +`<strong>${esc(currentFlight)}</strong>. Time in service, time in grade, skill level and PME are Air Force `
+          +`wide and read the same for any flight. The <strong>2T2 Development</strong> row is Air Freight's own `
+          +`— treat it as a reasonable default until ${esc(currentFlight)} supplies its chart, not as ${esc(currentFlight)}'s answer.</div>`;
+    }
+    const rows=[
+        ['Time in Service', r=>(CAREER_ESSENTIAL[r].tis||'')],
+        ['Time in Grade',   r=>(CAREER_ESSENTIAL[r].tig||'')],
+        ['Skill level',     r=>(CAREER_ESSENTIAL[r].skill||'')],
+        ['PME completion',  r=>(CAREER_ESSENTIAL[r].pme||'')],
+        ['Additional',      r=>(CAREER_ESSENTIAL[r].addl||'')]
+    ];
+    const mine=careerCurrentRank();
+    const hd=r=>r===mine?' class="now"':'';
+    let h=`<tr><th>39 APS — Air Freight</th>${CAREER_RANKS.map(r=>`<th${hd(r)}>${r}</th>`).join('')}</tr>`;
+    rows.forEach(([label,get])=>{
+        h+=`<tr><td class="rowhead">${label}</td>`
+          +CAREER_RANKS.map(r=>`<td class="${r===mine?'now':''}">${esc(get(r))||'<span style="color:var(--t-faint)">—</span>'}</td>`).join('')+'</tr>';
+    });
+    [['2T2 Development','2t2'],['AF &amp; Leadership Development','ldr']].forEach(([label,kind])=>{
+        h+=`<tr><td class="rowhead">${label}</td>`
+          +CAREER_RANKS.map(r=>{
+              const items=careerDevFor(r,kind);
+              return `<td class="${r===mine?'now':''}">`
+                +(items.length?items.map(i=>`<span class="car-pill">${esc(i)}</span>`).join(''):'<span style="color:var(--t-faint)">—</span>')
+                +'</td>';
+          }).join('')+'</tr>';
+    });
+    document.getElementById('carGrid').innerHTML=h;
+
+    document.getElementById('carCourses').innerHTML=CAREER_COURSES.map(s=>
+        `<div style="margin-bottom:14px"><div style="font-size:11px;color:var(--acc);font-weight:700;margin-bottom:4px">`
+        +`<a href="${s.url}" target="_blank" rel="noopener" style="color:var(--acc)">${esc(s.src)} ↗</a></div>`
+        +s.groups.map(g=>
+            (g.name?`<div style="font-size:10px;color:var(--t-faint);text-transform:uppercase;letter-spacing:1px;margin:6px 0 3px">${esc(g.name)}</div>`:'')
+            +`<div style="font-size:12px;color:var(--t-mid);line-height:1.8">`
+            +g.items.map(i=>`• ${esc(i)}`).join('<br>')+'</div>').join('')
+        +'</div>').join('');
+
+    // Roster select, keeping the current pick if that person is still on it.
+    const sel=document.getElementById('carPerson');
+    const was=sel.value;
+    const people=attendanceRoster().filter(p=>p.name&&!isVacant(p.name));
+    sel.innerHTML='<option value="">— pick an Airman —</option>'
+        +people.map(p=>`<option value="${esc(p.name)}">${esc(`${p.rank||''} ${p.name}`.trim())}</option>`).join('');
+    if(people.some(p=>p.name===was))sel.value=was;
+    renderCareerPerson();
+}
+// The rank the selected Airman holds, used to highlight their column in the ladder.
+function careerCurrentRank(){
+    const sel=document.getElementById('carPerson');
+    if(!sel||!sel.value)return null;
+    const p=attendanceRoster().find(x=>x.name===sel.value);
+    return p?careerNormRank(p.rank):null;
+}
+// The roster writes SRA/SSGT/A1C in every casing there is; the ladder keys do not.
+function careerNormRank(r){
+    const k=String(r||'').replace(/[^a-z0-9]/gi,'').toLowerCase();
+    return CAREER_RANKS.find(x=>x.replace(/[^a-z0-9]/gi,'').toLowerCase()===k)||null;
+}
+
+/* One rank column, rendered as a card: what the chart asks for, and where the
+   tracker already knows the answer. Only skill level is actually checkable from
+   tracker data — TIS and TIG are not carried anywhere, so they are shown as the
+   chart's requirement with no verdict attached rather than a fabricated one. */
+function careerColCard(rank,heading,skill){
+    if(!rank)return '';
+    const e=CAREER_ESSENTIAL[rank]||{};
+    const line=(k,v)=>v?`<div style="font-size:12px;color:var(--t-mid);margin-bottom:3px"><span style="color:var(--t-faint)">${k}:</span> ${esc(v)}</div>`:'';
+    let skillLine='';
+    if(e.skill){
+        const need=parseInt(e.skill), has=parseInt(skill);
+        const verdict=!skill?'<span style="color:var(--t-faint)">skill level not recorded in Manning or Promotions</span>'
+            : has>=need?`<span style="color:var(--good)">holds ${has}-level</span>`
+            : `<span style="color:var(--bad)">holds ${has}-level</span>`;
+        skillLine=`<div style="font-size:12px;color:var(--t-mid);margin-bottom:3px"><span style="color:var(--t-faint)">Skill level:</span> ${esc(e.skill)} — ${verdict}</div>`;
+    }
+    const pills=k=>{const it=careerDevFor(rank,k);return it.length?it.map(i=>`<span class="car-pill">${esc(i)}</span>`).join(''):'<span style="color:var(--t-faint);font-size:11px">nothing listed</span>';};
+    return `<div class="car-col">
+      <div style="font-size:10px;color:var(--t-faint);text-transform:uppercase;letter-spacing:1px">${heading}</div>
+      <div style="font-size:16px;color:var(--acc);font-weight:700;margin-bottom:8px">${rank}</div>
+      ${line('Time in service',e.tis)}${line('Time in grade',e.tig)}${skillLine}${line('PME',e.pme)}${line('Additional',e.addl)}
+      <div style="font-size:10px;color:var(--t-faint);text-transform:uppercase;letter-spacing:1px;margin:10px 0 4px">2T2 development</div>${pills('2t2')}
+      <div style="font-size:10px;color:var(--t-faint);text-transform:uppercase;letter-spacing:1px;margin:10px 0 4px">AF &amp; leadership</div>${pills('ldr')}
+    </div>`;
+}
+
+function renderCareerPerson(){
+    const box=document.getElementById('carPerson1');
+    const sel=document.getElementById('carPerson');
+    const name=sel.value;
+    if(!name){box.innerHTML='<div style="font-size:12px;color:var(--t-faint)">Pick someone and the chart narrows to the two columns that apply to them.</div>';renderCareerGridHighlight();return;}
+    const rank=careerCurrentRank();
+    if(!rank){
+        box.innerHTML=`<div style="font-size:12px;color:var(--bad)">No rank on the roster for ${esc(name)} — set it on Manning &amp; Wiring and the ladder can line up.</div>`;
+        renderCareerGridHighlight();return;
+    }
+    const next=NEXT_RANK[rank]||null;
+    const skill=careerSkillOf(name);
+    box.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        ${careerColCard(rank,'Holds now',skill)}
+        ${next?careerColCard(next,'Next rank',skill):'<div class="car-col" style="color:var(--t-faint);font-size:12px">Top of the ladder — no next rank on the chart.</div>'}
+      </div>
+      <div style="font-size:11px;color:var(--t-faint);line-height:1.6;margin-top:10px">
+        Both columns are shown because the chart does not say whether a column is what you meet
+        <em>at</em> a rank or what you need to be promoted <em>into</em> it. Time in service and time in grade
+        are not tracked anywhere in this app, so they are printed as the requirement with no verdict —
+        read them off the member's records.
+      </div>`;
+    renderCareerGridHighlight();
+}
+// Cheap: re-render the ladder so the held-rank column highlights. It is 9 columns.
+function renderCareerGridHighlight(){
+    const mine=careerCurrentRank();
+    document.querySelectorAll('#carGrid td, #carGrid th').forEach(c=>c.classList.remove('now'));
+    if(!mine)return;
+    const i=CAREER_RANKS.indexOf(mine)+1;
+    document.querySelectorAll('#carGrid tr').forEach(tr=>{
+        const c=tr.children[i]; if(c)c.classList.add('now');
+    });
+}
+
+/* One runnable check on the transcription itself — the parts a re-read of the chart
+   would break silently. */
+function _selfCheckCareer(){
+    const fails=[];
+    const ck=(c,m)=>{if(!c)fails.push(m);};
+    ck(CAREER_ESSENTIAL['SrA'].skill==='3 level','SrA skill level');
+    ck(CAREER_ESSENTIAL['SSgt'].tig==='12 months','SSgt TIG');
+    ck(CAREER_ESSENTIAL['MSgt'].addl==='CCAF Awarded','CCAF sits under MSgt only');
+    ck(!CAREER_ESSENTIAL['CMSgt'].tig,'CMSgt has no TIG cell on the chart');
+    ck(!CAREER_ESSENTIAL['AB'].tis&&!CAREER_ESSENTIAL['Amn'].tis,'TIS starts at SrA');
+    ck(CAREER_DEV.every(d=>d.ranks.every(r=>CAREER_RANKS.includes(r))),'a dev item names a rank that is not on the ladder');
+    ck(careerDevFor('TSgt','2t2').join()==='7 level AMRT,Joint Insp.,PATM,ATTIC','TSgt 2T2 column');
+    ck(careerDevFor('CMSgt','ldr').join()==='Chief Orient.,CLC','CMSgt leadership column');
+    ck(careerDevFor('AB','2t2').length===0&&careerDevFor('Amn','ldr').length===0,'AB/Amn columns are empty on the chart');
+    ck(careerNormRank('SRA')==='SrA'&&careerNormRank('SSGT')==='SSgt'&&careerNormRank('  msgt ')==='MSgt','rank casing');
+    ck(careerNormRank('Capt')===null,'an officer rank is not on this ladder');
+    if(fails.length)console.error('[career] self-check FAILED:',fails);
+    return fails.length?'FAILED':'OK';
+}
+console.log('[career] self-check '+_selfCheckCareer());
+
+
+/* ═════════ ORDERS REQUEST WORKSHEET
+   Same approach as the promotion forms: the worksheet is an AcroForm, so it is filled
+   and handed back still fillable. Two traps this form has that the promo forms do not:
+   the blank ships with an EXAMPLE itinerary already typed into rows 2-5, so every
+   itinerary cell is written on every build even when empty; and eight of its
+   checkboxes are named "undefined_N", which are mapped below by widget position on
+   the page, not by the order pypdf happens to list them in. */
+const ORD_ROWS=5;
+const ORD_TEXT_FIELDS={name:'Name',dod:'DoD ID',reqDate:'Date1_af_date',
+    orderNum:'Modify Order Order', m4s:'MPA  ie USAFA support orders M4S Tasking',
+    funding:'Funding Source ie Unit Funded Centrally Funded or MAJCOM Funded',
+    depApt:'Departure Airport', arrApt:'Arrival Airport',
+    trav1:'Travel Date 1_af_date', trav2:'Travel Date 2_af_date',
+    start:'Duty Start Date_af_date', end:'Duty End Date_af_date',
+    dutyDays:'Total  of Duty Days', travDays:'Total Days with Travel',
+    remarks:'Remarks'};
+const ORD_ACTION={initial:'Initial Order', cancel:'Cancel Order', modify:'undefined'};
+const ORD_TYPE={AT:'AT  Annual Tour Allowed 15 days per year',
+    SEASONING:'Seasoning Tour AMRT Training in AFSC',
+    SCHOOL:'School Attach School RIP',
+    ADOS:'ADOSRPA  Active Duty Ops Support or Reserve Per Appropriation',
+    MPA:'undefined_2'};
+// Rect x tells these apart: mode column x≈207/284, dining x≈348, lodging x≈473.
+const ORD_MODE={'Commercial Air':'Commercial Air','Military Air':'Military Air',
+    'Govt Vehicle':'Govt Vehicle','Rental Car':'Rental Car',
+    'Private Auto':'Private Auto','Other':'undefined_7'};
+const ORD_DINING={'Available':'undefined_3','Not Available':'undefined_5',
+    'Included w/conference fee':'Included wconference fee'};
+const ORD_LODGING={'Available':'undefined_4','Not Available':'undefined_6',
+    'Included w/conference fee':'Included wconference fee_2'};
+const ORD_GTCC={'Card Issued & Activated':'Card Issued  Activated',
+    'Applied for, but not Issued':'Applied for but not Issued',
+    'Not Eligible or Declined':'Not Eligible or Declined'};
+
+const ORD_MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+// The worksheet's own example dates are written "4-Jan-2026", so matched to that
+// rather than to the promo forms' MM/DD/YYYY.
+function ordDate(iso){
+    const m=String(iso||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return m?`${parseInt(m[3],10)}-${ORD_MON[parseInt(m[2],10)-1]}-${m[1]}`:'';
+}
+// Inclusive day count — 12th to 12th is one day of duty, not zero.
+function ordDayCount(a,b){
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(a||'')||!/^\d{4}-\d{2}-\d{2}$/.test(b||''))return '';
+    const d=(Date.parse(b+'T00:00:00Z')-Date.parse(a+'T00:00:00Z'))/86400000;
+    return d<0?'':String(d+1);
+}
+
+const ordV=id=>{const e=document.getElementById(id);return e?String(e.value||'').trim():'';};
+
+function ordState(){
+    const itin=[];
+    for(let i=1;i<=ORD_ROWS;i++)itin.push({
+        arr:ordV('ordIA'+i), loc:ordV('ordIL'+i), dep:ordV('ordID'+i), mode:ordV('ordIM'+i)});
+    return {name:ordV('ordName'), dod:ordV('ordDoD'), reqDate:ordV('ordReqDate'),
+        action:ordV('ordAction'), orderNum:ordV('ordOrderNum'),
+        type:ordV('ordType'), m4s:ordV('ordM4S'), funding:ordV('ordFunding'),
+        depApt:ordV('ordDepApt'), arrApt:ordV('ordArrApt'),
+        trav1:ordV('ordTrav1'), trav2:ordV('ordTrav2'),
+        start:ordV('ordStart'), end:ordV('ordEnd'),
+        itinVar:!!(document.getElementById('ordItinVar')||{}).checked,
+        mode:ordV('ordMode'), dining:ordV('ordDining'), lodging:ordV('ordLodging'),
+        gtcc:ordV('ordGtcc'), remarks:ordV('ordRemarks'), itin:itin};
+}
+
+/* Pure: form state in, the exact PDF field values out. Separated from the PDF write
+   so the mapping can be checked without the template. */
+function ordersPlan(s){
+    const texts={}, checks=[];
+    const t=(k,v)=>{texts[ORD_TEXT_FIELDS[k]]=v||'';};
+    t('name',s.name); t('dod',s.dod); t('reqDate',ordDate(s.reqDate));
+    t('orderNum',s.action==='modify'?s.orderNum:'');
+    t('m4s',s.type==='MPA'?s.m4s:'');
+    t('funding',s.funding); t('depApt',s.depApt); t('arrApt',s.arrApt);
+    t('trav1',ordDate(s.trav1)); t('trav2',ordDate(s.trav2));
+    t('start',ordDate(s.start)); t('end',ordDate(s.end));
+    t('dutyDays',ordDayCount(s.start,s.end));
+    t('travDays',ordDayCount(s.trav1||s.start, s.trav2||s.end));
+    t('remarks',s.remarks);
+    // Always written, never skipped: rows 2-5 of the blank carry the example dates.
+    s.itin.forEach((r,i)=>{
+        const n=i+1;
+        texts['Arrival Date '+n+'_af_date']=ordDate(r.arr);
+        texts['Location '+n]=r.loc||'';
+        texts['Departure Date '+n+'_af_date']=ordDate(r.dep);
+        texts['Mode of Travel '+n]=r.mode||'';
+    });
+    if(ORD_ACTION[s.action])checks.push(ORD_ACTION[s.action]);
+    if(ORD_TYPE[s.type])checks.push(ORD_TYPE[s.type]);
+    if(s.itinVar)checks.push('Itinerary Variations Authorized Only on Mil Air Flights');
+    if(ORD_MODE[s.mode])checks.push(ORD_MODE[s.mode]);
+    if(ORD_DINING[s.dining])checks.push(ORD_DINING[s.dining]);
+    if(ORD_LODGING[s.lodging])checks.push(ORD_LODGING[s.lodging]);
+    if(ORD_GTCC[s.gtcc])checks.push(ORD_GTCC[s.gtcc]);
+    return {texts,checks};
+}
+
+function ordFileName(s){
+    // Keep the comma: the roster stores "Last, First" and a file called
+    // "OBrien Pat" is harder to find in a folder of forty of them.
+    const clean=String(s.name||'Member').replace(/[^\w ,-]/g,'').trim()||'Member';
+    return `${clean} — 39 APS Orders Request${s.start?' '+ordDate(s.start):''}.pdf`;
+}
+
+function ordSync(){
+    document.getElementById('ordModWrap').style.display=ordV('ordAction')==='modify'?'block':'none';
+    document.getElementById('ordM4SWrap').style.display=ordV('ordType')==='MPA'?'block':'none';
+    const d=ordDayCount(ordV('ordStart'),ordV('ordEnd'));
+    const tv=ordDayCount(ordV('ordTrav1')||ordV('ordStart'), ordV('ordTrav2')||ordV('ordEnd'));
+    document.getElementById('ordDutyDays').textContent=d||'—';
+    document.getElementById('ordTravDays').textContent=tv||'—';
+}
+
+function ordClear(){
+    document.querySelectorAll('#tab-orders input, #tab-orders select, #tab-orders textarea')
+        .forEach(e=>{if(e.type==='checkbox')e.checked=false;else if(e.tagName==='SELECT')e.selectedIndex=0;else e.value='';});
+    document.getElementById('ordReqDate').value=new Date().toISOString().slice(0,10);
+    document.getElementById('ordMsg').textContent='';
+    ordSync();
+}
+
+function ordersInit(){
+    const dl=document.getElementById('ordRoster');
+    if(dl)dl.innerHTML=attendanceRoster().filter(p=>p.name&&!isVacant(p.name))
+        .map(p=>`<option value="${esc(p.name)}">`).join('');
+    const tb=document.getElementById('ordItin');
+    if(tb&&!tb.innerHTML){
+        let h='<tr><th>Arrival date</th><th>Location (include ZIP)</th><th>Departure date</th><th>Mode of travel to next location</th></tr>';
+        for(let i=1;i<=ORD_ROWS;i++)h+=`<tr>`
+            +`<td><input type="date" id="ordIA${i}"></td>`
+            +`<td><input id="ordIL${i}" placeholder="Peterson SFB, CO 80914"></td>`
+            +`<td><input type="date" id="ordID${i}"></td>`
+            +`<td><input id="ordIM${i}" placeholder="Commercial Air"></td></tr>`;
+        tb.innerHTML=h;
+    }
+    const rd=document.getElementById('ordReqDate');
+    if(rd&&!rd.value)rd.value=new Date().toISOString().slice(0,10);
+    ordSync();
+}
+
+async function buildOrdersPdf(){
+    const msg=document.getElementById('ordMsg');
+    const s=ordState();
+    if(!s.name){msg.style.color='var(--bad)';msg.textContent='✕ Name is required.';return;}
+    msg.style.color='var(--t-lo)'; msg.textContent='Building…';
+    try{
+        const res=await fetch('39APS_Orders_Request_Worksheet.pdf');
+        if(!res.ok)throw new Error(`Worksheet not found (HTTP ${res.status})`);
+        const {PDFDocument,PDFName,PDFBool,PDFString}=PDFLib;
+        const doc=await PDFDocument.load(await res.arrayBuffer());
+        const form=doc.getForm();
+        const byName={};
+        form.getFields().forEach(f=>{byName[f.getName()]=f;});
+        const plan=ordersPlan(s);
+        const missing=[];
+        Object.entries(plan.texts).forEach(([n,v])=>{
+            if(!byName[n]){missing.push(n);return;}
+            try{byName[n].setText(v);}catch(e){missing.push(n);}
+        });
+        plan.checks.forEach(n=>{
+            if(!byName[n]){missing.push(n);return;}
+            try{byName[n].check();}catch(e){missing.push(n);}
+        });
+        // Same appearance dance as the promotion forms: these fields are auto-sized,
+        // so without stamping the DA and dropping the baked stream a two-character
+        // value renders at three times the height of the date beside it.
+        Object.keys(plan.texts).forEach(n=>{
+            const f=byName[n]; if(!f)return;
+            const da=PDFString.of(`/Helv ${n==='Remarks'?9:10} Tf 0 g`);
+            try{
+                f.acroField.dict.set(PDFName.of('DA'),da);
+                f.acroField.getWidgets().forEach(w=>{
+                    w.dict.set(PDFName.of('DA'),da);
+                    w.dict.delete(PDFName.of('AP'));
+                });
+            }catch(e){}
+        });
+        form.acroForm.dict.set(PDFName.of('NeedAppearances'),PDFBool.True);
+        const url=URL.createObjectURL(new Blob([await doc.save()],{type:'application/pdf'}));
+        const a=document.createElement('a');
+        a.href=url; a.download=ordFileName(s);
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),4000);
+        msg.style.color='var(--good)';
+        msg.textContent='✓ Downloaded. Signatures are left blank — sign in the reader. '
+            +'The office-use block at the bottom is not filled by design.'
+            +(missing.length?` Fields the worksheet did not accept: ${missing.join(', ')} — the template may have changed.`:'');
+    }catch(e){ msg.style.color='var(--bad)'; msg.textContent='✕ '+e.message; }
+}
+
+/* One runnable check on the mapping, the date format and the inclusive day counts —
+   plus the example-itinerary trap, which is the one that would quietly ship a member's
+   orders with someone else's January dates on them. */
+function _selfCheckOrders(){
+    const fails=[];
+    const ck=(c,m)=>{if(!c)fails.push(m);};
+    const blank={name:'',dod:'',reqDate:'',action:'initial',orderNum:'',type:'AT',m4s:'',
+        funding:'',depApt:'',arrApt:'',trav1:'',trav2:'',start:'',end:'',itinVar:false,
+        mode:'',dining:'',lodging:'',gtcc:'',remarks:'',
+        itin:Array.from({length:ORD_ROWS},()=>({arr:'',loc:'',dep:'',mode:''}))};
+    ck(ordDate('2026-01-04')==='4-Jan-2026','date format');
+    ck(ordDate('2026-12-31')==='31-Dec-2026','date format, two digit day');
+    ck(ordDate('')===''&&ordDate('4 Jan 2026')==='','a non-ISO date must not be passed through');
+    ck(ordDayCount('2026-09-12','2026-09-12')==='1','a one day tour is 1, not 0');
+    ck(ordDayCount('2026-09-12','2026-09-13')==='2','inclusive count');
+    ck(ordDayCount('2026-09-13','2026-09-12')==='','end before start yields nothing');
+    ck(ordDayCount('2026-02-28','2026-03-01')==='2','month boundary');
+    // The trap: rows 2-5 of the template carry example dates. A blank form must
+    // write an empty string over every one of them.
+    const bp=ordersPlan(blank);
+    for(let i=1;i<=ORD_ROWS;i++){
+        ck(bp.texts['Arrival Date '+i+'_af_date']==='','example arrival date '+i+' not cleared');
+        ck(bp.texts['Location '+i]==='','example location '+i+' not cleared');
+        ck(bp.texts['Departure Date '+i+'_af_date']==='','example departure date '+i+' not cleared');
+        ck(bp.texts['Mode of Travel '+i]==='','example mode '+i+' not cleared');
+    }
+    const full=ordersPlan({...blank,name:'Doe, Jane',dod:'1234567890',action:'modify',
+        orderNum:'ABC123',type:'MPA',m4s:'M4S-9',start:'2026-09-12',end:'2026-09-20',
+        trav1:'2026-09-11',trav2:'2026-09-21',itinVar:true,mode:'Other',
+        dining:'Not Available',lodging:'Included w/conference fee',
+        gtcc:'Card Issued & Activated',
+        itin:[{arr:'2026-09-11',loc:'Ontario, CA 91761',dep:'2026-09-21',mode:'Commercial Air'},
+              ...Array.from({length:ORD_ROWS-1},()=>({arr:'',loc:'',dep:'',mode:''}))]});
+    ck(full.texts['Total  of Duty Days']==='9','duty days');
+    ck(full.texts['Total Days with Travel']==='11','days with travel spans the travel dates');
+    ck(full.texts['Modify Order Order']==='ABC123','order number only on a modify');
+    ck(ordersPlan({...blank,action:'initial',orderNum:'ABC123'}).texts['Modify Order Order']==='',
+       'an initial order must not carry a modify order number');
+    ck(ordersPlan({...blank,type:'AT',m4s:'M4S-9'}).texts[ORD_TEXT_FIELDS.m4s]==='',
+       'M4S tasking belongs to MPA only');
+    ck(full.checks.includes('undefined')&&full.checks.includes('undefined_2'),'modify + MPA boxes');
+    ck(full.checks.includes('undefined_7'),'Other mode of travel');
+    ck(full.checks.includes('undefined_5'),'dining Not Available is the dining column, not lodging');
+    ck(full.checks.includes('Included wconference fee_2'),'lodging included is the lodging column');
+    ck(!full.checks.includes('Included wconference fee'),'lodging pick leaked into the dining column');
+    ck(full.checks.length===7,'expected exactly 7 boxes, got '+full.checks.length);
+    ck(bp.checks.length===2,'a blank form still ticks its two defaults, got '+bp.checks.length);
+    ck(full.texts['Arrival Date 1_af_date']==='11-Sep-2026'&&full.texts['Location 1']==='Ontario, CA 91761','itinerary row 1');
+    ck(ordFileName({name:"O'Brien, Pat",start:'2026-09-12'})==="OBrien, Pat — 39 APS Orders Request 12-Sep-2026.pdf",'file name');
+    if(fails.length)console.error('[orders] self-check FAILED:',fails);
+    return fails.length?'FAILED':'OK';
+}
+console.log('[orders] self-check '+_selfCheckOrders());
 </script>
 
 </body>
