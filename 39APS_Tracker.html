@@ -6047,8 +6047,8 @@ const DOCS = [
   title: "Enlisted Airman Promotion and Demotion Programs",
   url: "https://static.e-publishing.af.mil/production/1/af_a1/publication/afi36-2502/afi36-2502.pdf",
   direct: true,
-  verified: "28 Jul 2026",
-  note: "The governing pub for the MSgt/SMSgt/CMSgt boards themselves — eligibility, process, board authority. Current edition dated 2 JULY 2026 — brand new, only weeks old as of this build. Worth a full re-read given how recent it is."
+  verified: "28 Aug 2026",
+  note: "The governing pub for Reserve enlisted promotion. Chapter 8 is the Air Force Reserve chapter and Table 8.2 (page 88) is the eligibility table — Chapter 4 is Regular AF and does not apply. Confirmed against the live file 28 Aug 2026: edition 2 July 2026, supersedes the 26 Sep 2024 edition. Table 8.2 is rendered on Readiness ▸ Career Progression."
 },
 {
   cat: "Chief Board / Promotion",
@@ -6116,7 +6116,7 @@ const DOCS = [
   url: "39APS_Career_Progression_AirFreight.pdf",
   direct: true,
   verified: "28 Aug 2026",
-  note: "Squadron chart, supplied 28 Aug 2026. Time in service / time in grade / skill level / PME per rank, plus recommended 2T2 and leadership development. The 2T2 Development row is Air Freight specific — the other flights have not supplied theirs."
+  note: "Squadron chart, supplied 28 Aug 2026. Reconciled against AFI 36-2502 Table 8.2 the same day: the numbers all check out, but PME and the CCAF/degree requirement each sit one grade early on it, and its single Time in Service row merges two different AFI columns. Readiness ▸ Career Progression renders the AFI values and lists the differences. The 2T2 Development row is Air Freight specific — the other flights have not supplied theirs."
 },
 {
   cat: "Career Progression",
@@ -7408,13 +7408,31 @@ console.log('[UTA report] self-check '+_selfCheckUtaReport());
     <div class="card">
       <div class="section-label" style="margin-top:0">The ladder</div>
       <div style="font-size:11px;color:var(--t-mid2);line-height:1.6;margin-bottom:12px">
-        Transcribed cell-for-cell from the squadron's <strong>Air Freight</strong> chart (28 Aug 2026) — bars read by
-        column position, not by counting. <strong style="color:var(--acc)">Essential to Promote</strong> rows are
-        Air Force wide; the <strong style="color:var(--acc)">2T2 Development</strong> row is Air Freight specific and
-        no other flight has supplied one.
-        <a href="39APS_Career_Progression_AirFreight.pdf" target="_blank" rel="noopener" style="color:var(--acc)">Open the original chart</a>.
+        The five requirement rows are <strong style="color:var(--acc)">AFI 36-2502, 2 July 2026, Table 8.2</strong>
+        — Chapter 8, the Air Force Reserve chapter — read cell by cell and verified against the live pub on
+        28 Aug 2026. One row per column of that table, in the AFI's own order. <strong>A column is the grade being
+        promoted TO.</strong>
+        <span style="color:var(--t-faint)">An em dash means the cell is empty in Table 8.2; N/A means the table prints N/A.</span>
+        The two development rows are the squadron's <strong>Air Freight</strong> chart, bars read by column position.
+        <a href="39APS_Career_Progression_AirFreight.pdf" target="_blank" rel="noopener" style="color:var(--acc)">Open the squadron chart</a>.
       </div>
       <div style="overflow-x:auto"><table id="carGrid" class="car-grid"></table></div>
+      <div class="section-label">Applies at every grade</div>
+      <div style="font-size:11px;color:var(--t-mid2);line-height:1.6;margin-bottom:6px">
+        Table 8.2 is only half of it. These come from paragraphs 8.3 and 8.4 and Note 10, and they gate
+        every grade on the ladder.
+      </div>
+      <ul id="carAllRanks" style="font-size:12px;color:var(--t-mid);line-height:1.6;padding-left:18px;margin:0"></ul>
+    </div>
+
+    <div class="card">
+      <div class="section-label" style="margin-top:0">Where the squadron chart differs from the AFI</div>
+      <div style="font-size:11px;color:var(--t-mid2);line-height:1.6;margin-bottom:12px">
+        The chart's numbers are right — every time-in-grade, skill level and year figure on it matches
+        Table 8.2. Four things do not, and the table above follows the AFI on all four. Worth walking the
+        chart on the wall back to whoever drew it.
+      </div>
+      <div id="carCorrections"></div>
     </div>
 
     <div class="card">
@@ -7577,25 +7595,63 @@ console.log('[UTA report] self-check '+_selfCheckUtaReport());
    Airman panel shows the current rank column AND the next one side by side rather than
    picking one and being confidently wrong. */
 const CAREER_RANKS=['AB','Amn','A1C','SrA','SSgt','TSgt','MSgt','SMSgt','CMSgt'];
+// AFI 36-2502, 2 July 2026, Table 8.2 "Promotion Eligibility" — Chapter 8 is the
+// Air Force Reserve chapter (Chapter 4 is Regular AF and does NOT apply here).
+// Read cell by cell off the published table by column position: A grade, B PAFSC,
+// C time in grade, D enlisted service, E satisfactory years for retirement,
+// F mandatory education.
+//
+// A column is the grade being promoted TO. That is not a guess — every value on the
+// squadron's own chart lines up with Table 8.2 under that reading and under no
+// other, which is also how the corrections below were found.
+//
+// '' renders as an em dash and means the cell is EMPTY in Table 8.2; 'N/A' means the
+// table prints N/A. They are not the same thing and are not collapsed.
 const CAREER_ESSENTIAL={
     'AB':   {},
-    'Amn':  {tig:'6 months'},
-    'A1C':  {tig:'6 months'},
-    'SrA':  {tis:'1 year',  tig:'8 months', skill:'3 level', pme:'JEFC 300 into ALS'},
-    'SSgt': {tis:'4 years', tig:'12 months',skill:'5 level'},
-    'TSgt': {tis:'6 years', tig:'24 months',skill:'7 level', pme:'NCO 500 into NCOA'},
-    'MSgt': {tis:'8 years', tig:'24 months',skill:'7 level', pme:'SNCO 700 into SNCOA', addl:'CCAF Awarded'},
-    'SMSgt':{tis:'11 years',tig:'24 months',skill:'7 level'},
-    'CMSgt':{tis:'14 years',                skill:'9 level'}
+    'Amn':  {skill:'N/A',                tig:'6 months',  svc:'',        ret:'N/A',      edu:'N/A'},
+    'A1C':  {skill:'',                   tig:'6 months',  svc:'N/A',     ret:'N/A',      edu:'N/A'},
+    'SrA':  {skill:'3-skill level',      tig:'8 months',  svc:'N/A',     ret:'1 year',   edu:'', skillMin:3},
+    'SSgt': {skill:'5-skill level (3-skill level if the AFSC has no 5-level)',
+             tig:'12 months', svc:'N/A', ret:'4 years',
+             edu:'ALS — or NCO Preparatory Course, NCO Leadership School, NCO Orientation Course, or sister-service equivalent (Note 8)',
+             skillMin:5},
+    'TSgt': {skill:'7-skill level',      tig:'24 months', svc:'N/A',     ret:'6 years',  edu:'N/A', skillMin:7},
+    'MSgt': {skill:'7-skill level',      tig:'24 months', svc:'8 years', ret:'8 years',
+             edu:'NCO Academy, in residence or by correspondence (Note 9)', skillMin:7},
+    'SMSgt':{skill:'7- or 9-skill level',tig:'',          svc:'10 years',ret:'11 years',
+             edu:'SNCO Academy & an associate degree or higher from a nationally or regionally accredited institution (Notes 6, 11, 12, 13, 14)',
+             skillMin:7},
+    'CMSgt':{skill:'9-skill level',      tig:'',          svc:'',        ret:'14 years',
+             edu:'Chief Orientation Course, or the HQ AFRC Chief Orientation Course, & an associate degree or higher (Notes 11, 12, 13, 14)',
+             skillMin:9}
 };
-// A bar spanning two columns is recommended across both ranks — kept as a list of
+// Where the squadron chart and Table 8.2 disagree. Shown on the page rather than
+// silently absorbed, because the chart is what the flight has on the wall.
+const CAREER_CORRECTIONS=[
+  ['PME sat one grade early','The chart put ALS under SrA, NCOA under TSgt and SNCOA under MSgt. Table 8.2 requires ALS to make <strong>SSgt</strong>, NCO Academy to make <strong>MSgt</strong> and SNCO Academy to make <strong>SMSgt</strong> — each one grade later. The ETCA enrolment codes the chart names (JEFC 300, NCO 500, SNCO 700) are how you sign up for them.'],
+  ['CCAF sat one grade early','The chart listed "CCAF Awarded" under MSgt. Table 8.2 has no degree requirement at MSgt. Notes 12–14 require an <strong>associate degree or higher</strong> — CCAF or any other accredited institution, any discipline — to promote E-7 to E-8 and E-8 to E-9, so it lands at <strong>SMSgt</strong> and CMSgt, and it must be updated in MilPDS.'],
+  ['Two service clocks were merged into one row','The chart had a single "Time in Service" row. Table 8.2 has two separate columns: <strong>enlisted service</strong> (Note 4) and <strong>satisfactory years for retirement</strong> (Note 5). They match only at MSgt — 8 and 8. At SMSgt they differ, 10 years enlisted service against 11 satisfactory years, so one row cannot carry both.'],
+  ['Time in grade at SMSgt','The chart shows 24 months. Table 8.2 leaves the time-in-grade cell <strong>empty</strong> for SMSgt and CMSgt. The only TIG figure the chapter gives above MSgt is 4 years, and that is for STEP II consideration (para 8.9), not ordinary eligibility. Left as the AFI has it rather than printing a number the pub does not state.']
+];
+// Conditions that gate every grade, from AFI 36-2502 paras 8.3 / 8.4 and Table 8.2
+// Note 10. These are the ones that actually stop a package.
+const CAREER_ALL_RANKS=[
+  'Performing satisfactorily, and the most recently completed Retention/Retirement year satisfactory (DAFMAN 36-2136) — para 8.3.1',
+  'No unexcused absence in the previous 12 months — paras 8.3.1 and 8.4.10',
+  'Current and passing fitness assessment (DAFMAN 36-2905) — Table 8.2 Note 10',
+  'Reserve Component PHA and dental exam both current — para 8.4.9',
+  'No UIF code 2 or 3 (para 8.4.8), and not within one year of a referral EPB (para 8.4.5)',
+  'MSgt through CMSgt: 36-month Reserve Service Commitment on a DAF Form 64, signed and in MilPDS before promotion — paras 8.3.4 and 8.4.11',
+  'Above SSgt, promotion depends on a unit vacancy; Amn through SSgt does not — para 8.5.4'
+];
+// A bar spanning two columns is recommended across both grades — kept as a list of
 // ranks rather than a start/end so a future flight's chart can be irregular.
+// The two inspector entries were removed at Greg's direction, 28 Aug 2026.
 const CAREER_DEV=[
     {kind:'2t2', item:'5 level AMRT',          ranks:['A1C','SrA']},
-    {kind:'2t2', item:'Hazmat Insp.',          ranks:['SrA']},
     {kind:'2t2', item:'APO',                   ranks:['SrA','SSgt']},
     {kind:'2t2', item:'7 level AMRT',          ranks:['SSgt','TSgt']},
-    {kind:'2t2', item:'Joint Insp.',           ranks:['SSgt','TSgt']},
     {kind:'2t2', item:'PATM',                  ranks:['TSgt']},
     {kind:'2t2', item:'ATTIC',                 ranks:['TSgt','MSgt']},
     {kind:'ldr', item:'LDR 106',               ranks:['SSgt','TSgt']},
@@ -7663,24 +7719,27 @@ function renderCareer(){
         const f=String(currentFlight||'').toUpperCase();
         note.innerHTML=(f===CAREER_CHART_FLIGHT||isRollup())?'':
           `<div class="card" style="font-size:11px;color:var(--t-mid2);line-height:1.6;border-color:rgba(var(--warn-rgb,255,176,32),.35)">`
-          +`<strong style="color:var(--acc)">This is the Air Freight chart.</strong> You are in `
-          +`<strong>${esc(currentFlight)}</strong>. Time in service, time in grade, skill level and PME are Air Force `
-          +`wide and read the same for any flight. The <strong>2T2 Development</strong> row is Air Freight's own `
-          +`— treat it as a reasonable default until ${esc(currentFlight)} supplies its chart, not as ${esc(currentFlight)}'s answer.</div>`;
+          +`<strong style="color:var(--acc)">The development rows are Air Freight's.</strong> You are in `
+          +`<strong>${esc(currentFlight)}</strong>. The five requirement rows come from AFI 36-2502 Table 8.2 and `
+          +`read the same for every flight in the Reserve. The <strong>2T2 Development</strong> row is Air Freight's `
+          +`own chart — a reasonable default until ${esc(currentFlight)} supplies one, not ${esc(currentFlight)}'s answer.</div>`;
     }
+    // One row per Table 8.2 column, in the order the AFI prints them.
     const rows=[
-        ['Time in Service', r=>(CAREER_ESSENTIAL[r].tis||'')],
-        ['Time in Grade',   r=>(CAREER_ESSENTIAL[r].tig||'')],
-        ['Skill level',     r=>(CAREER_ESSENTIAL[r].skill||'')],
-        ['PME completion',  r=>(CAREER_ESSENTIAL[r].pme||'')],
-        ['Additional',      r=>(CAREER_ESSENTIAL[r].addl||'')]
+        ['Skill level (PAFSC)',    'skill'],
+        ['Time in grade',          'tig'],
+        ['Enlisted service',       'svc'],
+        ['Satisfactory yrs for retirement','ret'],
+        ['Mandatory education',    'edu']
     ];
     const mine=careerCurrentRank();
     const hd=r=>r===mine?' class="now"':'';
     let h=`<tr><th>39 APS — Air Freight</th>${CAREER_RANKS.map(r=>`<th${hd(r)}>${r}</th>`).join('')}</tr>`;
-    rows.forEach(([label,get])=>{
+    rows.forEach(([label,key])=>{
         h+=`<tr><td class="rowhead">${label}</td>`
-          +CAREER_RANKS.map(r=>`<td class="${r===mine?'now':''}">${esc(get(r))||'<span style="color:var(--t-faint)">—</span>'}</td>`).join('')+'</tr>';
+          +CAREER_RANKS.map(r=>`<td class="${r===mine?'now':''}">`
+              +(esc((CAREER_ESSENTIAL[r]||{})[key]||'')||'<span style="color:var(--t-faint)">—</span>')
+              +'</td>').join('')+'</tr>';
     });
     [['2T2 Development','2t2'],['AF &amp; Leadership Development','ldr']].forEach(([label,kind])=>{
         h+=`<tr><td class="rowhead">${label}</td>`
@@ -7692,6 +7751,12 @@ function renderCareer(){
           }).join('')+'</tr>';
     });
     document.getElementById('carGrid').innerHTML=h;
+
+    document.getElementById('carAllRanks').innerHTML=CAREER_ALL_RANKS
+        .map(x=>`<li style="margin-bottom:4px">${x}</li>`).join('');
+    document.getElementById('carCorrections').innerHTML=CAREER_CORRECTIONS
+        .map(([t,b])=>`<div style="margin-bottom:10px"><div style="font-size:11px;color:var(--acc);font-weight:700">${t}</div>`
+                     +`<div style="font-size:12px;color:var(--t-mid);line-height:1.7">${b}</div></div>`).join('');
 
     document.getElementById('carCourses').innerHTML=CAREER_COURSES.map(s=>
         `<div style="margin-bottom:14px"><div style="font-size:11px;color:var(--acc);font-weight:700;margin-bottom:4px">`
@@ -7734,17 +7799,20 @@ function careerColCard(rank,heading,skill){
     const line=(k,v)=>v?`<div style="font-size:12px;color:var(--t-mid);margin-bottom:3px"><span style="color:var(--t-faint)">${k}:</span> ${esc(v)}</div>`:'';
     let skillLine='';
     if(e.skill){
-        const need=parseInt(e.skill), has=parseInt(skill);
-        const verdict=!skill?'<span style="color:var(--t-faint)">skill level not recorded in Manning or Promotions</span>'
-            : has>=need?`<span style="color:var(--good)">holds ${has}-level</span>`
-            : `<span style="color:var(--bad)">holds ${has}-level</span>`;
-        skillLine=`<div style="font-size:12px;color:var(--t-mid);margin-bottom:3px"><span style="color:var(--t-faint)">Skill level:</span> ${esc(e.skill)} — ${verdict}</div>`;
+        // Only skillMin is compared. The printed text carries the caveats — "3-skill
+        // level if the AFSC has no 5-level" is not something a number can hold.
+        const has=parseInt(skill);
+        const verdict=!e.skillMin?''
+            : !skill?' — <span style="color:var(--t-faint)">skill level not recorded in Manning or Promotions</span>'
+            : has>=e.skillMin?` — <span style="color:var(--good)">holds ${has}-level</span>`
+            : ` — <span style="color:var(--bad)">holds ${has}-level</span>`;
+        skillLine=`<div style="font-size:12px;color:var(--t-mid);margin-bottom:3px"><span style="color:var(--t-faint)">Skill level:</span> ${esc(e.skill)}${verdict}</div>`;
     }
     const pills=k=>{const it=careerDevFor(rank,k);return it.length?it.map(i=>`<span class="car-pill">${esc(i)}</span>`).join(''):'<span style="color:var(--t-faint);font-size:11px">nothing listed</span>';};
     return `<div class="car-col">
       <div style="font-size:10px;color:var(--t-faint);text-transform:uppercase;letter-spacing:1px">${heading}</div>
       <div style="font-size:16px;color:var(--acc);font-weight:700;margin-bottom:8px">${rank}</div>
-      ${line('Time in service',e.tis)}${line('Time in grade',e.tig)}${skillLine}${line('PME',e.pme)}${line('Additional',e.addl)}
+      ${skillLine}${line('Time in grade',e.tig)}${line('Enlisted service',e.svc)}${line('Satisfactory yrs for retirement',e.ret)}${line('Mandatory education',e.edu)}
       <div style="font-size:10px;color:var(--t-faint);text-transform:uppercase;letter-spacing:1px;margin:10px 0 4px">2T2 development</div>${pills('2t2')}
       <div style="font-size:10px;color:var(--t-faint);text-transform:uppercase;letter-spacing:1px;margin:10px 0 4px">AF &amp; leadership</div>${pills('ldr')}
     </div>`;
@@ -7763,14 +7831,15 @@ function renderCareerPerson(){
     const next=NEXT_RANK[rank]||null;
     const skill=careerSkillOf(name);
     box.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        ${careerColCard(rank,'Holds now',skill)}
-        ${next?careerColCard(next,'Next rank',skill):'<div class="car-col" style="color:var(--t-faint);font-size:12px">Top of the ladder — no next rank on the chart.</div>'}
+        ${careerColCard(rank,`Already met — to make ${rank}`,skill)}
+        ${next?careerColCard(next,`Working toward — to make ${next}`,skill)
+             :'<div class="car-col" style="color:var(--t-faint);font-size:12px">Top of the ladder — no next grade above CMSgt.</div>'}
       </div>
       <div style="font-size:11px;color:var(--t-faint);line-height:1.6;margin-top:10px">
-        Both columns are shown because the chart does not say whether a column is what you meet
-        <em>at</em> a rank or what you need to be promoted <em>into</em> it. Time in service and time in grade
-        are not tracked anywhere in this app, so they are printed as the requirement with no verdict —
-        read them off the member's records.
+        Left is what they had to meet to be wearing the grade they wear; right is the bar for the next one.
+        Only skill level is checked — time in grade, enlisted service and satisfactory years are not tracked
+        anywhere in this app, so they print as the requirement with no verdict. Read those off the member's
+        records, and check the all-grades conditions above as well: they stop more packages than the table does.
       </div>`;
     renderCareerGridHighlight();
 }
@@ -7790,15 +7859,37 @@ function renderCareerGridHighlight(){
 function _selfCheckCareer(){
     const fails=[];
     const ck=(c,m)=>{if(!c)fails.push(m);};
-    ck(CAREER_ESSENTIAL['SrA'].skill==='3 level','SrA skill level');
-    ck(CAREER_ESSENTIAL['SSgt'].tig==='12 months','SSgt TIG');
-    ck(CAREER_ESSENTIAL['MSgt'].addl==='CCAF Awarded','CCAF sits under MSgt only');
-    ck(!CAREER_ESSENTIAL['CMSgt'].tig,'CMSgt has no TIG cell on the chart');
-    ck(!CAREER_ESSENTIAL['AB'].tis&&!CAREER_ESSENTIAL['Amn'].tis,'TIS starts at SrA');
-    ck(CAREER_DEV.every(d=>d.ranks.every(r=>CAREER_RANKS.includes(r))),'a dev item names a rank that is not on the ladder');
-    ck(careerDevFor('TSgt','2t2').join()==='7 level AMRT,Joint Insp.,PATM,ATTIC','TSgt 2T2 column');
+    const E=CAREER_ESSENTIAL;
+    // Table 8.2 column C — time in grade.
+    ck(E['Amn'].tig==='6 months'&&E['A1C'].tig==='6 months','Amn/A1C TIG');
+    ck(E['SrA'].tig==='8 months'&&E['SSgt'].tig==='12 months','SrA/SSgt TIG');
+    ck(E['TSgt'].tig==='24 months'&&E['MSgt'].tig==='24 months','TSgt/MSgt TIG');
+    ck(E['SMSgt'].tig===''&&E['CMSgt'].tig==='','Table 8.2 leaves TIG empty above MSgt — do not invent one');
+    // Columns D and E are different clocks and must not be collapsed.
+    ck(E['MSgt'].svc==='8 years'&&E['MSgt'].ret==='8 years','MSgt enlisted service and satisfactory years');
+    ck(E['SMSgt'].svc==='10 years'&&E['SMSgt'].ret==='11 years','SMSgt: 10 yrs service vs 11 satisfactory years');
+    ck(E['CMSgt'].svc===''&&E['CMSgt'].ret==='14 years','CMSgt has no enlisted-service cell, only 14 satisfactory years');
+    ck(['A1C','SrA','SSgt','TSgt'].every(r=>E[r].svc==='N/A'),'A1C through TSgt print N/A for enlisted service');
+    ck(E['SrA'].ret==='1 year'&&E['SSgt'].ret==='4 years'&&E['TSgt'].ret==='6 years','SrA/SSgt/TSgt satisfactory years');
+    // Column B — skill level.
+    ck(E['SrA'].skillMin===3&&E['SSgt'].skillMin===5&&E['TSgt'].skillMin===7,'skill minimums SrA/SSgt/TSgt');
+    ck(E['MSgt'].skillMin===7&&E['SMSgt'].skillMin===7&&E['CMSgt'].skillMin===9,'skill minimums MSgt/SMSgt/CMSgt');
+    ck(/3-skill level if/.test(E['SSgt'].skill),'the SSgt 3-level exception must survive');
+    // Column F — the correction that mattered: PME sits one grade later than the chart had it.
+    ck(/ALS/.test(E['SSgt'].edu),'ALS is required to make SSgt, not SrA');
+    ck(E['SrA'].edu===''&&E['TSgt'].edu==='N/A','no PME requirement to make SrA or TSgt');
+    ck(/NCO Academy/.test(E['MSgt'].edu)&&!/Senior|SNCO/.test(E['MSgt'].edu),'NCO Academy is the MSgt requirement');
+    ck(/SNCO Academy/.test(E['SMSgt'].edu)&&/associate degree/.test(E['SMSgt'].edu),'SNCOA + degree at SMSgt');
+    ck(/Chief Orientation/.test(E['CMSgt'].edu)&&/associate degree/.test(E['CMSgt'].edu),'Chief Orientation + degree at CMSgt');
+    ck(!/associate degree/.test(E['MSgt'].edu||''),'Table 8.2 has no degree requirement at MSgt');
+    ck(!Object.values(E).some(v=>/CCAF/.test(v.edu||'')),'CCAF is not a Table 8.2 requirement at any grade');
+    // Development rows.
+    ck(CAREER_DEV.every(d=>d.ranks.every(r=>CAREER_RANKS.includes(r))),'a dev item names a grade not on the ladder');
+    ck(!CAREER_DEV.some(d=>/Hazmat|Joint Insp/.test(d.item)),'the two inspector entries were removed 28 Aug 2026');
+    ck(careerDevFor('SrA','2t2').join()==='5 level AMRT,APO','SrA 2T2 column');
+    ck(careerDevFor('TSgt','2t2').join()==='7 level AMRT,PATM,ATTIC','TSgt 2T2 column');
     ck(careerDevFor('CMSgt','ldr').join()==='Chief Orient.,CLC','CMSgt leadership column');
-    ck(careerDevFor('AB','2t2').length===0&&careerDevFor('Amn','ldr').length===0,'AB/Amn columns are empty on the chart');
+    ck(careerDevFor('AB','2t2').length===0&&careerDevFor('Amn','ldr').length===0,'AB/Amn columns are empty');
     ck(careerNormRank('SRA')==='SrA'&&careerNormRank('SSGT')==='SSgt'&&careerNormRank('  msgt ')==='MSgt','rank casing');
     ck(careerNormRank('Capt')===null,'an officer rank is not on this ladder');
     if(fails.length)console.error('[career] self-check FAILED:',fails);
