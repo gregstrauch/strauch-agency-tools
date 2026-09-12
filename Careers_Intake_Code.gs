@@ -22,7 +22,7 @@
 var SHEET_ID     = "1ETQt7SStHHBd3ggr9QgBSh0hIdc4NJBTLtz_yanvhic";  // "Strauch Agency — Job Applications"
 var RESUME_FOLDER= "1PGokTKBRCXJDDgEz6MDEHx1OBCckkWLD";              // "Strauch Agency — Resumes"
 var INGEST_KEY   = "strauch-careers-2026";  // must match INGEST_KEY in careers/index.html
-var NOTIFY_EMAIL = "";                      // blank = the Sheet owner's address
+var NOTIFY_EMAIL = "gstrauch@farmersagent.com";  // where application alerts go
 var TAB          = "Applications";
 var MAX_FIELDS   = 60;
 var MAX_LEN      = 5000;
