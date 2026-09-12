@@ -1852,7 +1852,7 @@ function closeEdit(){document.getElementById('editModal').classList.remove('acti
 
 // ═══════════════════════ APPS SCRIPT SYNC
 // v14, deployed 10 Aug 2026 — stops the attendance duplicate-append. v13 archived same day.
-const DEFAULT_SCRIPT_URL='https://script.google.com/macros/s/AKfycbyu5FB2isrZgwO3N-F5fxdnAIl1Fi9IE2qZXNeZSqIsXLsBoejsjztKDXICSOxrl2QCyg/exec';
+const DEFAULT_SCRIPT_URL='https://script.google.com/macros/s/AKfycbw1Vnspyxhgz5gKXiOfid2RUsoFoRyJxwlon7tVsrHXcGirchUos8rYDAa85X-KB8al/exec';
 // Who is signed in on THIS device. The credential used to be hardcoded to
 // 'strauch', so every edit from anyone was attributed to Greg. It now comes from
 // the login screen and rides on every read and write — the backend rejects both
@@ -1897,7 +1897,9 @@ const DEAD_SCRIPT_IDS=['AKfycbztvwwj1Rz-adpC-LUoAW7qs4yX4sNRs-8onFNknoohUJ5mTLyU
                        // v15 — superseded 27 Aug 2026 by v16 (ATOC + Load Planning merged into
                        // AIR TERMINAL OPS). It still scopes buckley to the two retired flight
                        // names, so a device pinned to it shows him an empty roster.
-                       'AKfycbwHCZZS728lKhk_LxwfLUxj0JScbtDbMvmjbPiJcpYwKnO7_br_QZIXIEuh1NZRORjyqQ'];
+                       'AKfycbwHCZZS728lKhk_LxwfLUxj0JScbtDbMvmjbPiJcpYwKnO7_br_QZIXIEuh1NZRORjyqQ',
+                       // v16 — superseded 12 Sep 2026 by v17 (gage/tunell/gardner/lipscomb added).
+                       'AKfycbyu5FB2isrZgwO3N-F5fxdnAIl1Fi9IE2qZXNeZSqIsXLsBoejsjztKDXICSOxrl2QCyg'];
 function loadScriptUrl(){
     const saved=localStorage.getItem('afm_scripturl');
     if(saved&&DEAD_SCRIPT_IDS.some(id=>saved.includes(id))){
