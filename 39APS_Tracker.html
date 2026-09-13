@@ -468,6 +468,8 @@ label{display:block;font-size:10px;color:var(--t-mid2);text-transform:uppercase;
     /* Fields under 16px make iOS Safari zoom the whole page on focus. */
     input,select,textarea{font-size:16px;}
     .att-btn{flex:1;}
+    /* Finger-sized: 26px buttons miss on a phone. */
+    .btn-sm,.sub-btn,.flight-btn,.node-btn,.flow-act{min-height:36px;}
 }
 @media (max-width:480px){
     .stats-row{grid-template-columns:1fr;}
