@@ -458,7 +458,7 @@ label{display:block;font-size:10px;color:var(--t-mid2);text-transform:uppercase;
     .flight-nav{padding:8px 10px;}
     .tab-content{padding:12px 10px;}
     .form-row,.duties-form-grid,.kpi-autocalc-grid{grid-template-columns:1fr;}
-    .ov-grid,.person-cards,.promo-cards-grid,.kpi-cards,.duties-grid{grid-template-columns:1fr;}
+    .ov-grid,.person-cards,.promo-cards-grid,.kpi-cards,.duties-grid,.fb-grid{grid-template-columns:1fr!important;}
     .stats-row{grid-template-columns:1fr 1fr;gap:8px;}
     .stat-card{padding:10px 12px;}
     .stat-value{font-size:19px;}
@@ -915,7 +915,7 @@ const flightStaff=()=>{
 // PAX keeps the bare keys so pre-existing local data survives untouched;
 // every other flight gets its own suffixed namespace.
 const DEFAULT_FLIGHT='PAX', ALL_FLIGHTS='__ALL__';
-const PER_FLIGHT_KEYS=new Set(['afm_v4','afm_reqs','afm_tracker','afm_promos','afm_kpi','afm_attend','afm_tpl','afm_flow']);
+const PER_FLIGHT_KEYS=new Set(['afm_v4','afm_reqs','afm_tracker','afm_promos','afm_kpi','afm_attend','afm_tpl','afm_flow','afm_fb']);
 let currentFlight=localStorage.getItem('afm_flight')||DEFAULT_FLIGHT;
 const isRollup=()=>currentFlight===ALL_FLIGHTS;
 const lsKey=k=>(PER_FLIGHT_KEYS.has(k)&&currentFlight!==DEFAULT_FLIGHT)?`${k}__${currentFlight}`:k;
@@ -996,7 +996,8 @@ const TAB_GROUPS=[
         {id:'overview', label:'Squadron Overview'}]},
     {id:'people', label:'People', icon:'people', tabs:[
         {id:'manning',    label:'Manning & Wiring'},
-        {id:'promotions', label:'Promotions'}]},
+        {id:'promotions', label:'Promotions'},
+        {id:'feedback',   label:'Feedback (ACA)'}]},
     {id:'uta', label:'UTA', icon:'uta', step:true, tabs:[
         {id:'brief',      label:'Morning Brief'},
         {id:'attendance', label:'Attendance'},
@@ -1049,6 +1050,7 @@ function switchTab(name,btn){
     if(name==='attendance') renderAttendance();
     if(name==='kpi'){ populateKPIPeriodSelector(); renderKPI(); }
     if(name==='promotions') renderPromotions();
+    if(name==='feedback'){ renderFeedback(); renderFeedbackSession(); }
     if(name==='brief') renderBrief();
     if(name==='utarpt') renderUtaReport();
     if(name==='templates') renderAfDocs();
@@ -1996,9 +1998,10 @@ function reloadFlightState(){
     attendance=loadLS('afm_attend',{});
     templates=loadLS('afm_tpl',[]);
     flow=loadLS('afm_flow',[]);
+    feedback=loadLS('afm_fb',[]); fbOpen=null;
     kpiData=loadLS('afm_kpi',{periods:[],sections:defaultKPISectionsFor(currentFlight)});
     ensureFlightKPISections();
-    renderManning();renderRequirements();populateKPIPeriodSelector();renderKPI();renderPromotions();renderTracker();renderAttendance();renderTemplates();renderFlow();
+    renderManning();renderRequirements();populateKPIPeriodSelector();renderKPI();renderPromotions();renderTracker();renderAttendance();renderTemplates();renderFlow();renderFeedback();renderFeedbackSession();
     if(document.getElementById('tab-utarpt')?.classList.contains('active'))renderUtaReport();
 }
 
@@ -2179,6 +2182,10 @@ function syncSheets(){
                 appsGet('Templates').catch(()=>[]),
                 appsGet('Flow').catch(()=>[]),
             ]);
+            // Feedback tab is created on the first Save — no tab is not an error.
+            const fbRows=await appsGet('Feedback').catch(()=>[]);
+            if(fbRows.length){feedback=fbRows;saveLS('afm_fb',feedback);}
+            renderFeedback();
             // Created on first write, so a squadron that has never filled a
             // promotion form simply has no tab — not an error.
             const pfRows=await appsGet('PromoForm').catch(()=>[]);
@@ -4122,6 +4129,293 @@ async function generatePromoPackage(){
     }catch(e){ msg.style.color='var(--bad)'; msg.textContent='✕ '+e.message; }
 }
 
+// ═══════════════════════ FEEDBACK (ACA) TAB
+// One session = one row in the Feedback Sheet tab, keyed Flight|Name|Type|SessionDate.
+// The tracker stores answers, not PDFs: a past session reopens editable and
+// re-downloads any time; DownloadedAt is stamped on each download.
+let feedback=loadLS('afm_fb',[]);
+let fbOpen=null;   // the session being edited (a row object), or null
+const FB_KEY=r=>['Name','Type','SessionDate'].map(k=>String(r[k]||'').trim().toLowerCase()).join('|');
+const FB_TYPES=['Initial','Mid-Term','Follow-Up','Rater Directed','Ratee Requested'];
+const FB_TYPE_FIELD={'Initial':'Initial','Mid-Term':'Mid_Term','Follow-Up':'Follow_Up','Rater Directed':'Rater_Directed','Ratee Requested':'Ratee_Requested'};
+const acaFormFor=rank=>['MSgt','SMSgt','CMSgt'].includes(String(rank||'').trim())?932:931;
+const acaFieldNames=f=>ACA_FORMS[f].sections.flatMap(s=>s.type==='perf'
+    ?[...s.items.map(i=>'Performance_'+i.n),...s.comments.map(c=>c.name),...(s.checks||[]).map(c=>c.name)]
+    :s.type==='type'?['Type']:s.fields.map(x=>x.name));
+const hx=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+// A bare YYYY-MM-DD parses as UTC midnight and shows a day early in Colorado.
+const fbDate=d=>d?new Date(/^\d{4}-\d{2}-\d{2}$/.test(d)?d+'T00:00':d).toLocaleDateString('en-US',{day:'numeric',month:'short',year:'numeric'}):'';
+
+// Rater from the Manning chain: ratee under a supervisor → that supervisor; a
+// supervisor → the team MSgt; the MSgt → the flight chief. Else whoever is signed in.
+function raterOf(name){
+    const ch=flightChief();
+    for(const s of manning.msgtLeads){
+        if(s.msgt.name===name)return `${ch.rank} ${ch.name}`.trim();
+        for(const t of s.tsgts){
+            if(t.name===name)return isVacant(s.msgt.name)?`${ch.rank} ${ch.name}`.trim():`${s.msgt.rank} ${s.msgt.name}`.trim();
+            if(t.subordinates.some(x=>x.name===name))return `${t.rank} ${t.name}`.trim();
+        }
+    }
+    return USER_LABELS[(SIGNED_IN()||{}).user]||'';
+}
+function newSession(p){
+    return {Name:p.name,Rank:p.rank||'',Form:acaFormFor(p.rank),Type:'Initial',
+        SessionDate:new Date().toISOString().slice(0,10),Rater:raterOf(p.name),
+        Unit:'39 APS',Org:'302 AW · Peterson SFB, CO',CompletedAt:'',DownloadedAt:''};
+}
+
+function renderFeedback(){
+    const list=document.getElementById('fbPeople'); if(!list)return;
+    const people=getAllPersonnel().sort((a,b)=>a.name.localeCompare(b.name));
+    if(isRollup()){list.innerHTML='<div class="tpl-note">Pick a flight — feedback is per flight.</div>';return;}
+    list.innerHTML=people.map(p=>{
+        const mine=feedback.filter(r=>String(r.Name).trim()===p.name).sort((a,b)=>String(b.SessionDate).localeCompare(String(a.SessionDate)));
+        return `<div class="card" style="padding:10px 12px;margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+            <div><strong>${hx(p.rank)} ${hx(p.name)}</strong> <span style="font-size:10px;color:var(--t-faint)">AF ${acaFormFor(p.rank)} · ${hx(p.team)}</span></div>
+            <button class="btn-sm" onclick="openFeedback('${esc(p.name)}',null)">+ New session</button>
+          </div>
+          ${mine.map(r=>`<div style="font-size:12px;margin-top:6px"><a href="#" onclick="openFeedback('${esc(r.Name)}','${esc(FB_KEY(r))}');return false" style="color:var(--acc)">${hx(r.Type)} · ${fbDate(r.SessionDate)}</a>`
+              +`<span style="color:var(--t-faint)"> · ${r.DownloadedAt?'downloaded '+fbDate(r.DownloadedAt):'not downloaded'}</span></div>`).join('')}
+        </div>`;
+    }).join('')||'<div class="tpl-note">No one on the chart yet.</div>';
+}
+
+function openFeedback(name,key){
+    const p=getAllPersonnel().find(x=>x.name===name);
+    if(!p)return;
+    fbOpen=key?{...feedback.find(r=>FB_KEY(r)===key)}:newSession(p);
+    fbOpen._key=key;   // the row this session was opened from, so a type/date change replaces it
+    if(!fbOpen.Form)fbOpen.Form=acaFormFor(fbOpen.Rank||p.rank);
+    renderFeedbackSession();
+    document.getElementById('fbSession').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function closeFeedback(){fbOpen=null;renderFeedbackSession();}
+
+function renderFeedbackSession(){
+    const el=document.getElementById('fbSession'); if(!el)return;
+    if(!fbOpen){el.innerHTML='<div class="tpl-note">Pick a person on the left to start or reopen a session.</div>';return;}
+    const r=fbOpen, F=ACA_FORMS[r.Form], v=n=>hx(r[n]);
+    const ta=(n,rows,label)=>`${label?`<label>${hx(label)}</label>`:''}<textarea data-f="${n}" rows="${rows||3}">${v(n)}</textarea>`;
+    let h=`<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap">
+        <div><div style="font-size:16px;font-weight:700">${hx(F.title)}</div>
+             <div style="font-size:10px;color:var(--t-faint)">${hx(F.form)} (facsimile) · Prescribed by AFI 36-2406</div></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn-sm" onclick="saveFeedback()">Save</button>
+          <button class="btn-sm" onclick="downloadFeedback()">Download PDF</button>
+          <button class="btn-sm grey" onclick="closeFeedback()">Close</button></div>
+      </div>
+      <div id="fbMsg" style="font-size:12px;min-height:18px;margin-top:6px"></div>
+      <div class="section-label">I. Personal information</div>
+      <div class="form-row">
+        <div class="form-group"><label>Name (Last, First, MI)</label><input data-f="Name" value="${v('Name')}"></div>
+        <div class="form-group"><label>Rank</label><input data-f="Rank" value="${v('Rank')}" onchange="fbRankChanged(this.value)"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Unit</label><input data-f="Unit" value="${v('Unit')}"></div>
+        <div class="form-group"><label>Organization</label><input data-f="Org" value="${v('Org')}"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Rater</label><input data-f="Rater" value="${v('Rater')}"></div>
+        <div class="form-group"><label>Session date</label><input data-f="SessionDate" type="date" value="${v('SessionDate')}"></div>
+      </div>`;
+    F.sections.forEach(s=>{
+        h+=`<div class="section-label">${hx(s.title)}</div>`;
+        if(s.note)h+=`<div class="tpl-note" style="margin-bottom:8px">${hx(s.note)}</div>`;
+        if(s.type==='type'){
+            h+=`<div style="display:flex;gap:14px;flex-wrap:wrap">`+FB_TYPES.map(t=>`<label style="display:flex;gap:6px;align-items:center;font-size:12px"><input type="radio" name="fbType" value="${t}" ${r.Type===t?'checked':''} onchange="fbTypeChanged(this.value)" style="width:auto">${t}</label>`).join('')+`</div>`;
+        }else if(s.type==='yn'){
+            let g='';
+            h+=s.fields.map(f=>{
+                const head=f.group&&f.group!==g?`<div style="font-size:10px;font-weight:700;color:var(--t-lo);margin:10px 0 4px;letter-spacing:1px">${hx(f.group)}</div>`:'';
+                g=f.group||g;
+                return head+`<div style="display:grid;grid-template-columns:64px 1fr;gap:8px;align-items:start;margin-bottom:6px;font-size:12px">
+                  <select data-f="${f.name}" style="padding:4px 6px"><option value="">—</option><option ${r[f.name]==='Y'?'selected':''}>Y</option><option ${r[f.name]==='N'?'selected':''}>N</option></select>
+                  <div>${hx(f.label)}</div></div>`;
+            }).join('');
+        }else if(s.type==='text'){
+            h+=s.fields.map(f=>f.short
+                ?`<div class="form-group"><label>${hx(f.label)}</label><input data-f="${f.name}" value="${v(f.name)}" style="max-width:220px"></div>`
+                :`<div class="form-group">${ta(f.name,f.rows,f.label)}</div>`).join('');
+        }else if(s.type==='perf'){
+            // The official form locks Section VI+ ratings on an INITIAL session —
+            // nothing to rate yet. Comments and checks stay open.
+            const initial=r.Type==='Initial';
+            if(s.id==='VI')h+=`<div class="tpl-note" style="margin-bottom:8px">${hx(F.perfNote)}</div>`;
+            if(initial)h+=`<div class="tpl-note" style="margin-bottom:8px;color:var(--t-faint)">Ratings are not made on an initial session (the official form locks them). Switch the type above to rate.</div>`;
+            else h+=s.items.map(i=>`<div style="margin-bottom:12px;font-size:12px"><div style="font-weight:600;margin-bottom:4px">${hx(i.label)}</div>`
+                +['a','b','c','d'].map((L,k)=>`<label style="display:grid;grid-template-columns:18px 1fr;gap:8px;align-items:start;margin:3px 0;cursor:pointer"><input type="radio" name="P${i.n}" value="${L}" ${r['Performance_'+i.n]===L?'checked':''} style="width:auto;margin-top:2px"><span>${hx(i.levels[k])}</span></label>`).join('')
+                +`</div>`).join('');
+            if(s.checks)h+=`<div style="display:flex;flex-direction:column;gap:4px;margin:8px 0;font-size:12px">`+s.checks.map(c=>`<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-f="${c.name}" ${r[c.name]?'checked':''} style="width:auto">${hx(c.label)}</label>`).join('')+`</div>`;
+            h+=s.comments.map(c=>`<div class="form-group">${ta(c.name,4,c.label)}</div>`).join('');
+        }
+    });
+    h+=`<div class="section-label">Signatures</div><div class="tpl-note">Ratee and Rater sign the downloaded PDF. Signature lines and the date print on it.</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px">
+        <button class="btn" onclick="saveFeedback()">Save</button>
+        <button class="btn" onclick="downloadFeedback()">Download PDF</button>
+      </div></div>`;
+    el.innerHTML=h;
+}
+function fbTypeChanged(t){ readSession(); fbOpen.Type=t; renderFeedbackSession(); }
+function fbRankChanged(rk){ readSession(); fbOpen.Rank=rk; fbOpen.Form=acaFormFor(rk); renderFeedbackSession(); }
+
+// Screen → fbOpen. Every input carries data-f = its Sheet column.
+function readSession(){
+    const el=document.getElementById('fbSession');
+    el.querySelectorAll('[data-f]').forEach(i=>{
+        fbOpen[i.dataset.f]=i.type==='checkbox'?(i.checked?'X':''):i.value.trim();
+    });
+    const t=el.querySelector('input[name=fbType]:checked'); if(t)fbOpen.Type=t.value;
+    el.querySelectorAll('input[type=radio][name^=P]:checked').forEach(i=>{fbOpen['Performance_'+i.name.slice(1)]=i.value;});
+    return fbOpen;
+}
+function fbRow(){
+    // Full column set every time so the Sheet header never drifts between forms.
+    const base={Name:'',Rank:'',Form:'',Type:'',SessionDate:'',Rater:'',Unit:'',Org:''};
+    acaFieldNames(931).concat(acaFieldNames(932)).forEach(n=>{base[n]='';});
+    Object.assign(base,{CompletedAt:'',DownloadedAt:''});
+    const out={...base}; Object.keys(base).forEach(k=>{if(fbOpen[k]!==undefined)out[k]=fbOpen[k];});
+    return out;
+}
+async function saveFeedback(){
+    const msg=document.getElementById('fbMsg');
+    readSession();
+    if(!fbOpen.Name||!fbOpen.SessionDate){msg.style.color='var(--bad)';msg.textContent='Name and session date are required.';return;}
+    fbOpen.CompletedAt=fbOpen.CompletedAt||new Date().toISOString();
+    const row=fbRow();
+    // Type or date changed on an opened session: the old key is this session's, so
+    // retire that one row (intent-scoped, never a sweep).
+    const old=fbOpen._key&&fbOpen._key!==FB_KEY(row)?feedback.find(r=>FB_KEY(r)===fbOpen._key):null;
+    if(old)feedback=feedback.filter(r=>FB_KEY(r)!==fbOpen._key);
+    const i=feedback.findIndex(r=>FB_KEY(r)===FB_KEY(row));
+    i<0?feedback.push(row):feedback[i]=row;
+    fbOpen._key=FB_KEY(row);
+    saveLS('afm_fb',feedback); renderFeedback();
+    msg.style.color='var(--t-lo)'; msg.textContent='Saving…';
+    try{
+        if(old)await appsPost({tab:'Feedback',action:'delete',rows:[{Name:old.Name,Type:old.Type,SessionDate:old.SessionDate}],keyFields:['Name','Type','SessionDate']});
+        await appsPost({tab:'Feedback',action:'upsert',rows:[row],keyFields:['Name','Type','SessionDate']});
+        msg.style.color='var(--good)'; msg.textContent='✓ Saved to the Sheet.';
+    }catch(e){ msg.style.color='var(--bad)'; msg.textContent='✕ Not saved to the Sheet: '+e.message; }
+}
+async function downloadFeedback(){
+    const msg=document.getElementById('fbMsg');
+    readSession();
+    try{
+        const bytes=await buildAcaPdf(fbOpen);
+        const safe=s=>String(s).replace(/[^A-Za-z0-9]+/g,'_');
+        dl(`ACA_${fbOpen.Form}_${safe(fbOpen.Name)}_${safe(fbOpen.Type)}_${fbOpen.SessionDate}.pdf`,bytes,'application/pdf');
+        fbOpen.DownloadedAt=new Date().toISOString();
+        await saveFeedback();
+    }catch(e){ msg.style.color='var(--bad)'; msg.textContent='✕ '+e.message; }
+}
+
+// Facsimile of the official worksheet: same sections, items and wording, drawn
+// with pdf-lib. Letter, Helvetica, one flowing column, page breaks as needed.
+async function buildAcaPdf(r){
+    const {PDFDocument,StandardFonts,rgb}=PDFLib;
+    const F=ACA_FORMS[r.Form];
+    const doc=await PDFDocument.create();
+    const font=await doc.embedFont(StandardFonts.Helvetica), bold=await doc.embedFont(StandardFonts.HelveticaBold);
+    const W=612,H=792,M=40,LW=W-2*M;
+    let page,y;
+    const newPage=()=>{page=doc.addPage([W,H]);y=H-M;};
+    newPage();
+    const wrap=(text,f,size,width)=>{
+        const out=[]; String(text||'').split(/\r?\n/).forEach(par=>{
+            let line='';
+            par.split(/\s+/).forEach(w=>{
+                const t=line?line+' '+w:w;
+                if(f.widthOfTextAtSize(t,size)>width&&line){out.push(line);line=w;}else line=t;
+            });
+            out.push(line);
+        }); return out;
+    };
+    const need=h=>{if(y-h<M)newPage();};
+    const text=(t,{size=9,f=font,x=M,width=LW,gap=2,color}={})=>{
+        const lines=wrap(t,f,size,width);
+        lines.forEach(l=>{need(size+gap);page.drawText(l,{x,y:y-size,size,font:f,color:color||rgb(0,0,0)});y-=size+gap;});
+    };
+    const head=t=>{y-=6;need(16);page.drawRectangle({x:M,y:y-13,width:LW,height:13,color:rgb(0.12,0.16,0.24)});
+        page.drawText(t,{x:M+4,y:y-10,size:8,font:bold,color:rgb(1,1,1)});y-=17;};
+    const box=(checked,label,x)=>{need(12);page.drawRectangle({x,y:y-9,width:8,height:8,borderWidth:0.7,borderColor:rgb(0,0,0)});
+        if(checked)page.drawText('X',{x:x+1.3,y:y-8.2,size:7.5,font:bold});page.drawText(label,{x:x+12,y:y-8.5,size:8.5,font});};
+    const field=(label,val,rows=3)=>{need(rows*11+30);text(label,{size:8,f:bold,gap:2});const h0=y;const lines=wrap(val,font,8.5,LW-8);const h=Math.max(rows*11,lines.length*11)+6;
+        page.drawRectangle({x:M,y:y-h,width:LW,height:h,borderWidth:0.6,borderColor:rgb(0.45,0.45,0.45)});
+        let yy=h0-3;lines.forEach(l=>{if(yy-11<y-h)return;page.drawText(l,{x:M+4,y:yy-9,size:8.5,font});yy-=11;});y-=h+6;};
+    // Header
+    text(F.title,{size:11,f:bold,gap:3});
+    text(`${F.form} (facsimile) · Prescribed by AFI 36-2406 · Generated ${new Date().toLocaleDateString('en-US',{day:'numeric',month:'short',year:'numeric'})} from the 39 APS Tracker`,{size:7,color:rgb(.35,.35,.35),gap:6});
+    head('I. PERSONAL INFORMATION');
+    text(`NAME (Last, First, Middle Initial): ${r.Name||''}     RANK: ${r.Rank||''}     UNIT: ${r.Unit||''}`,{size:9,gap:3});
+    text(`${r.Org||''}     RATER: ${r.Rater||''}     SESSION DATE: ${fbDate(r.SessionDate)}`,{size:9,gap:3});
+    F.sections.forEach(s=>{
+        head(s.title.toUpperCase());
+        if(s.note)text(s.note,{size:7.5,color:rgb(.3,.3,.3),gap:4});
+        if(s.type==='type'){
+            need(14); let x=M; FB_TYPES.forEach(t=>{box(r.Type===t,t.toUpperCase(),x);x+=100;}); y-=16;
+        }else if(s.type==='yn'){
+            let g='';
+            s.fields.forEach(f=>{
+                if(f.group&&f.group!==g){g=f.group;text(g+':',{size:8,f:bold,gap:2});}
+                need(20);const lines=wrap(f.label,font,8,LW-40);
+                page.drawText(r[f.name]||'—',{x:M+4,y:y-8,size:8.5,font:bold});
+                lines.forEach(l=>{page.drawText(l,{x:M+36,y:y-8,size:8,font});y-=10;});y-=2;
+            });
+        }else if(s.type==='text'){
+            s.fields.forEach(f=>f.short?text(`${f.label}: ${r[f.name]||''}`,{size:8.5,gap:3}):field(f.label,r[f.name],f.rows||3));
+        }else if(s.type==='perf'){
+            if(s.id==='VI')text(F.perfNote,{size:7.5,color:rgb(.3,.3,.3),gap:4});
+            const initial=r.Type==='Initial';
+            if(initial)text('Initial session — ratings are not made (Sections VI+ ratings are locked on the official form).',{size:8,color:rgb(.3,.3,.3),gap:4});
+            else s.items.forEach(i=>{
+                text(i.label,{size:8,f:bold,gap:3});
+                ['a','b','c','d'].forEach((L,k)=>{
+                    const lines=wrap(i.levels[k],font,7.5,LW-30);need(lines.length*9+2);
+                    page.drawRectangle({x:M+6,y:y-8,width:7,height:7,borderWidth:0.6,borderColor:rgb(0,0,0)});
+                    if(r['Performance_'+i.n]===L)page.drawText('X',{x:M+7.2,y:y-7.4,size:6.5,font:bold});
+                    lines.forEach(l=>{page.drawText(l,{x:M+18,y:y-7.5,size:7.5,font});y-=9;});y-=2;
+                });y-=3;
+            });
+            (s.checks||[]).forEach(c=>{box(!!r[c.name],c.label,M);y-=2;});
+            s.comments.forEach(c=>field(c.label,r[c.name],4));
+        }
+    });
+    need(40);y-=12;
+    const sig=(label,x)=>{page.drawLine({start:{x,y:y-14},end:{x:x+150,y:y-14},thickness:0.7});page.drawText(label,{x,y:y-24,size:7,font:bold});};
+    sig('RATEE SIGNATURE',M);sig('RATER SIGNATURE',M+180);sig('DATE',M+360);y-=30;
+    const pages=doc.getPages();
+    pages.forEach((p,i)=>p.drawText(`${F.form} (facsimile) · Page ${i+1} of ${pages.length}`,{x:M,y:M-14,size:7,font,color:rgb(.4,.4,.4)}));
+    return await doc.save();
+}
+
+/* One runnable check for the ACA forms: every official field maps once, rank routing,
+   and both facsimiles build without throwing. Paste _selfCheckFeedbackForms() in the
+   console; resolves to 'OK' or a list of problems. */
+async function _selfCheckFeedbackForms(){
+    const bad=[];
+    [931,932].forEach(f=>{
+        const names=acaFieldNames(f), seen=new Set();
+        names.forEach(n=>{if(seen.has(n))bad.push(f+' dup '+n);seen.add(n);});
+        if(!ACA_FORMS[f].sections.some(s=>s.id==='VI'))bad.push(f+' no VI');
+        // One Sheet column per official field (a rating item is one column holding a–d).
+        if(f===931&&names.length!==48)bad.push('931 expects 48 fields, got '+names.length);
+        if(f===932&&names.length!==43)bad.push('932 expects 43 fields, got '+names.length);
+    });
+    if(acaFormFor('TSgt')!==931||acaFormFor('MSgt')!==932||acaFormFor('')!==931)bad.push('rank routing');
+    for(const [f,t] of [[931,'Initial'],[931,'Mid-Term'],[932,'Mid-Term']]){
+        try{
+            const b=await buildAcaPdf({Form:f,Type:t,Name:'Test, Fake',Rank:f===931?'SrA':'MSgt',Unit:'39 APS',Org:'x',Rater:'y',SessionDate:'2026-01-01',
+                Rating_Scale1:'Y',Performance_1:'c',Comments_Item4:'Line one\nLine two',Item_VIII_No1:'Fine.'});
+            if(!(b.length>1500))bad.push(f+' '+t+' pdf too small');
+        }catch(e){bad.push(f+' '+t+' build threw: '+e.message);}
+    }
+    return bad.length?bad:'OK';
+}
+
 /* One runnable check: field mapping per form, the date reformat, and that an
    unmade recommendation never prints as a made one. */
 function _selfCheckPromoForms(){
@@ -5556,6 +5850,23 @@ async function copyBrief(btn){
 </div>
 
 <!-- ═══════════════════════════════════ TAB 6: MORNING BRIEF -->
+<div class="tab-content" id="tab-feedback">
+<div class="container">
+    <div style="padding-top:6px"></div>
+    <div class="page-header">
+        <div>
+            <div class="page-title">Feedback (ACA)</div>
+            <div class="page-sub">AF Form 931 (AB–TSgt) · AF Form 932 (MSgt–CMSgt) · per flight</div>
+        </div>
+    </div>
+    <div class="tpl-note" style="margin-bottom:14px;">Pick a person, run the session, <strong>Save</strong> stores the answers in the Sheet; <strong>Download PDF</strong> produces a facsimile of the official worksheet for signatures. Every session stays listed under the person with the date it was last downloaded.</div>
+    <div style="display:grid;grid-template-columns:minmax(240px,1fr) 2fr;gap:16px" class="fb-grid">
+        <div id="fbPeople"></div>
+        <div id="fbSession"></div>
+    </div>
+</div>
+</div>
+
 <div class="tab-content" id="tab-brief">
 <div class="container">
     <div style="padding-top:6px"></div>
