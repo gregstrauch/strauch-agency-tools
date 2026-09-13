@@ -40,6 +40,8 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg) 0%,var(
 /* Row two: the pages inside the open group. Hidden when a group has only one. */
 .sub-nav{display:flex;gap:4px;align-items:center;padding:7px 20px;background:var(--bg);border-bottom:1px solid var(--line);flex-wrap:wrap;}
 .sub-nav.hide{display:none;}
+.nav-who{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--t-mid2);padding:0 4px;white-space:nowrap;}
+.nav-who strong{color:var(--acc);}
 .sub-btn{padding:5px 13px;font-size:11px;font-weight:600;letter-spacing:.3px;cursor:pointer;border:1px solid transparent;border-radius:4px;background:transparent;color:var(--t-mid);font-family:inherit;transition:background .15s,color .15s;}
 .sub-btn:hover{background:rgba(var(--ink-rgb),.05);color:var(--t-hi);}
 .sub-btn.active{background:rgba(var(--acc-rgb),.10);border-color:rgba(var(--acc-rgb),.30);color:var(--acc);}
@@ -450,6 +452,9 @@ label{display:block;font-size:10px;color:var(--t-mid2);text-transform:uppercase;
     .tab-nav{overflow-x:auto;-webkit-overflow-scrolling:touch;padding:0 8px;scrollbar-width:none;}
     .tab-nav::-webkit-scrollbar{display:none;}
     .tab-btn{padding:12px 14px;font-size:11px;white-space:nowrap;flex:0 0 auto;}
+    /* The row scrolls, so pin Sign out to the right edge or it is off-screen. */
+    .nav-who{position:sticky;right:0;background:var(--surface);padding-left:10px;box-shadow:-8px 0 8px var(--surface);}
+    .nav-who strong{display:none;}
     .flight-nav{padding:8px 10px;}
     .tab-content{padding:12px 10px;}
     .form-row,.duties-form-grid,.kpi-autocalc-grid{grid-template-columns:1fr;}
@@ -542,10 +547,8 @@ label{display:block;font-size:10px;color:var(--t-mid2);text-transform:uppercase;
         <span class="sync-dot" id="syncDot"></span>
         <span class="sync-status" id="syncStatus">Google Sheets not configured</span>
         <button class="btn-sm" onclick="syncSheets()">⟳ Sync</button>
-        <button class="btn-sm" onclick="pushAllToSheet()">⇧ Push to Sheet</button>
+        <button class="btn-sm" onclick="pushAllToSheet()">Save</button>
         <button class="btn-sm grey" onclick="openSettings()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 9 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4.6 9a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg> Sheet Settings</button>
-        <span style="margin-left:auto;font-size:11px;color:var(--t-mid2);">Signed in: <strong id="whoami" style="color:var(--acc)"></strong></span>
-        <button class="btn-sm grey" onclick="signOut()">Sign out</button>
     </div>
 
     <div class="stats-row">
@@ -1012,7 +1015,10 @@ function renderTabNav(active){
     const g=groupOf(active);
     document.getElementById('groupNav').innerHTML=TAB_GROUPS.map(x=>
         `<button class="tab-btn${x.id===g.id?' active':''}" onclick="openGroup('${x.id}')">`
-        +`${ICON[x.icon]}<span>${x.label}</span></button>`).join('');
+        +`${ICON[x.icon]}<span>${x.label}</span></button>`).join('')
+        // Sign out used to live on the Manning tab only; it belongs on every tab.
+        +`<span class="nav-who">Signed in: <strong id="whoami">${esc(String((SIGNED_IN()||{}).user||'').toUpperCase())}</strong>`
+        +`<button class="btn-sm grey" onclick="signOut()">Sign out</button></span>`;
     const sub=document.getElementById('subNav');
     // One page in the group: row two would just repeat row one.
     sub.classList.toggle('hide',g.tabs.length<2);
@@ -5164,8 +5170,6 @@ function signOut(){
 }
 
 function startApp(){
-    const who=(SIGNED_IN()||{}).user||'';
-    document.getElementById('whoami').textContent=who?who.toUpperCase():'';
     renderFlightSel();
     enforceAllowedFlight();
     setSyncStatus('',`Ready — ${isRollup()?'ALL SQUADRON':currentFlight} · syncing…`);
@@ -5503,7 +5507,7 @@ async function copyBrief(btn){
         <div><div class="page-title">Promotions Readiness</div><div class="page-sub">Click any card to edit · Saves to the sheet automatically</div></div>
         <div style="display:flex;gap:8px;">
             <button class="btn" onclick="syncSheets()">⟳ Refresh</button>
-            <button class="btn" onclick="pushTab('Promotions')">⇧ Push to Sheet</button>
+            <button class="btn" onclick="pushTab('Promotions')">Save</button>
         </div>
     </div>
     <div class="stats-row" id="promoStats"></div>
