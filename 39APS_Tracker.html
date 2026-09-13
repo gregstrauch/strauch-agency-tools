@@ -789,6 +789,8 @@ label{display:block;font-size:10px;color:var(--t-mid2);text-transform:uppercase;
     <div class="duties-form-grid" id="dutyGrid"></div>
     <div class="section-label">Certifications</div>
     <div class="duties-form-grid" id="certGrid"></div>
+    <!-- Newcomers only, ALL-scoped users only: reassign to a real flight. -->
+    <div class="form-group" id="moveRow" style="display:none"><label>Move to flight</label><select id="moveSel"></select></div>
     <div class="modal-btns">
         <button class="btn" onclick="saveEdit()">✓ Save</button>
         <button class="btn btn-red" onclick="closeEdit()">✕ Cancel</button>
@@ -1833,11 +1835,19 @@ function openEdit(type,si,ti,xi){
     dg.style.display=dg.previousElementSibling.style.display=showD?'':'none';
     cg.style.display=cg.previousElementSibling.style.display=showC?'':'none';
     cg.innerHTML=certList().map(c=>`<div class="duty-form-row"><span class="duty-form-name">${c.label}</span><select class="duty-form-sel" id="c_${c.id}"><option value="">—</option><option value="yes" ${(p.certs||{})[c.id]?'selected':''}>Yes</option></select></div>`).join('');
+    const canMove=currentFlight==='NEWCOMERS'&&allowedFlightsLocal()==='ALL'&&['tsgt','sub'].includes(type)&&!p.name.includes('VACANT');
+    document.getElementById('moveRow').style.display=canMove?'':'none';
+    if(canMove)document.getElementById('moveSel').innerHTML='<option value="">— stay in NEWCOMERS —</option>'
+        +SQUADRON_FLIGHTS.filter(f=>f!=='NEWCOMERS').map(f=>`<option value="${f}">${f}</option>`).join('');
     document.getElementById('editModal').classList.add('active');
 }
 function saveEdit(){
     const{type,si,ti,xi}=editTarget;
     const p=getPerson(type,si,ti,xi);
+    const mv=document.getElementById('moveRow').style.display!=='none'&&document.getElementById('moveSel').value;
+    if(mv){ if(confirm(`Move ${p.name} to ${mv}? They land under that flight's first team; its chief drags them into place.`))
+                moveToFlight(mv).catch(e=>setSyncStatus('err','Move failed: '+e.message));
+            return; }
     // Renaming changes the upsert key, so the row under the old name has to go.
     const wasNamed=p.name,wasTeam=type==='cmdr'||type==='chief'?'Flight':manning.msgtLeads[si]?.name;
     if(type!=='sq'&&wasNamed&&wasNamed!==document.getElementById('eName').value.trim())
@@ -2319,6 +2329,28 @@ async function pushManningToAS(){
     _rowRetires=[];
     if(gone.length)await appsPost({tab:'Manning',action:'delete',
         rows:gone.map(r=>({Team:r.team,Name:r.name})),keyFields:['Team','Name']});
+}
+
+// ── Newcomer → flight ─────────────────────────────────────────
+// Flight|Team|Name is the row key, so a move is a delete here plus an upsert
+// there, in that order and in one go. The upsert row carries its own Flight,
+// which overrides the currentFlight stamp in appsPost. Intent-scoped: only the
+// one row the user pointed at is ever deleted.
+async function moveToFlight(target){
+    const {type,si,ti,xi}=editTarget, p=getPerson(type,si,ti,xi);
+    const team=manning.msgtLeads[si].name;
+    const rows=(await appsGetAll('Manning')).filter(r=>r.Flight===target);
+    const lead=rows.find(r=>r.Role==='MSgt')||rows.find(r=>r.Role==='TSgt');
+    if(!lead)throw new Error(`${target} has no team on the Sheet yet`);
+    const sup=rows.find(r=>r.Team===lead.Team&&r.Role==='TSgt')||lead;
+    await appsPost({tab:'Manning',action:'delete',rows:[{Team:team,Name:p.name}],keyFields:['Team','Name']});
+    await appsPost({tab:'Manning',action:'upsert',keyFields:['Team','Name'],rows:[{
+        Flight:target,Team:lead.Team,Role:'Sub',Rank:p.rank,Name:p.name,Skills:p.skills,
+        Supervisor:sup.Name,TM:'',OBR:'',VI:'',PNM:'',PTL:'',HAZ:'',UTAPS:'',XNCOA:'',JI:'',HAZI:'',ATTIC:''}]});
+    if(type==='sub')manning.msgtLeads[si].tsgts[ti].subordinates.splice(xi,1);
+    else manning.msgtLeads[si].tsgts.splice(ti,1);
+    closeEdit(); saveLS('afm_v4',manning); markManningSynced(); renderManning();
+    setSyncStatus('ok',`${p.name} moved to ${target} — under ${lead.Team}`);
 }
 
 // ── Tracker push ──────────────────────────────────────────────
