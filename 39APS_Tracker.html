@@ -1007,7 +1007,8 @@ const TAB_GROUPS=[
         {id:'tracker', label:'Training Tracker'},
         {id:'kpi',     label:'KPIs'},
         {id:'career',  label:'Career Progression'},
-        {id:'orders',  label:'Orders Request'}]},
+        {id:'orders',  label:'Orders Request'},
+        {id:'dental',  label:'Dental (DD 2813)'}]},
     {id:'ref', label:'Reference', icon:'ref', tabs:[
         {id:'templates', label:'Pubs & Templates'},
         {id:'epb',       label:'EPB Routing'}]}
@@ -1057,6 +1058,7 @@ function switchTab(name,btn){
     if(name==='epb') renderEPB();
     if(name==='career') renderCareer();
     if(name==='orders') ordersInit();
+    if(name==='dental') dentalInit();
 }
 
 // ═══════════════════════ MANNING RENDER
@@ -7875,6 +7877,41 @@ console.log('[UTA report] self-check '+_selfCheckUtaReport());
 </div>
 </div>
 
+
+<!-- ═══════════════════════ DENTAL (DD 2813) ═══════════════════════ -->
+<div class="tab-content" id="tab-dental">
+<div class="container">
+    <div style="padding-top:6px"></div>
+    <div class="page-header">
+        <div><div class="page-title">Dental Exam (DD 2813)</div>
+             <div class="page-sub">DD Form 2813, Nov 2021 — fill the member block here, download the PDF, take it to the dentist</div></div>
+    </div>
+
+    <div class="card" style="font-size:11px;color:var(--t-mid2);line-height:1.6">
+      Nothing typed here is saved — not to this browser, not to the Sheet. The form is
+      <strong style="color:var(--acc)">CUI when filled</strong>; reload the page and it is empty again.
+      Blocks 6–10 belong to the dentist and stay fillable in the downloaded PDF.
+      <a href="DD2813_Dental_Exam.pdf" target="_blank" rel="noopener" style="color:var(--acc)">Open the blank form</a>.
+    </div>
+
+    <div class="card">
+      <div class="section-label" style="margin-top:0">Service member</div>
+      <div class="ord-grid">
+        <div style="grid-column:span 2"><label>1. Name (Last, First, MI)</label><input id="dntName" list="dntRoster" placeholder="Last, First MI"></div>
+        <datalist id="dntRoster"></datalist>
+        <div><label>2. DoD ID #</label><input id="dntDoD" inputmode="numeric" autocomplete="off" placeholder="10 digits"></div>
+        <div><label>3. Branch of service</label><input id="dntBranch" value="USAF Reserve"></div>
+        <div><label>4. Unit of assignment</label><input id="dntUnit" value="39 APS"></div>
+        <div><label>5. Unit address</label><input id="dntAddr" value="410 Kincheloe Loop (Bldg 203), Peterson AFB, CO 80914"></div>
+      </div>
+      <div class="btn-row" style="margin-top:14px">
+        <button class="btn" onclick="buildDentalPdf()">↓ Build the PDF</button>
+      </div>
+      <div id="dntMsg" style="font-size:11px;color:var(--t-lo);margin-top:8px"></div>
+    </div>
+</div>
+</div>
+
 <style>
 .car-grid{border-collapse:collapse;font-size:11px;min-width:900px;width:100%;}
 .car-grid th,.car-grid td{border:1px solid rgba(var(--acc-rgb),.18);padding:6px 8px;vertical-align:top;}
@@ -8448,6 +8485,50 @@ function _selfCheckOrders(){
     return fails.length?'FAILED':'OK';
 }
 console.log('[orders] self-check '+_selfCheckOrders());
+/* ═════════ DD 2813 DENTAL EXAMINATION
+   The official PDF is AES-encrypted with an XFA layer and a Reader-extensions
+   signature; pdf-lib can't open that. DD2813_Dental_Exam.pdf in the repo is the same
+   form decrypted, with the XFA and the UR3 signature stripped, AcroForm untouched.
+   Re-do that if DHA issues a new edition. Only the member block is filled here. */
+const DNT_PFX='form1[0].#subform[0].Table2[0].';
+const DNT_FIELDS={name:'MEMBERINFO[0].NAME[0]',dod:'MEMBERINFO[0].ssn[0]',branch:'MEMBERINFO[0].BRANCH[0]',
+    unit:'Row2[0].ASSIGNMENT[0]',addr:'Row2[0].ADDRESS[0]'};
+
+function dentalInit(){
+    const dl=document.getElementById('dntRoster');
+    if(dl)dl.innerHTML=attendanceRoster().filter(p=>p.name&&!isVacant(p.name))
+        .map(p=>`<option value="${esc(p.name)}">`).join('');
+}
+
+async function buildDentalPdf(){
+    const msg=document.getElementById('dntMsg');
+    const s={name:ordV('dntName'),dod:ordV('dntDoD'),branch:ordV('dntBranch'),unit:ordV('dntUnit'),addr:ordV('dntAddr')};
+    if(!s.name){msg.style.color='var(--bad)';msg.textContent='✕ Name is required.';return;}
+    msg.style.color='var(--t-lo)'; msg.textContent='Building…';
+    try{
+        const res=await fetch('DD2813_Dental_Exam.pdf');
+        if(!res.ok)throw new Error(`Form not found (HTTP ${res.status})`);
+        const {PDFDocument,PDFName,PDFBool,PDFString}=PDFLib;
+        const doc=await PDFDocument.load(await res.arrayBuffer());
+        const form=doc.getForm();
+        const da=PDFString.of('/Helv 10 Tf 0 g');
+        Object.keys(DNT_FIELDS).forEach(k=>{
+            const f=form.getTextField(DNT_PFX+DNT_FIELDS[k]);
+            f.setText(s[k]);
+            // Same appearance dance as the orders worksheet: stamp the DA, drop the baked AP.
+            f.acroField.dict.set(PDFName.of('DA'),da);
+            f.acroField.getWidgets().forEach(w=>{w.dict.set(PDFName.of('DA'),da);w.dict.delete(PDFName.of('AP'));});
+        });
+        form.acroForm.dict.set(PDFName.of('NeedAppearances'),PDFBool.True);
+        const url=URL.createObjectURL(new Blob([await doc.save()],{type:'application/pdf'}));
+        const a=document.createElement('a');
+        a.href=url; a.download=`${s.name.replace(/[^\w ,-]/g,'').trim()||'Member'} — DD 2813 Dental.pdf`;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),4000);
+        msg.style.color='var(--good)';
+        msg.textContent='✓ Downloaded. Print it and hand it to the dentist — blocks 6–10 are theirs.';
+    }catch(e){ msg.style.color='var(--bad)'; msg.textContent='✕ '+e.message; }
+}
 </script>
 
 </body>
