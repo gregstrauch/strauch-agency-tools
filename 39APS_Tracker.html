@@ -285,6 +285,19 @@ label{display:block;font-size:10px;color:var(--t-mid2);text-transform:uppercase;
     body.print-itp .itp-tbl th{background:#ffffff!important;color:#000!important;}
     body.print-itp .itp-tbl td{color:#000!important;}
     body.print-epb #epbWrap{overflow:visible!important;padding:0!important;}
+    /* Attendance PDF for the CSS: whichever view is on screen, as a black-on-white sheet. */
+    body.print-att>*:not(#tab-attendance){display:none!important;}
+    body.print-att #tab-attendance .container>*:not(#attStats):not(#attContent){display:none!important;}
+    body.print-att #tab-attendance .container::before{content:attr(data-stamp);display:block;font-weight:700;font-size:14px;margin-bottom:10px;}
+    body.print-att #attContent>div{overflow:visible!important;}
+    body.print-att .uta-grid{min-width:0!important;}
+    body.print-att .uta-grid th,body.print-att .uta-grid td{color:#000!important;background:#ffffff!important;border-color:#999!important;}
+    body.print-att .uta-cell{color:#000!important;background:#ffffff!important;border-color:#999!important;cursor:default;}
+    body.print-att .att-row .btn-sm{display:none!important;}
+    body.print-att .att-row{padding:3px 12px!important;break-inside:avoid;}
+    body.print-att .att-btn{min-height:0!important;padding:2px 8px!important;color:#000!important;background:#ffffff!important;border-color:#999!important;}
+    body.print-att .att-who,body.print-att .att-who span,body.print-att .att-team-head,body.print-att .card,body.print-att .card *{color:#000!important;background:#ffffff!important;}
+    body.print-att .att-team{break-inside:avoid;}
     @page{size:landscape;margin:10mm;}
     .tab-nav,.flight-nav,.page-header button,#briefPlain,#tab-brief details{display:none!important;}
     body{background:#ffffff!important;color:#000!important;}
@@ -713,7 +726,8 @@ label{display:block;font-size:10px;color:var(--t-mid2);text-transform:uppercase;
     <div style="padding-top:6px"></div>
     <div class="page-header">
         <div><div class="page-title">Attendance</div><div class="page-sub">Tap a status to cycle · saves to the Sheet · FY27 UTA schedule built in</div></div>
-        <button class="btn" onclick="exportAttendance()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5"/><path d="M4 20h16"/></svg> Export</button>
+        <span style="display:flex;gap:6px"><button class="btn" onclick="exportAttendancePDF()" title="Prints the view on screen — Mark a day or Year to date. Choose Save as PDF."><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg> PDF</button>
+        <button class="btn" onclick="exportAttendance()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5"/><path d="M4 20h16"/></svg> Export</button></span>
     </div>
 
     <div class="att-bar">
@@ -5023,6 +5037,21 @@ function parseASAttendance(rows){
         (out[key]=out[key]||{})[r.Person]=String(r.Status||'').toUpperCase();
     });
     return out;
+}
+
+// PDF = the browser's print-to-PDF of whichever view is on screen (a day's
+// roster, or the year grid), same pattern as exportChartPDF.
+function exportAttendancePDF(){
+    const box=document.querySelector('#tab-attendance .container'); if(!box)return;
+    const d=attDate(), asm=utaAssemblyFor(d);
+    box.dataset.stamp=`${chartTitle()} — Attendance · `+(attView==='year'
+        ? `${UTA_SCHEDULE.fy} year to date`
+        : `${utaDow(d)} ${utaDayLabel(d)} ${d.slice(0,4)}${asm?' ('+asm.label+' UTA)':' (not a scheduled UTA day)'}`)
+        +` · printed ${new Date().toLocaleDateString()}`;
+    document.body.classList.add('print-att');
+    const done=()=>{document.body.classList.remove('print-att');window.removeEventListener('afterprint',done);};
+    window.addEventListener('afterprint',done);
+    window.print();
 }
 
 function exportAttendance(){
