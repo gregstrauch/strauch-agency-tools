@@ -19,7 +19,7 @@
 
 var SHEET_ID     = "16PAc49TQVUkLq1XgJ_8JMzutIeUlfJdKX0BOTESnK4k";  // the "Quote Applications" sheet
 var INGEST_KEY   = "strauch-quote-2026";   // must match INGEST_KEY in both html files
-var NOTIFY_EMAIL = "";                      // blank = the Sheet owner's address
+var NOTIFY_EMAIL = "gstrauch@farmersagent.com";  // blank = the Sheet owner's address
 var MAX_FIELDS   = 400;                     // spam / abuse ceiling
 var MAX_LEN      = 5000;                    // per-answer character ceiling
 
