@@ -299,7 +299,7 @@ label{display:block;font-size:10px;color:var(--t-mid2);text-transform:uppercase;
     body.print-att .att-who,body.print-att .att-who span,body.print-att .att-team-head,body.print-att .card,body.print-att .card *{color:#000!important;background:#ffffff!important;}
     body.print-att .att-team{break-inside:avoid;}
     @page{size:landscape;margin:10mm;}
-    .tab-nav,.flight-nav,.page-header button,#briefPlain,#tab-brief details{display:none!important;}
+    .tab-nav,.flight-nav,.page-header button{display:none!important;}
     body{background:#ffffff!important;color:#000!important;}
     .brief-team,.stat-card{border-color:var(--t-lo)!important;}
     .brief-team-head,.page-title,.brief-items li.u1{color:#000!important;background:#ffffff!important;}
@@ -612,52 +612,6 @@ label{display:block;font-size:10px;color:var(--t-mid2);text-transform:uppercase;
 </div>
 </div>
 
-<!-- ═══════════════════════════════════ TAB 2: BULLETIN -->
-<div class="tab-content" id="tab-bulletin">
-<div class="container">
-    <div style="padding-top:6px"></div>
-    <div class="page-header">
-        <div><div class="page-title">UTA Bulletin</div><div class="page-sub">Auto-parse locally or import from Claude chat — no API key needed</div></div>
-        <button class="btn btn-green" onclick="pushToTracker()" id="pushBtn" disabled>→ Push to Tracker</button>
-    </div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
-        <div class="card" style="border-color:rgba(var(--good-rgb),.25);cursor:default;">
-            <div style="font-size:12px;color:var(--good);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg> Option 1 — Auto-Parse</div>
-            <div style="font-size:12px;color:var(--t-mid2);line-height:1.6;">Paste your bulletin below and click <strong style="color:var(--t-hi)">Auto-Parse</strong>. Runs locally — no internet, no keys. Scans for bullet points, requirements, deadlines, and rank applicability automatically.</div>
-        </div>
-        <div class="card" style="border-color:rgba(var(--acc-rgb),.25);cursor:default;">
-            <div style="font-size:12px;color:var(--acc);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M16 5h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2"/></svg> Option 2 — Import from Claude Chat</div>
-            <div style="font-size:12px;color:var(--t-mid2);line-height:1.6;">Paste your bulletin into <strong style="color:var(--t-hi)">this Claude chat window</strong> and ask it to extract requirements as JSON. Copy the result, click <strong style="color:var(--t-hi)">Import from Claude</strong> and paste. Uses your existing Claude Pro — no extra cost.</div>
-        </div>
-    </div>
-
-    <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
-            <div style="font-size:12px;color:var(--acc);font-weight:600;text-transform:uppercase;letter-spacing:1px;">Bulletin Text</div>
-            <button class="btn-sm" onclick="document.getElementById('bulletinFile').click()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Upload .txt</button>
-        </div>
-        <input type="file" id="bulletinFile" accept=".txt" style="display:none" onchange="loadBulletin(event)">
-        <textarea id="bulletinText" rows="12" placeholder="Paste your UTA bulletin here, or upload a .txt file…" style="resize:vertical;"></textarea>
-        <div class="btn-row">
-            <button class="btn btn-green" onclick="smartParse()" id="parseBtn"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg> Auto-Parse Bulletin</button>
-            <button class="btn" onclick="openJSONImport()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M16 5h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2"/></svg> Import from Claude Chat</button>
-            <button class="btn" onclick="addReqManual()">+ Add Manually</button>
-            <button class="btn btn-red" onclick="clearBulletin()">✕ Clear All</button>
-        </div>
-    </div>
-
-    <div class="ai-thinking" id="aiThinking">
-        <span class="spinner"></span> Parsing bulletin…
-    </div>
-
-    <div id="reqSection" style="display:none;">
-        <div class="section-label">Requirements (<span id="reqCount">0</span>) — Click any to edit · <span style="color:var(--t-mid2);font-weight:400;text-transform:none;letter-spacing:0">Review carefully, especially applicability</span></div>
-        <div class="req-list" id="reqList"></div>
-    </div>
-</div>
-</div>
-
 <!-- ═══════════════════════════════════ TAB 3: TRACKER -->
 <div class="tab-content" id="tab-tracker">
 <div class="container">
@@ -826,32 +780,6 @@ label{display:block;font-size:10px;color:var(--t-mid2);text-transform:uppercase;
 </div>
 </div>
 
-<!-- MANUAL REQ MODAL -->
-<div class="modal-overlay" id="reqModal">
-<div class="modal-box">
-    <h3 id="reqModalTitle">Add Requirement</h3>
-    <div class="form-group"><label>Requirement Title</label><input id="reqTitle" placeholder="e.g. SAPR Annual Training"></div>
-    <div class="form-group"><label>Description / Notes</label><input id="reqDesc" placeholder="Optional details"></div>
-    <div class="form-row">
-        <div class="form-group">
-            <label>Applies To</label>
-            <select id="reqApply">
-                <option value="all">All Personnel</option>
-                <option value="7level">7-Level Only</option>
-                <option value="5level">5-Level and Above</option>
-                <option value="enlisted">Enlisted Only</option>
-                <option value="snco">SNCO (MSgt+)</option>
-                <option value="nco">NCO (SSgt+)</option>
-                <option value="named">Named Individuals Only</option>
-            </select>
-        </div>
-        <div class="form-group"><label>Deadline / UTA Date</label><input id="reqDeadline" placeholder="e.g. Mar UTA / 15 Mar"></div>
-    </div>
-    <div class="modal-btns">
-        <button class="btn" onclick="saveReq()">✓ Save</button>
-        <button class="btn btn-red" onclick="closeReqModal()">✕ Cancel</button>
-    </div>
-</div>
 </div>
 
 <script>
@@ -964,7 +892,6 @@ const SQ_SEED={cc:{rank:'Major',name:'De La Fuente, Jr.'},sel:{rank:'CMSgt',name
 let squadron=loadLS('afm_squadron',{});
 const sqRole=id=>squadron[id]?(squadron[id].name?squadron[id]:null):(SQ_SEED[id]||null);
 let editTarget=null;
-let editingReqIdx=null;
 
 function loadLS(key,def){
     // saveLS refuses to write per-flight keys in rollup, so anything sitting under
@@ -1013,8 +940,6 @@ const TAB_GROUPS=[
         {id:'promotions', label:'Promotions'},
         {id:'feedback',   label:'Feedback (ACA)'}]},
     {id:'uta', label:'UTA', icon:'uta', step:true, tabs:[
-        {id:'bulletin',   label:'UTA Bulletin'},
-        {id:'brief',      label:'Morning Brief'},
         {id:'attendance', label:'Attendance'},
         {id:'utarpt',     label:'End-of-UTA Report'}]},
     {id:'ready', label:'Readiness', icon:'ready', tabs:[
@@ -1066,7 +991,6 @@ function switchTab(name,btn){
     if(name==='kpi'){ populateKPIPeriodSelector(); renderKPI(); }
     if(name==='promotions') renderPromotions();
     if(name==='feedback'){ renderFeedback(); renderFeedbackSession(); }
-    if(name==='brief') renderBrief();
     if(name==='utarpt') renderUtaReport();
     if(name==='templates') renderAfDocs();
     if(name==='epb') renderEPB();
@@ -2028,7 +1952,7 @@ function reloadFlightState(){
     rptComments=loadLS('afm_rptc',{});
     kpiData=loadLS('afm_kpi',{periods:[],sections:defaultKPISectionsFor(currentFlight)});
     ensureFlightKPISections();
-    renderManning();renderRequirements();populateKPIPeriodSelector();renderKPI();renderPromotions();renderTracker();renderAttendance();renderTemplates();renderFlow();renderFeedback();renderFeedbackSession();
+    renderManning();populateKPIPeriodSelector();renderKPI();renderPromotions();renderTracker();renderAttendance();renderTemplates();renderFlow();renderFeedback();renderFeedbackSession();
     if(ovData)renderOverview();
     if(document.getElementById('tab-utarpt')?.classList.contains('active'))renderUtaReport();
 }
@@ -2524,236 +2448,6 @@ function mergeASKPIs(rows){
     });
 }
 
-// ═══════════════════════ AI BULLETIN EXTRACTION
-
-// ═══════════════════════ SMART TEXT PARSER (no API needed)
-function smartParse(){
-    const text = document.getElementById('bulletinText').value.trim();
-    if(!text){ alert('Paste your bulletin text first.'); return; }
-    // Auto-Parse is a line scanner for prose bulletins. Fed a JSON document on
-    // 3 Aug 2026 it turned the KEY NAMES into requirements — "deadline",
-    // "consequence", "affected_members" — 53 junk entries that then pushed 1,454
-    // garbage rows to the Sheet. JSON has its own importer; send it there.
-    if(/^\s*[[{]/.test(text)){
-        try{
-            JSON.parse(text);
-            alert('That looks like JSON, not bulletin text.\n\nAuto-Parse scans prose line by line and would turn the JSON field names into requirements.\n\nUse "<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M16 5h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2"/></svg> Import from Claude Chat" instead — it is built for this.');
-            return;
-        }catch(e){ /* starts like JSON but is not valid — let the text parser try */ }
-    }
-
-    document.getElementById('aiThinking').classList.add('visible');
-    document.getElementById('parseBtn').disabled = true;
-
-    setTimeout(()=>{
-        try{
-            const parsed = parseTextLocally(text);
-            if(!parsed.length){ alert('Could not find structured requirements. Try the "Import from Claude Chat" option for better results, or add requirements manually.'); return; }
-            requirements = [...requirements, ...parsed];
-            saveLS('afm_reqs', requirements);
-            initTrackerForNewReqs(parsed);
-            renderRequirements();
-            document.getElementById('pushBtn').disabled = false;
-        } finally {
-            document.getElementById('aiThinking').classList.remove('visible');
-            document.getElementById('parseBtn').disabled = false;
-        }
-    }, 100);
-}
-
-function parseTextLocally(text){
-    const lines = text.split('\n').map(l=>l.trim()).filter(l=>l.length>3);
-    const results = [];
-    let currentSection = '';
-
-    const REQ_KEYWORDS = ['mandatory','required','must','shall','complete','submit','due','nlt','ensure','training','inspection','certification','qualification','report','update','verify','review','conduct','attend','maintain','process'];
-    const LIST_RE = /^(?:[\•\-\*\►\→\▪\·]|\d+[.)]\s|[a-z][.)]\s)\s*/i;
-    const APPLY_MAP = [
-        {re:/all\s+personnel|all\s+members|entire\s+flight|everyone/i, a:'all',   n:'All Personnel'},
-        {re:/snco|msgt|smsgt|cmsgt|senior\s+nco/i,                    a:'snco',  n:'SNCO (MSgt+)'},
-        {re:/nco|ssgt|tsgt|sergeant/i,                                 a:'nco',   n:'NCO (SSgt+)'},
-        {re:/7.?level|craftsman/i,                                      a:'7level',n:'7-Level Only'},
-        {re:/5.?level|journeyman/i,                                     a:'5level',n:'5-Level and Above'},
-        {re:/3.?level|apprentice/i,                                     a:'3level',n:'3-Level Only'},
-    ];
-    const CAT_MAP = [
-        {re:/training|adls|cbt|course|qual|certif/i,     c:'Training'},
-        {re:/epb|award|dec|package|evaluation/i,          c:'Admin'},
-        {re:/safety|hazmat|mishap|ppe/i,                  c:'Safety'},
-        {re:/medical|pt\s|fitness|dental|immun/i,         c:'Medical'},
-        {re:/cargo|pallet|aircraft|load|freight/i,        c:'Ops'},
-        {re:/vehicle|inspection|pass rate/i,              c:'Readiness'},
-    ];
-    const DEADLINE_RE = /(?:nlt|by|due|before|complete\s+by|no\s+later\s+than)\s+([\w\s,]+\d{4}|\d{1,2}\s+\w+|\w+\s+uta|this\s+uta|next\s+uta)/i;
-
-    const seen = new Set();
-
-    lines.forEach(line=>{
-        // Detect section headers
-        if((line.endsWith(':') || /^[A-Z][A-Z\s\-]{4,}$/.test(line)) && line.length < 70){
-            currentSection = line.replace(/:/,'').trim();
-            return;
-        }
-
-        // Strip list markers
-        const isList = LIST_RE.test(line);
-        const clean = line.replace(LIST_RE,'').trim();
-        if(clean.length < 5) return;
-
-        // Check for requirement signal
-        const hasKeyword = REQ_KEYWORDS.some(k=>clean.toLowerCase().includes(k));
-        if(!isList && !hasKeyword) return;
-        if(clean.length > 350) return; // Skip paragraph-length blobs
-
-        // Dedup
-        const dedupeKey = clean.toLowerCase().substring(0,40);
-        if(seen.has(dedupeKey)) return;
-        seen.add(dedupeKey);
-
-        // Applicability
-        let applicability='all', applicabilityNote='All Personnel';
-        for(const {re,a,n} of APPLY_MAP){
-            if(re.test(clean)||re.test(currentSection)){ applicability=a; applicabilityNote=n; break; }
-        }
-
-        // Category
-        let category='Training';
-        for(const {re,c} of CAT_MAP){
-            if(re.test(clean)||re.test(currentSection)){ category=c; break; }
-        }
-
-        // Deadline
-        let deadline='This UTA';
-        const dm = clean.match(DEADLINE_RE);
-        if(dm) deadline = dm[1].trim();
-
-        // Medical lines name people ("Dental: Smith, Jones"). Match capitalised words
-        // against this flight's roster by last name so the End-of-UTA report can count
-        // done/owed. A squadron-wide list narrows itself to this flight's people.
-        let names=[];
-        if(category==='Medical'){
-            const words=new Set(clean.match(/\b[A-Z][a-z]+(?:-[A-Z][a-z]+)?\b/g)||[]);
-            const ch=flightChief();
-            names=[...getAllPersonnel(),...(ch&&ch.name&&ch.name!==NO_CHIEF.name?[ch]:[])]
-                .map(p=>p.name).filter(n=>words.has(lastNameCap(n)));
-            if(names.length){ applicability='named'; applicabilityNote='Named individuals'; }
-        }
-
-        // Title = first clause, max 80 chars
-        const title = clean.split(/[.;:]/)[0].substring(0,80).trim();
-        const description = currentSection ? `Section: ${currentSection}` : '';
-
-        results.push({ id:Date.now()+Math.random(), title, description, applicability, applicabilityNote, deadline, category, ...(names.length?{names}:{}) });
-    });
-
-    return results;
-}
-
-// ═══════════════════════ JSON IMPORT FROM CLAUDE CHAT
-function openJSONImport(){
-    document.getElementById('jsonImportText').value='';
-    document.getElementById('jsonImportMsg').textContent='';
-    document.getElementById('jsonImportModal').classList.add('active');
-}
-function closeJSONImport(){ document.getElementById('jsonImportModal').classList.remove('active'); }
-
-function processJSONImport(){
-    const raw = document.getElementById('jsonImportText').value.trim();
-    const msg = document.getElementById('jsonImportMsg');
-    if(!raw){ msg.style.color='var(--bad)'; msg.textContent='Paste JSON first.'; return; }
-
-    try{
-        // Strip markdown fences if present
-        const clean = raw.replace(/^```json?\n?/,'').replace(/\n?```$/,'').trim();
-        const parsed = JSON.parse(clean);
-        if(!Array.isArray(parsed)) throw new Error('Expected a JSON array');
-
-        // Normalize fields
-        const normalized = parsed.map(r=>({
-            id: Date.now()+Math.random(),
-            title: r.title || r.name || r.requirement || 'Unnamed requirement',
-            description: r.description || r.notes || r.detail || '',
-            applicability: r.applicability || 'all',
-            applicabilityNote: r.applicabilityNote || r.applies_to || r.who || 'All Personnel',
-            names: Array.isArray(r.names) ? r.names : undefined,
-            deadline: r.deadline || r.due || r.date || 'This UTA',
-            category: r.category || r.type || 'Training',
-        }));
-
-        requirements = [...requirements, ...normalized];
-        saveLS('afm_reqs', requirements);
-        initTrackerForNewReqs(normalized);
-        renderRequirements();
-        document.getElementById('pushBtn').disabled = false;
-        msg.style.color='var(--good)';
-        msg.textContent=`✓ Imported ${normalized.length} requirements successfully.`;
-        setTimeout(closeJSONImport, 1200);
-    } catch(e){
-        msg.style.color='var(--bad)';
-        msg.textContent=`✗ Invalid JSON: ${e.message}. Make sure you copied the full array from Claude.`;
-    }
-}
-
-async function loadBulletin(e){
-    const f=e.target.files[0];if(!f)return;
-    const text=await f.text();
-    document.getElementById('bulletinText').value=text;
-    e.target.value='';
-}
-
-function renderRequirements(){
-    const list=document.getElementById('reqList');
-    if(!requirements.length){list.innerHTML='<div style="color:var(--t-faint2);font-size:13px;padding:20px;text-align:center;">No requirements yet — extract from bulletin or add manually.</div>';document.getElementById('reqSection').style.display='block';document.getElementById('reqCount').textContent=0;return;}
-    list.innerHTML=requirements.map((r,i)=>`
-        <div class="req-item" onclick="editReq(${i})">
-            <div>
-                <div class="req-title">${r.title}</div>
-                <div class="req-meta">${r.category||''}${r.deadline?' · Due: '+r.deadline:''} · ${r.applicabilityNote||r.applicability||'All'}</div>
-                ${r.description?`<div class="req-meta" style="color:var(--t-faint);margin-top:3px;">${r.description}</div>`:''}
-            </div>
-            <span class="req-badge">${r.category||'General'}</span>
-            <div class="req-actions">
-                <button class="icon-btn" onclick="event.stopPropagation();editReq(${i})" title="Edit">✏️</button>
-                <button class="icon-btn" onclick="event.stopPropagation();deleteReq(${i})" title="Delete"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M9 6V4h6v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14"/><path d="M10 11v6M14 11v6"/></svg></button>
-            </div>
-        </div>`).join('');
-    document.getElementById('reqSection').style.display='block';
-    document.getElementById('reqCount').textContent=requirements.length;
-    document.getElementById('pushBtn').disabled=requirements.length===0;
-}
-
-// Every other delete in this app confirms; this one did not, and it takes the whole
-// flight's completion status for that requirement with it. The row is clickable now,
-// so the trash icon sits next to a live target — one slip used to be unrecoverable.
-function deleteReq(i){
-    if(!confirm(`Delete "${requirements[i].title}"? This also clears everyone's status for it.`))return;
-    requirements.splice(i,1);saveLS('afm_reqs',requirements);renderRequirements();renderTracker();
-}
-function clearBulletin(){if(confirm('Clear bulletin text and all requirements?')){document.getElementById('bulletinText').value='';requirements=[];saveLS('afm_reqs',requirements);tracker={};saveLS('afm_tracker',tracker);renderRequirements();}}
-
-// Manual req
-function addReqManual(){editingReqIdx=null;document.getElementById('reqModalTitle').textContent='Add Requirement';document.getElementById('reqTitle').value='';document.getElementById('reqDesc').value='';document.getElementById('reqApply').value='all';document.getElementById('reqDeadline').value='';document.getElementById('reqModal').classList.add('active');}
-function editReq(i){editingReqIdx=i;const r=requirements[i];document.getElementById('reqModalTitle').textContent='Edit Requirement';document.getElementById('reqTitle').value=r.title||'';document.getElementById('reqDesc').value=r.description||'';document.getElementById('reqApply').value=r.applicability||'all';document.getElementById('reqDeadline').value=r.deadline||'';document.getElementById('reqModal').classList.add('active');}
-function saveReq(){
-    const r={id:Date.now()+Math.random(),title:document.getElementById('reqTitle').value.trim(),description:document.getElementById('reqDesc').value.trim(),applicability:document.getElementById('reqApply').value,applicabilityNote:document.getElementById('reqApply').options[document.getElementById('reqApply').selectedIndex].text,deadline:document.getElementById('reqDeadline').value.trim()||'This UTA',category:'Training'};
-    if(!r.title){alert('Title required.');return;}
-    // The modal has no name-list field, so an edit would silently drop the roster
-    // behind a "Named Individuals Only" requirement and quietly widen it to nobody.
-    if(editingReqIdx!==null&&requirements[editingReqIdx].names)r.names=requirements[editingReqIdx].names;
-    if(editingReqIdx!==null)requirements[editingReqIdx]=r;else{requirements.push(r);initTrackerForNewReqs([r]);}
-    saveLS('afm_reqs',requirements);closeReqModal();renderRequirements();
-}
-function closeReqModal(){document.getElementById('reqModal').classList.remove('active');editingReqIdx=null;}
-
-function pushToTracker(){
-    initTrackerForNewReqs(requirements);
-    saveLS('afm_tracker',tracker);
-    schedulePush('Tracker');
-    // Switch to tracker tab. Was querySelectorAll('.tab-btn')[2], which is the
-    // Bulletin button — it lit the wrong tab, and any new tab moved the index again.
-    switchTab('tracker');
-}
-
 // ═══════════════════════ TRACKER
 function getAllPersonnel(){
     const list=[];
@@ -2794,20 +2488,6 @@ function personApplies(person,req){
     return true;
 }
 
-function initTrackerForNewReqs(reqs){
-    const people=getAllPersonnel();
-    reqs.forEach(req=>{
-        const key=req.title;
-        if(!tracker[key])tracker[key]={};
-        people.forEach(p=>{
-            const pk=p.name;
-            if(personApplies(p,req)&&!tracker[key][pk]){tracker[key][pk]='DUE';}
-            else if(!personApplies(p,req)){tracker[key][pk]='NA';}
-        });
-    });
-    saveLS('afm_tracker',tracker);
-}
-
 function populateTeamFilter(){
     const sel=document.getElementById('teamFilter');
     const current=sel.value;
@@ -2822,7 +2502,7 @@ function renderTracker(){
     const people=getAllPersonnel().filter(p=>teamF==='all'||p.team===teamF);
 
     if(!requirements.length){
-        document.getElementById('trackerContent').innerHTML='<div class="tracker-empty">No requirements yet.<br>Go to the <strong>UTA Bulletin</strong> tab to extract requirements from your bulletin.</div>';
+        document.getElementById('trackerContent').innerHTML='<div class="tracker-empty">No requirements loaded.<br>Requirements already in the Sheet appear here after a sync.</div>';
         document.getElementById('trackerStats').innerHTML='';
         return;
     }
@@ -3625,7 +3305,7 @@ function renderPersonView(){
     const summary=document.getElementById('personSummary');
     const cards=document.getElementById('personCards');
     if(!name){summary.innerHTML='';cards.innerHTML='<div style="color:var(--t-faint2);text-align:center;padding:30px;font-size:13px;">Select a person above to see their training breakdown.</div>';return;}
-    if(!requirements.length){summary.innerHTML='';cards.innerHTML='<div style="color:var(--t-faint2);text-align:center;padding:30px;font-size:13px;">No requirements yet — load a bulletin first.</div>';return;}
+    if(!requirements.length){summary.innerHTML='';cards.innerHTML='<div style="color:var(--t-faint2);text-align:center;padding:30px;font-size:13px;">No requirements loaded.</div>';return;}
     const person=getAllPersonnel().find(p=>p.name===name);
     if(!person)return;
     const applicable=requirements.filter(r=>personApplies(person,r));
@@ -4698,7 +4378,7 @@ function renderPromotions(){
 document.addEventListener('visibilitychange',()=>{
     if(document.visibilityState==='hidden'&&Object.keys(_pushPending).length)flushPushes().catch(()=>{});
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeEdit();closeSettings();closeReqModal();closeKPIModal();closeJSONImport();closeKPISectionModal();closeKPIAddModal();closePromoEdit();closeFlowEdit();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeEdit();closeSettings();closeKPIModal();closeKPISectionModal();closeKPIAddModal();closePromoEdit();closeFlowEdit();}});
 // ═══════════════════════ OVERVIEW (squadron-wide, all five flights)
 // Reads the Sheet unscoped rather than localStorage: per-flight state is namespaced
 // and only the flight you last opened is cached, so localStorage can't answer
@@ -5572,7 +5252,6 @@ function startApp(){
     setSyncStatus('',`Ready — ${isRollup()?'ALL SQUADRON':currentFlight} · syncing…`);
     document.getElementById('lastSaved').textContent=new Date().toLocaleString();
     renderManning();
-    renderRequirements();
     populateKPIPeriodSelector();
     renderKPI();
     renderPromotions();
@@ -5597,134 +5276,6 @@ window.addEventListener('load',()=>{
     startApp();
 });
 
-// ═══════════════════════ MORNING BRIEF
-// Read-only view over state the Tracker tab already holds. Nothing here writes to
-// localStorage or the Sheet — it is a different way to read the same numbers.
-
-// Who still owes what. A person owes a requirement only when it actually applies to
-// them AND is still DUE — the Tracker's stats loop only skips NA, which would put
-// every non-applicable item in Greg's mouth in front of the formation.
-function briefData(){
-    const people=getAllPersonnel();
-    const byPerson=new Map(people.map(p=>[p.name,{p,items:[],total:0,done:0}]));
-    requirements.forEach(req=>{
-        people.forEach(p=>{
-            if(!personApplies(p,req))return;
-            const st=(tracker[req.title]||{})[p.name]||'DUE';
-            if(st==='NA'||st==='EXEMPT')return;
-            const rec=byPerson.get(p.name);
-            rec.total++;
-            if(st==='DONE'){rec.done++;return;}
-            rec.items.push({title:req.title,deadline:req.deadline||'This UTA',urgency:urgencyOf(req.deadline)});
-        });
-    });
-    const recs=[...byPerson.values()];
-    recs.forEach(r=>r.items.sort((a,b)=>b.urgency-a.urgency));
-    // Team order is briefing order — he reads the formation team by team.
-    const teams=[...new Set(people.map(p=>p.team))];
-    return{
-        teams:teams.map(name=>{
-            const members=recs.filter(r=>r.p.team===name);
-            const total=members.reduce((a,r)=>a+r.total,0),done=members.reduce((a,r)=>a+r.done,0);
-            return{name,members,pct:total?Math.round(done/total*100):100,
-                   owing:members.filter(r=>r.items.length).sort((a,b)=>b.items[0].urgency-a.items[0].urgency)};
-        }),
-        clear:recs.filter(r=>r.total&&!r.items.length),
-        allItems:recs.flatMap(r=>r.items.map(i=>({...i,who:r.p}))),
-        totals:{total:recs.reduce((a,r)=>a+r.total,0),done:recs.reduce((a,r)=>a+r.done,0),people:recs.length},
-    };
-}
-
-const URGENCY_LABEL=['','DUE THIS UTA','LATE'];
-
-function renderBrief(){
-    const stats=document.getElementById('briefStats'),content=document.getElementById('briefContent');
-    document.getElementById('briefSub').textContent=isRollup()
-        ?'Pick a flight — a brief is something you give to one formation'
-        :`${currentFlight} · ${new Date().toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})}`;
-    if(isRollup()){
-        stats.innerHTML='';
-        content.innerHTML='<div class="tracker-empty">ALL SQUADRON is a rollup. Pick a single flight to build its morning brief.</div>';
-        document.getElementById('briefPlain').textContent='';
-        return;
-    }
-    const d=briefData();
-    if(!requirements.length){
-        stats.innerHTML='';
-        content.innerHTML='<div class="tracker-empty">No requirements loaded.<br>Pull this UTA\'s items in on the <strong>UTA Bulletin</strong> tab first.</div>';
-        document.getElementById('briefPlain').textContent='';
-        return;
-    }
-    const late=d.allItems.filter(i=>i.urgency===2),hot=d.allItems.filter(i=>i.urgency===1);
-    const pct=d.totals.total?Math.round(d.totals.done/d.totals.total*100):100;
-    stats.innerHTML=`
-        <div class="stat-card"><div class="stat-label">Flight Complete</div><div class="stat-value" style="color:${pct>=90?'var(--good)':pct>=50?'var(--acc)':'var(--bad)'}">${pct}%</div><div class="prog-bar" style="margin-top:6px"><div class="prog-fill" style="width:${pct}%"></div></div></div>
-        <div class="stat-card"><div class="stat-label">Late</div><div class="stat-value" style="color:${late.length?'var(--bad)':'var(--good)'}">${late.length}</div><div class="stat-sub">Already past due</div></div>
-        <div class="stat-card"><div class="stat-label">Due This UTA</div><div class="stat-value" style="color:${hot.length?'var(--acc)':'var(--good)'}">${hot.length}</div><div class="stat-sub">Hard deadline</div></div>
-        <div class="stat-card"><div class="stat-label">Fully Green</div><div class="stat-value" style="color:var(--good)">${d.clear.length}</div><div class="stat-sub">of ${d.totals.people} on the roster</div></div>`;
-
-    const nameOf=p=>`${p.rank||''} ${p.name}`.trim();
-    let html='';
-    d.teams.forEach(t=>{
-        const bar=`<div class="prog-bar" style="max-width:160px"><div class="prog-fill" style="width:${t.pct}%"></div></div>`;
-        html+=`<div class="brief-team"><div class="brief-team-head"><span>${t.name}</span><span style="display:flex;align-items:center;gap:10px;font-size:11px;color:${t.pct===100?'var(--good)':'var(--acc)'}">${t.pct}%${bar}</span></div>`;
-        if(!t.owing.length){
-            html+='<div class="brief-clear">✅ Nothing outstanding — call them out for it.</div>';
-        }else{
-            t.owing.forEach(r=>{
-                html+=`<div class="brief-person"><div class="brief-name">${nameOf(r.p)}</div><ul class="brief-items">`;
-                r.items.forEach(i=>{
-                    html+=`<li class="u${i.urgency}">${i.title}<span class="brief-when">${i.deadline}</span></li>`;
-                });
-                html+='</ul></div>';
-            });
-        }
-        html+='</div>';
-    });
-    if(d.clear.length)
-        html+=`<div class="brief-team"><div class="brief-team-head"><span>✅ Fully Green — say these names out loud</span></div>
-               <div class="brief-clear">${d.clear.map(r=>nameOf(r.p)).join(' · ')}</div></div>`;
-    content.innerHTML=html;
-    document.getElementById('briefPlain').textContent=briefText(d);
-}
-
-// Same data as the screen, so the two can never drift.
-function briefText(d){
-    d=d||briefData();
-    const nameOf=p=>`${p.rank||''} ${p.name}`.trim();
-    const pct=d.totals.total?Math.round(d.totals.done/d.totals.total*100):100;
-    const L=[`${currentFlight} FLIGHT — MORNING BRIEF`,
-             new Date().toLocaleDateString(undefined,{weekday:'long',year:'numeric',month:'long',day:'numeric'}),
-             '',
-             `Flight training: ${pct}% complete (${d.totals.done} of ${d.totals.total} tasks)`,
-             `Late: ${d.allItems.filter(i=>i.urgency===2).length}   Due this UTA: ${d.allItems.filter(i=>i.urgency===1).length}`,
-             ''];
-    d.teams.forEach(t=>{
-        L.push(`${t.name} — ${t.pct}%`);
-        if(!t.owing.length){L.push('  Nothing outstanding.');}
-        else t.owing.forEach(r=>{
-            L.push(`  ${nameOf(r.p)}`);
-            r.items.forEach(i=>L.push(`    - ${i.title} (${i.deadline})${URGENCY_LABEL[i.urgency]?' *'+URGENCY_LABEL[i.urgency]+'*':''}`));
-        });
-        L.push('');
-    });
-    if(d.clear.length)L.push('FULLY GREEN: '+d.clear.map(r=>nameOf(r.p)).join(', '),'');
-    return L.join('\n');
-}
-
-async function copyBrief(btn){
-    const txt=document.getElementById('briefPlain').textContent;
-    if(!txt){setSyncStatus('','Nothing to copy — build the brief first');return;}
-    const label=btn.textContent;
-    try{
-        await navigator.clipboard.writeText(txt);
-        btn.textContent='Copied';
-    }catch{
-        btn.textContent='Use the text box below';
-        document.querySelector('#tab-brief details').open=true;
-    }
-    setTimeout(()=>{btn.textContent=label;},2000);
-}
 </script>
 <!-- ═══════════════════════════════════ TAB 4: KPIs -->
 <div class="tab-content" id="tab-kpi">
@@ -5767,26 +5318,6 @@ async function copyBrief(btn){
     <div class="modal-btns">
         <button class="btn" onclick="saveKPIEntry()">✓ Save</button>
         <button class="btn btn-red" onclick="closeKPIModal()">✕ Cancel</button>
-    </div>
-</div>
-</div>
-<!-- JSON IMPORT MODAL -->
-<div class="modal-overlay" id="jsonImportModal">
-<div class="modal-box" style="max-width:560px">
-    <h3>Import Requirements from Claude Chat</h3>
-    <div class="ai-note" style="margin-bottom:14px;">
-        <strong>Step 1:</strong> Go to this Claude chat and paste your bulletin with the message:<br>
-        <span style="color:var(--acc);font-family:monospace;font-size:11px;">"Extract all requirements from this UTA bulletin as a JSON array. Each item needs: title, description, applicability (all/snco/nco/7level/5level), applicabilityNote, deadline, category (Training/Admin/Ops/Safety/Medical/Readiness)"</span><br><br>
-        <strong>Step 2:</strong> Copy the JSON array Claude gives you and paste it below.
-    </div>
-    <div class="form-group">
-        <label>Paste JSON here</label>
-        <textarea id="jsonImportText" rows="10" placeholder='[&#10;  {&#10;    "title": "SAPR Annual Training",&#10;    "description": "Complete via ADLS",&#10;    "applicability": "all",&#10;    "applicabilityNote": "All Personnel",&#10;    "deadline": "Mar UTA",&#10;    "category": "Training"&#10;  }&#10;]' style="font-family:monospace;font-size:12px;resize:vertical;"></textarea>
-    </div>
-    <div id="jsonImportMsg" style="font-size:12px;min-height:16px;margin-bottom:8px;"></div>
-    <div class="modal-btns">
-        <button class="btn btn-green" onclick="processJSONImport()">✓ Import Requirements</button>
-        <button class="btn btn-red" onclick="closeJSONImport()">✕ Cancel</button>
     </div>
 </div>
 </div>
@@ -5930,28 +5461,6 @@ async function copyBrief(btn){
 </div>
 </div>
 
-<div class="tab-content" id="tab-brief">
-<div class="container">
-    <div style="padding-top:6px"></div>
-    <div class="page-header">
-        <div><div class="page-title">Morning Brief</div><div class="page-sub" id="briefSub">Read top to bottom in front of the formation</div></div>
-        <div style="display:flex;gap:8px;">
-            <button class="btn" onclick="syncSheets()">⟳ Refresh</button>
-            <button class="btn" onclick="copyBrief(this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M16 5h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2"/></svg> Copy as Text</button>
-            <button class="btn" onclick="window.print()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6M6 18H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-1"/><rect x="7" y="15" width="10" height="6" rx="1"/></svg> Print</button>
-        </div>
-    </div>
-    <div class="stats-row" id="briefStats"></div>
-    <div id="briefContent"></div>
-    <!-- Fallback for the copy button: memory says scripted clipboard writes die inside
-         the artifact sandbox. This page is served over localhost so they should work,
-         but the selectable block costs nothing and always works. -->
-    <details style="margin-top:22px">
-        <summary style="cursor:pointer;color:var(--acc);font-size:11px;letter-spacing:1px;text-transform:uppercase">Plain text — triple-click to select</summary>
-        <pre id="briefPlain" style="user-select:all;white-space:pre-wrap;background:rgba(var(--ink-rgb),.04);border:1px solid rgba(var(--acc-rgb),.22);border-radius:4px;padding:14px;margin-top:10px;font-size:12px;line-height:1.6;"></pre>
-    </details>
-</div>
-</div>
 <!-- pdf-lib 1.17.1, inlined: this page must stay self-contained (a CDN script is
      blocked by the artifact CSP and dead when the file is opened from disk). -->
 <script>
@@ -6539,9 +6048,7 @@ utaSelfCheck();
 </script>
 
 <!-- ═══════════════════════════════════ TAB 9: END-OF-UTA REPORT
-     Flight Chief -> Squadron Commander, after the UTA. The Morning Brief is the other
-     direction (chief -> formation, before it), so this is a separate tab rather than a
-     mode on that one — renderBrief is load-bearing and owns its DOM.
+     Flight Chief -> Squadron Commander, after the UTA.
 
      ONE data path for both the single-flight report and the squadron rollup: everything
      comes from the Sheet through appsGetAll and is normalised once. The first cut read
