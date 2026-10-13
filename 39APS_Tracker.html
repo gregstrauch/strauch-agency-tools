@@ -612,68 +612,6 @@ label{display:block;font-size:10px;color:var(--t-mid2);text-transform:uppercase;
 </div>
 </div>
 
-<!-- ═══════════════════════════════════ TAB 3: TRACKER -->
-<div class="tab-content" id="tab-tracker">
-<div class="container">
-    <div style="padding-top:6px"></div>
-    <div class="page-header">
-        <div><div class="page-title">Training Tracker</div><div class="page-sub">Grid view or per-person breakdown</div></div>
-        <button class="btn" onclick="exportTracker()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5"/><path d="M4 20h16"/></svg> Export Tracker</button>
-    </div>
-
-    <div class="stats-row" id="trackerStats"></div>
-
-    <div class="view-toggle">
-        <button class="view-btn active" id="vBtnGrid" onclick="setTrackerView('grid')">⊞ Grid View</button>
-        <button class="view-btn" id="vBtnPerson" onclick="setTrackerView('person')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg> Person View</button>
-    </div>
-
-    <!-- GRID VIEW -->
-    <div id="gridViewPanel">
-        <div class="tracker-controls">
-            <select class="tracker-filter" id="teamFilter" onchange="renderTracker()">
-                <option value="all">All Teams</option>
-            </select>
-            <select class="tracker-filter" id="statusFilter" onchange="renderTracker()">
-                <option value="all">All Statuses</option>
-                <option value="DUE">Due Only</option>
-                <option value="DONE">Complete Only</option>
-            </select>
-            <button class="btn-sm" onclick="markAllVisible('DONE')">✓ Mark All Done</button>
-            <button class="btn-sm grey" onclick="markAllVisible('DUE')">↩ Reset All to Due</button>
-        </div>
-        <div class="tracker-wrap"><div id="trackerContent"></div></div>
-    </div>
-
-    <!-- PERSON VIEW -->
-    <div id="personViewPanel" style="display:none;">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
-            <select class="person-selector" id="personSelect" onchange="renderPersonView()">
-                <option value="">— Select a person —</option>
-            </select>
-            <select class="tracker-filter" id="personStatusFilter" onchange="renderPersonView()">
-                <option value="all">All Statuses</option>
-                <option value="DUE">Due Only</option>
-                <option value="DONE">Complete</option>
-                <option value="EXEMPT">Exempt</option>
-            </select>
-        </div>
-        <div id="personSummary"></div>
-        <div class="person-cards" id="personCards"></div>
-    </div>
-
-    <!-- TRAINING PLAN TEMPLATES -->
-    <div class="section-label">Training Plan Templates</div>
-    <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap;">
-            <div class="tpl-note">Shared with the whole flight — saved to the Sheet</div>
-            <button class="btn-sm" onclick="openTplEdit(null)">+ Add Template</button>
-        </div>
-        <div class="tpl-list" id="tplList"></div>
-    </div>
-</div>
-</div>
-
 <!-- ═══════════════════════════════════ TAB: ATTENDANCE -->
 <div class="tab-content" id="tab-attendance">
 <div class="container">
@@ -943,7 +881,6 @@ const TAB_GROUPS=[
         {id:'attendance', label:'Attendance'},
         {id:'utarpt',     label:'End-of-UTA Report'}]},
     {id:'ready', label:'Readiness', icon:'ready', tabs:[
-        {id:'tracker', label:'Training Tracker'},
         {id:'kpi',     label:'KPIs'},
         {id:'career',  label:'Career Progression'},
         {id:'orders',  label:'Orders Request'},
@@ -986,14 +923,13 @@ function switchTab(name,btn){
     localStorage.setItem('afm_tab',name);
     // Overview reads the Sheet, not local state — fetch once, then it is a re-render.
     if(name==='overview'){ ovData?renderOverview():loadOverview(); }
-    if(name==='tracker'){ renderTracker(); renderTemplates(); }
     if(name==='manning') renderFlow();
     if(name==='attendance') renderAttendance();
     if(name==='kpi'){ populateKPIPeriodSelector(); renderKPI(); }
     if(name==='promotions') renderPromotions();
     if(name==='feedback'){ renderFeedback(); renderFeedbackSession(); }
     if(name==='utarpt') renderUtaReport();
-    if(name==='templates') renderAfDocs();
+    if(name==='templates'){ renderAfDocs(); renderTemplates(); }
     if(name==='epb') renderEPB();
     if(name==='career') renderCareer();
     if(name==='orders') ordersInit();
@@ -1113,7 +1049,6 @@ function renderManning(){
     renderVerifyPanel();
     renderChains();
     renderDuties();
-    populateTeamFilter();
 }
 
 // ═══════════════════════ WIRING DIAGRAM EXPORT
@@ -1953,7 +1888,7 @@ function reloadFlightState(){
     rptComments=loadLS('afm_rptc',{});
     kpiData=loadLS('afm_kpi',{periods:[],sections:defaultKPISectionsFor(currentFlight)});
     ensureFlightKPISections();
-    renderManning();populateKPIPeriodSelector();renderKPI();renderPromotions();renderTracker();renderAttendance();renderTemplates();renderFlow();renderFeedback();renderFeedbackSession();
+    renderManning();populateKPIPeriodSelector();renderKPI();renderPromotions();renderAttendance();renderTemplates();renderFlow();renderFeedback();renderFeedbackSession();
     if(ovData)renderOverview();
     if(document.getElementById('tab-utarpt')?.classList.contains('active'))renderUtaReport();
 }
@@ -2171,7 +2106,7 @@ function syncSheets(){
             setSyncStatus('ok',roll
                 ?`ALL SQUADRON · read-only · ${new Date().toLocaleTimeString()}`
                 :`Synced ↕ ${currentFlight} ${new Date().toLocaleTimeString()}`);
-            renderManning();renderTracker();renderKPI();renderPromotions();renderAttendance();renderTemplates();renderFlow();
+            renderManning();renderKPI();renderPromotions();renderAttendance();renderTemplates();renderFlow();
         }catch(e){setSyncStatus('err','Sync failed: '+e.message);}
     })();
 }
@@ -2487,105 +2422,6 @@ function personApplies(person,req){
     if(a==='nco')return ['SSgt','TSgt','MSgt','SMSgt','CMSgt'].includes(r);
     if(a==='enlisted')return !r.includes('Lt')&&!r.includes('Capt')&&!r.includes('Col');
     return true;
-}
-
-function populateTeamFilter(){
-    const sel=document.getElementById('teamFilter');
-    const current=sel.value;
-    sel.innerHTML='<option value="all">All Teams</option>';
-    manning.msgtLeads.forEach(s=>sel.innerHTML+=`<option value="${s.name}">${s.name}</option>`);
-    sel.value=current;
-}
-
-function renderTracker(){
-    const teamF=document.getElementById('teamFilter')?.value||'all';
-    const statusF=document.getElementById('statusFilter')?.value||'all';
-    const people=getAllPersonnel().filter(p=>teamF==='all'||p.team===teamF);
-
-    if(!requirements.length){
-        document.getElementById('trackerContent').innerHTML='<div class="tracker-empty">No requirements loaded.<br>Requirements already in the Sheet appear here after a sync.</div>';
-        document.getElementById('trackerStats').innerHTML='';
-        return;
-    }
-
-    // Stats
-    let totalCells=0,doneCells=0,dueCells=0;
-    requirements.forEach(req=>{
-        people.forEach(p=>{
-            const st=(tracker[req.title]||{})[p.name]||'DUE';
-            if(st!=='NA'){totalCells++;if(st==='DONE')doneCells++;if(st==='DUE')dueCells++;}
-        });
-    });
-    const pct=totalCells?Math.round(doneCells/totalCells*100):0;
-    document.getElementById('trackerStats').innerHTML=`
-        <div class="stat-card"><div class="stat-label">Requirements</div><div class="stat-value">${requirements.length}</div><div class="stat-sub">This UTA</div></div>
-        <div class="stat-card"><div class="stat-label">Personnel</div><div class="stat-value">${people.length}</div><div class="stat-sub">Applicable</div></div>
-        <div class="stat-card"><div class="stat-label">Complete</div><div class="stat-value" style="color:var(--good)">${doneCells}</div><div class="stat-sub">Tasks done</div></div>
-        <div class="stat-card"><div class="stat-label">Due</div><div class="stat-value" style="color:var(--acc)">${dueCells}</div><div class="stat-sub">Still needed</div></div>
-        <div class="stat-card"><div class="stat-label">Completion</div><div class="stat-value">${pct}%</div><div class="prog-bar" style="margin-top:6px"><div class="prog-fill" style="width:${pct}%"></div></div></div>`;
-
-    let filteredReqs=requirements;
-    if(statusF!=='all'){filteredReqs=requirements.filter(req=>people.some(p=>{const st=(tracker[req.title]||{})[p.name]||'DUE';return st===statusF;}));}
-
-    if(!people.length){document.getElementById('trackerContent').innerHTML='<div class="tracker-empty">No personnel match current filter.</div>';return;}
-
-    let html='<table class="tracker-table"><thead><tr><th>Requirement</th>';
-    people.forEach(p=>html+=`<th title="${p.team}">${p.name.split(' ').pop()}<br><span style="color:var(--t-faint2);font-weight:400">${p.rank}</span></th>`);
-    html+='</tr></thead><tbody>';
-
-    filteredReqs.forEach(req=>{
-        const reqKey=req.title;
-        let rowDone=0,rowTotal=0;
-        people.forEach(p=>{const st=(tracker[reqKey]||{})[p.name]||'DUE';if(st!=='NA'){rowTotal++;if(st==='DONE')rowDone++;}});
-        const rowPct=rowTotal?Math.round(rowDone/rowTotal*100):0;
-        html+=`<tr><td class="req-name-cell">${req.title}<div class="req-apply">${req.applicabilityNote||req.applicability} · ${req.deadline||'This UTA'}</div><div class="prog-bar"><div class="prog-fill" style="width:${rowPct}%"></div></div><div class="pct-label">${rowPct}% complete</div></td>`;
-        people.forEach(p=>{
-            const st=(tracker[reqKey]||{})[p.name]||'DUE';
-            const applies=personApplies(p,req);
-            if(!applies){html+=`<td><button class="status-btn status-NA" disabled>N/A</button></td>`;return;}
-            html+=`<td><button class="status-btn status-${st}" onclick="cycleStatus('${esc(reqKey)}','${esc(p.name)}',this)">${st}</button></td>`;
-        });
-        html+='</tr>';
-    });
-    html+='</tbody></table>';
-    document.getElementById('trackerContent').innerHTML=html;
-}
-
-function cycleStatus(reqKey,personName,btn){
-    const order=['DUE','DONE','EXEMPT'];
-    const cur=(tracker[reqKey]||{})[personName]||'DUE';
-    const next=order[(order.indexOf(cur)+1)%order.length];
-    if(!tracker[reqKey])tracker[reqKey]={};
-    tracker[reqKey][personName]=next;
-    saveLS('afm_tracker',tracker);
-    schedulePush('Tracker');
-    btn.textContent=next;
-    btn.className=`status-btn status-${next}`;
-    // Update stats
-    renderTracker();
-}
-
-function markAllVisible(status){
-    const teamF=document.getElementById('teamFilter')?.value||'all';
-    const people=getAllPersonnel().filter(p=>teamF==='all'||p.team===teamF);
-    requirements.forEach(req=>{
-        people.forEach(p=>{
-            if(personApplies(p,req)){if(!tracker[req.title])tracker[req.title]={};tracker[req.title][p.name]=status;}
-        });
-    });
-    saveLS('afm_tracker',tracker);schedulePush('Tracker');renderTracker();
-}
-
-function exportTracker(){
-    let csv='Requirement,Category,Deadline,Applies To,Person,Team,Rank,Status\n';
-    const people=getAllPersonnel();
-    requirements.forEach(req=>{
-        people.forEach(p=>{
-            const st=(tracker[req.title]||{})[p.name]||'DUE';
-            csv+=`"${req.title}","${req.category||''}","${req.deadline||''}","${req.applicabilityNote||''}","${p.name}","${p.team}","${p.rank}","${st}"\n`;
-        });
-    });
-    dl('39APS_Tracker.csv',csv,'text/csv');
 }
 
 // ═══════════════════════ EXPORT/IMPORT MANNING
@@ -3279,83 +3115,6 @@ function getPersonByPath(path){
     if(type==='msgt')return manning.msgtLeads[si]?.msgt;
     if(type==='tsgt')return manning.msgtLeads[si]?.tsgts[parseInt(p[2])];
     return manning.msgtLeads[si]?.tsgts[parseInt(p[2])]?.subordinates[parseInt(p[3])];
-}
-
-// ═══════════════════════ TRACKER VIEWS
-let trackerView='grid';
-function setTrackerView(v){
-    trackerView=v;
-    document.getElementById('gridViewPanel').style.display=v==='grid'?'':'none';
-    document.getElementById('personViewPanel').style.display=v==='person'?'':'none';
-    document.getElementById('vBtnGrid').classList.toggle('active',v==='grid');
-    document.getElementById('vBtnPerson').classList.toggle('active',v==='person');
-    if(v==='person'){populatePersonSelector();renderPersonView();}else renderTracker();
-}
-
-function populatePersonSelector(){
-    const sel=document.getElementById('personSelect');
-    const cur=sel.value;
-    const people=getAllPersonnel().sort((a,b)=>a.name.localeCompare(b.name));
-    sel.innerHTML='<option value="">— Select a person —</option>'+people.map(p=>`<option value="${p.name}">${p.name} (${p.rank}, ${p.team})</option>`).join('');
-    if(cur)sel.value=cur;
-}
-
-function renderPersonView(){
-    const name=document.getElementById('personSelect').value;
-    const statusF=document.getElementById('personStatusFilter').value;
-    const summary=document.getElementById('personSummary');
-    const cards=document.getElementById('personCards');
-    if(!name){summary.innerHTML='';cards.innerHTML='<div style="color:var(--t-faint2);text-align:center;padding:30px;font-size:13px;">Select a person above to see their training breakdown.</div>';return;}
-    if(!requirements.length){summary.innerHTML='';cards.innerHTML='<div style="color:var(--t-faint2);text-align:center;padding:30px;font-size:13px;">No requirements loaded.</div>';return;}
-    const person=getAllPersonnel().find(p=>p.name===name);
-    if(!person)return;
-    const applicable=requirements.filter(r=>personApplies(person,r));
-    const statuses=applicable.map(r=>({req:r,st:(tracker[r.title]||{})[name]||'DUE'}));
-    const done=statuses.filter(x=>x.st==='DONE').length;
-    const due=statuses.filter(x=>x.st==='DUE').length;
-    const exm=statuses.filter(x=>x.st==='EXEMPT').length;
-    const pct=applicable.length?Math.round(done/applicable.length*100):0;
-    const barColor=pct>=90?'var(--good)':pct>=70?'var(--warn)':'var(--bad)';
-    summary.innerHTML=`<div class="person-summary">
-        <div class="person-summary-item"><div style="font-size:11px;color:var(--t-mid2)">Person</div><div style="font-size:15px;font-weight:700;color:var(--t-hi)">${name}</div><div style="font-size:11px;color:var(--t-faint2)">${person.rank} · ${person.team}</div></div>
-        <div style="width:1px;background:rgba(var(--acc-rgb),.2)"></div>
-        <div class="person-summary-item"><div style="font-size:11px;color:var(--t-mid2)">Requirements</div><div class="person-summary-val" style="color:var(--acc)">${applicable.length}</div></div>
-        <div class="person-summary-item"><div style="font-size:11px;color:var(--t-mid2)">Complete</div><div class="person-summary-val" style="color:var(--good)">${done}</div></div>
-        <div class="person-summary-item"><div style="font-size:11px;color:var(--t-mid2)">Due</div><div class="person-summary-val" style="color:var(--warn)">${due}</div></div>
-        <div class="person-summary-item"><div style="font-size:11px;color:var(--t-mid2)">Exempt</div><div class="person-summary-val" style="color:var(--t-faint)">${exm}</div></div>
-        <div class="person-summary-item" style="flex:1"><div style="font-size:11px;color:var(--t-mid2)">Completion</div><div class="person-summary-val" style="color:${barColor}">${pct}%</div><div class="prog-bar" style="margin-top:4px;max-width:200px"><div class="prog-fill" style="width:${pct}%;background:${barColor}"></div></div></div>
-    </div>`;
-    const filtered=statusF==='all'?statuses:statuses.filter(x=>x.st===statusF);
-    if(!filtered.length){cards.innerHTML='<div style="color:var(--t-faint2);font-size:13px;padding:20px;text-align:center;">No requirements match filter.</div>';return;}
-    cards.innerHTML=filtered.map(({req,st})=>`
-        <div class="person-req-card s${st}">
-            <div class="person-req-title">${req.title}</div>
-            <div class="person-req-meta">${req.category||''} · ${req.deadline||'This UTA'}</div>
-            ${req.description?`<div style="font-size:11px;color:var(--t-faint);margin-bottom:8px;">${req.description}</div>`:''}
-            <button class="status-btn status-${st}" onclick="cyclePersonStatus('${esc(req.title)}','${esc(name)}',this)">${st}</button>
-        </div>`).join('');
-}
-
-function cyclePersonStatus(reqKey,personName,btn){
-    const order=['DUE','DONE','EXEMPT'];
-    const cur=(tracker[reqKey]||{})[personName]||'DUE';
-    const next=order[(order.indexOf(cur)+1)%order.length];
-    if(!tracker[reqKey])tracker[reqKey]={};
-    tracker[reqKey][personName]=next;
-    saveLS('afm_tracker',tracker);
-    schedulePush('Tracker');
-    btn.textContent=next; btn.className=`status-btn status-${next}`;
-    btn.closest('.person-req-card').className=`person-req-card s${next}`;
-    // Refresh summary only
-    const name=document.getElementById('personSelect').value;
-    const person=getAllPersonnel().find(p=>p.name===name);
-    if(!person)return;
-    const applicable=requirements.filter(r=>personApplies(person,r));
-    const statuses=applicable.map(r=>({req:r,st:(tracker[r.title]||{})[name]||'DUE'}));
-    const done=statuses.filter(x=>x.st==='DONE').length;
-    const pct=applicable.length?Math.round(done/applicable.length*100):0;
-    const barColor=pct>=90?'var(--good)':pct>=70?'var(--warn)':'var(--bad)';
-    document.querySelectorAll('.person-summary-val').forEach((el,i)=>{if(i===1)el.textContent=done;if(i===2)el.textContent=statuses.filter(x=>x.st==='DUE').length;if(i===3)el.textContent=statuses.filter(x=>x.st==='EXEMPT').length;if(i===4){el.textContent=pct+'%';el.style.color=barColor;}});
 }
 
 // ═══════════════════════ PROMOTIONS VIEW
@@ -6493,6 +6252,15 @@ function renderAfDocs(){
             <span style="font-size:11px;color:var(--t-mid2)">Last full pass: <strong id="afdocGlobal" style="color:var(--acc)">—</strong></span>
             <button class="btn-sm" onclick="afdocMarkGlobal()">✓ Full review done today</button>
         </div>
+    </div>
+    <!-- TRAINING PLAN TEMPLATES (moved from the retired Training Tracker tab) -->
+    <div class="section-label">Training Plan Templates</div>
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap;">
+            <div class="tpl-note">Shared with the whole flight — saved to the Sheet</div>
+            <button class="btn-sm" onclick="openTplEdit(null)">+ Add Template</button>
+        </div>
+        <div class="tpl-list" id="tplList"></div>
     </div>
 <div id="tplMain">
 
