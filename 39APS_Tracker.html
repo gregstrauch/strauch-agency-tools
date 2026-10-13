@@ -950,7 +950,8 @@ const TAB_GROUPS=[
         {id:'dental',  label:'Dental (DD 2813)'}]},
     {id:'ref', label:'Reference', icon:'ref', tabs:[
         {id:'templates', label:'Pubs & Templates'},
-        {id:'epb',       label:'EPB Routing'}]}
+        {id:'epb',       label:'EPB Routing'},
+        {id:'travel',    label:'Foreign Travel'}]}
 ];
 const groupOf=name=>TAB_GROUPS.find(g=>g.tabs.some(t=>t.id===name))||TAB_GROUPS[0];
 
@@ -6422,6 +6423,63 @@ function renderAfDocs(){
     <div class="section-label">When is my EPB due?</div>
     <div id="epbScod" style="overflow-x:auto"></div>
     <div class="footer">Export the PNG for Slack, the PDF for email.</div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════ TAB: FOREIGN TRAVEL
+     Static reference: links out, writes nothing to the Sheet. The FCG is the
+     authority — this page only puts the steps in order. -->
+<div class="tab-content" id="tab-travel">
+<div class="container">
+    <div style="padding-top:6px"></div>
+    <div class="page-header">
+        <div>
+            <div class="page-title">Foreign Travel</div>
+            <div class="page-sub">Official or personal travel outside the U.S. · check every trip, every time</div>
+        </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:16px;">
+        <div class="card" style="cursor:default;">
+            <div class="section-label" style="margin-top:0">Foreign Clearance Guide (APACS)</div>
+            <div style="font-size:13px;line-height:1.6;margin-bottom:10px;">What DoD requires to enter each country: clearance requests, lead times, required training, and any restrictions. Official travel clearance requests are submitted here. CAC login.</div>
+            <a class="btn" href="https://apacs.milcloud.mil/fcg2/prelogin" target="_blank" rel="noopener noreferrer" style="text-decoration:none">Open FCG / APACS</a>
+        </div>
+        <div class="card" style="cursor:default;">
+            <div class="section-label" style="margin-top:0">State Dept Travel Advisories</div>
+            <div style="font-size:13px;line-height:1.6;margin-bottom:10px;">Current safety level for every country, from 1 (exercise normal precautions) to 4 (do not travel). Public site, no login.</div>
+            <a class="btn" href="https://travel.state.gov/en/international-travel/travel-advisories.html" target="_blank" rel="noopener noreferrer" style="text-decoration:none">Open Travel Advisories</a>
+        </div>
+    </div>
+    <div class="section-label">Forms &amp; guidance</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:16px;">
+        <div class="card" style="cursor:default;">
+            <div class="section-label" style="margin-top:0">Foreign Travel Reporting Form</div>
+            <div style="font-size:13px;line-height:1.6;margin-bottom:10px;">Fill it in and route it to the security manager. Once filled in it is Privacy Act / FOUO, so send it by encrypted email only.</div>
+            <a class="btn" href="Foreign_Travel_Reporting_Form.pdf" target="_blank" rel="noopener" style="text-decoration:none">Open form (PDF)</a>
+        </div>
+        <div class="card" style="cursor:default;">
+            <div class="section-label" style="margin-top:0">DoDM 5200.02 / DAFMAN 16-1405</div>
+            <div style="font-size:13px;line-height:1.6;margin-bottom:10px;">Personnel Security Program, with the 8 Jan 2026 guidance memo. Foreign travel rules: Enclosure 6, para 2 (PDF p. 21&ndash;22). Official copy on e-Publishing.</div>
+            <a class="btn" href="https://static.e-publishing.af.mil/production/1/saf_oc/publication/dodman5200.02_dafman16-1405/dodman5200.02_dafman16-1405.pdf#page=21" target="_blank" rel="noopener noreferrer" style="text-decoration:none">Open to foreign travel</a>
+        </div>
+    </div>
+    <div class="section-label">Personal (unofficial) travel</div>
+    <ol style="font-size:14px;line-height:1.8;padding-left:22px;margin:0 0 16px;">
+        <li><strong>Check the advisory level</strong> for every country on the trip, including layovers. Level 4 is not authorized, and the commander can disapprove any trip judged too risky.</li>
+        <li><strong>Read the country page in the FCG</strong> and follow what it requires.</li>
+        <li><strong>Get pre-approval.</strong> At least 30 days out when possible, submit the reporting form with your full itinerary to the commander through the security manager: dates, transportation, passport data, any foreign national companions, planned foreign contacts, and an emergency POC. Do not go until it is approved.</li>
+        <li><strong>Get the briefings.</strong> AT Level 1 must be current. If your access requires it, complete the AFOSI counterintelligence briefing before you leave.</li>
+        <li><strong>Report within 5 business days of return</strong>: any change from the approved itinerary, unplanned contact with foreign governments or citizens, anything suspicious, and any legal or customs incident. The security manager logs the trip in DISS.</li>
+    </ol>
+    <div class="section-label">Exceptions</div>
+    <ul style="font-size:14px;line-height:1.8;padding-left:22px;margin:0 0 16px;">
+        <li><strong>Official travel</strong> solely on government orders needs no report; follow the FCG and submit through APACS. A personal trip added to a TDY or deployment still needs pre-approval. SCI and SAP holders report to their SSO or SAP PM.</li>
+        <li><strong>Puerto Rico, Guam and other U.S. territories</strong> are not foreign travel.</li>
+        <li><strong>Unplanned day trips to Canada or Mexico</strong> need no pre-approval, but report them within 5 business days of return.</li>
+        <li><strong>Emergencies:</strong> at minimum, tell your supervisor or security manager verbally before you leave, then file the full report within 5 business days of return.</li>
+    </ul>
+    <div class="tpl-note">The reporting form says Level 1 countries need no approval. The 2026 guidance memo in DAFMAN 16-1405 is newer and prevails: <strong>all</strong> unofficial foreign travel by covered personnel needs pre-approval. Follow the manual, and ask the unit security manager when in doubt.</div>
+</div>
 </div>
 </div>
 
