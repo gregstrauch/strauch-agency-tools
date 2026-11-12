@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>39 APS Tracker</title>
+<style>
+  body{margin:0;min-height:100vh;display:grid;place-items:center;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;background:#f6f6f6;color:#222}
+  form{background:#fff;padding:2rem;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.08);max-width:420px;width:calc(100% - 2rem);box-sizing:border-box}
+  h1{font-size:1.1rem;margin:0 0 .5rem}p{margin:0 0 1rem;font-size:.95rem;color:#555}
+  input{width:100%;box-sizing:border-box;padding:.6rem;border:1px solid #ccc;border-radius:6px;font-size:1rem}
+  button{margin-top:.75rem;width:100%;padding:.65rem;border:0;border-radius:6px;background:#003087;color:#fff;font-size:1rem;cursor:pointer}
+  .err{color:#E01933;font-size:.9rem;margin-top:.5rem;min-height:1.2em}
+</style>
+</head>
+<body>
+<form id="f" hidden>
+  <h1>39 APS Tracker</h1>
+  <p>This page is private. Paste the full link you were sent, or just its key.</p>
+  <input id="k" autocomplete="off" placeholder="Access link or key" autofocus>
+  <button>Open</button>
+  <div class="err" id="e"></div>
+</form>
+<script>
+const b64 = s => Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')), c => c.charCodeAt(0));
+const extractKey = s => (s.match(/k=([A-Za-z0-9_-]{43})/) || [])[1] || '';
+async function unlock(k) {
+  const { iv, ct } = await (await fetch('page.enc.json?v=1794515196070')).json();
+  const key = await crypto.subtle.importKey('raw', b64(k), 'AES-GCM', false, ['decrypt']);
+  const html = new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(iv) }, key, b64(ct)));
+  try { localStorage.setItem(SK, k); } catch {}
+  document.open(); document.write(html); document.close();
+}
+const SK = 'ss-key:' + location.pathname;
+let stored = ''; try { stored = localStorage.getItem(SK) || localStorage.getItem('ss-key') || ''; } catch {}
+const k0 = extractKey(location.hash) || stored;
+f.onsubmit = async ev => { ev.preventDefault(); e.textContent = '';
+  try { await unlock(extractKey(k.value)); } catch { e.textContent = 'That key did not work.'; } };
+(k0 ? unlock(k0) : Promise.reject()).catch(() => { f.hidden = false; });
+</script>
+</body>
+</html>
