@@ -26,7 +26,7 @@
 const b64 = s => Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')), c => c.charCodeAt(0));
 const extractKey = s => (s.match(/k=([A-Za-z0-9_-]{43})/) || [])[1] || '';
 async function unlock(k) {
-  const { iv, ct } = await (await fetch('page.enc.json?v=1794515196070')).json();
+  const { iv, ct } = await (await fetch('page.enc.json?v=1794941404570')).json();
   const key = await crypto.subtle.importKey('raw', b64(k), 'AES-GCM', false, ['decrypt']);
   const html = new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(iv) }, key, b64(ct)));
   try { localStorage.setItem(SK, k); } catch {}
